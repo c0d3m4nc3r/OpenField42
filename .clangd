@@ -1,0 +1,35 @@
+CompileFlags:
+  CompilationDatabase: build
+  Add: 
+    - -Wall
+    - -Wextra
+    - -Wno-unused-parameter
+    - -Wno-unused-variable
+    - -std=c++20
+
+InlayHints:
+  Enabled: No
+
+Completion:
+  HeaderInsertion: Never
+  AllScopes: Yes
+
+Diagnostics:
+  UnusedIncludes: Strict
+  ClangTidy:
+    Add:
+      - modernize-use-nullptr
+      - performance-*
+      - bugprone-*
+    Remove:
+      - clang-analyzer-*
+      - bugprone-easily-swappable-parameters
+      - bugprone-implicit-widening-of-multiplication-result
+      - bugprone-narrowing-conversions
+      - performance-no-int-to-ptr
+
+Index:
+  Background: Build
+
+Hover:
+  ShowAKA: Yes

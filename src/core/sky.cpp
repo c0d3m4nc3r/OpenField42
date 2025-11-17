@@ -1,0 +1,57 @@
+#include "core/sky.h"
+#include "core/log.h"
+#include "assets/shader.h"
+#include "geometry/geometry.h"
+#include "geometry/template.h"
+
+#include "glad/glad.h"
+
+#include <glm/gtc/matrix_transform.hpp>
+
+Sky sky;
+
+bool Sky::init()
+{
+    LOG_INFO("Sky::init: Initializing sky...");
+
+    const GeometryTemplate* geom_tmpl = GeometryTemplate::current;
+
+    if (!geom_tmpl)
+    {
+        LOG_ERROR("Sky::init: There is no active geometry template to init sky!");
+        return false;
+    }
+
+    if (geom_tmpl->type != GeometryType::StandardMesh)
+    {
+        LOG_ERROR("Sky::init: Current geometry template type should be StandardMesh!");
+        return false;
+    }
+
+    geometry = Geometry::create(geom_tmpl);
+    if (!geometry)
+    {
+        LOG_ERROR("Sky::init: Failed to create sky geometry!");
+        return false;
+    }
+
+    LOG_INFO("Sky::init: Sky initialized!");
+    
+    return true;
+}
+
+void Sky::draw(Shader* shader)
+{
+    if (!shader || !geometry) return;
+
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
+    
+    shader->setBool("uIsSky", true);
+    shader->setVec3("uWireframeColor", glm::vec3(0.0f, 0.0f, 1.0f));
+    geometry->draw(shader, glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), glm::vec3(0.0f, 1.0f, 0.0f)));
+    shader->setBool("uIsSky", false);
+    
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+}

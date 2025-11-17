@@ -1,0 +1,8 @@
+.cache
+.vscode
+.trash
+.directory
+bin
+build
+game_data
+imgui.ini

@@ -1,0 +1,84 @@
+cmake_minimum_required(VERSION 3.25)
+
+project(OpenField42 VERSION 0.1 LANGUAGES CXX C)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(FetchContent)
+
+# --- SDL3 ---
+FetchContent_Declare(
+    SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.2.0
+)
+
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+set(SDL_TEST OFF CACHE BOOL "" FORCE)
+
+message(STATUS "Fetching SDL3...")
+
+FetchContent_MakeAvailable(SDL3)
+
+# --- SDL3 end ---
+
+# --- glm ---
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG        master
+)
+
+message(STATUS "Fetching glm...")
+
+FetchContent_MakeAvailable(glm)
+
+# --- glm end ---
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor)
+
+set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+set(SOURCES
+    ${SRC_DIR}/main.cpp
+    ${SRC_DIR}/assets/shader.cpp
+    ${SRC_DIR}/assets/texture.cpp
+    ${SRC_DIR}/core/camera.cpp
+    ${SRC_DIR}/core/console.cpp
+    ${SRC_DIR}/core/game.cpp
+    ${SRC_DIR}/core/input.cpp
+    ${SRC_DIR}/core/log.cpp
+    ${SRC_DIR}/core/renderer.cpp
+    ${SRC_DIR}/core/sky.cpp
+    ${SRC_DIR}/core/water.cpp
+    ${SRC_DIR}/core/window.cpp
+    ${SRC_DIR}/geometry/geometry.cpp
+    ${SRC_DIR}/geometry/material.cpp
+    ${SRC_DIR}/geometry/patch_terrain.cpp
+    ${SRC_DIR}/geometry/standard_mesh.cpp
+    ${SRC_DIR}/geometry/template.cpp
+    ${SRC_DIR}/math/aabb.cpp
+    ${SRC_DIR}/math/frustum.cpp
+    ${SRC_DIR}/object/object.cpp
+    ${SRC_DIR}/object/template.cpp
+    ${SRC_DIR}/utils/string_utils.cpp
+    ${SRC_DIR}/utils/texture_utils.cpp
+    ${SRC_DIR}/vfs/folder_provider.cpp
+    ${SRC_DIR}/vfs/rfa_provider.cpp
+    ${SRC_DIR}/vfs/vfs.cpp
+)
+
+add_executable(of42 ${SOURCES})
+
+if (MSVC)
+    target_compile_definitions(of42 PRIVATE "_CRT_SECURE_NO_WARNINGS")
+endif()
+
+target_include_directories(of42 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(of42 PUBLIC SDL3::SDL3-static glad glm librfa soil2 imgui)
