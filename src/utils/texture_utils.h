@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assets/texture.h"
+#include "render/texture.h"
 
 #include "glad/glad.h"
 

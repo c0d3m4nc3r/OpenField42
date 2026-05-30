@@ -1,22 +1,23 @@
 #include "core/game.h"
+
 #include "core/console.h"
-#include "core/input.h"
-#include "core/sky.h"
-#include "core/log.h"
-#include "core/renderer.h"
-#include "core/window.h"
-#include "assets/shader.h"
+#include "world/sky.h"
+#include "utils/log.h"
+#include "platform/input.h"
+#include "platform/window.h"
+#include "render/renderer.h"
+#include "render/shader.h"
 #include "object/object.h"
 #include "vfs/vfs.h"
-
-#include <SDL3/SDL_init.h>
-#include <SDL3/SDL_timer.h>
 
 #include "glad/glad.h"
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
+
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_timer.h>
 
 Game game;
 
@@ -161,20 +162,6 @@ void Game::onEvent(const SDL_Event& event)
             if (event.key.scancode == SDL_SCANCODE_ESCAPE)
             {
                 input.setMouseCaptured(!input.isMouseCaptured());
-
-                // if (mouse_captured) 
-                // {
-                //     SDL_GetMouseState(&last_mouse_x, &last_mouse_y);
-                //     mouse_captured = false;
-                // }
-                // else 
-                // {
-                //     SDL_WarpMouseInWindow(window, last_mouse_x, last_mouse_y);
-                //     mouse_captured = true;
-                // }
-                
-                // SDL_SetWindowRelativeMouseMode(window, mouse_captured);
-                // SDL_GetRelativeMouseState(nullptr, nullptr);
             }
             else if (event.key.scancode == SDL_SCANCODE_F1)
             {
@@ -315,10 +302,10 @@ void Game::render()
     ImGui::SetNextWindowBgAlpha(0.05f);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
-                            ImGuiWindowFlags_NoResize |
-                            ImGuiWindowFlags_NoMove |
-                            ImGuiWindowFlags_NoScrollbar |
-                            ImGuiWindowFlags_NoSavedSettings;
+                             ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoSavedSettings;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::Begin("Debug Info", nullptr, flags);

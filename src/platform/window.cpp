@@ -1,8 +1,8 @@
-#include "core/window.h"
+#include "platform/window.h"
 #include "core/config.h"
 #include "core/game.h"
-#include "core/input.h"
-#include "core/log.h"
+#include "platform/input.h"
+#include "utils/log.h"
 
 #include "glad/glad.h"
 

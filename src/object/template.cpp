@@ -1,5 +1,5 @@
 #include "object/template.h"
-#include "core/log.h"
+#include "utils/log.h"
 #include "utils/string_utils.h"
 
 ObjectTemplate& ObjectTemplate::create(const std::string& name, ObjectType type)

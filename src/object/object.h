@@ -4,9 +4,10 @@
 #include <vector>
 #include <string>
 
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
-enum class ObjectType
+enum class ObjectType : unsigned char
 {
     Unknown,
     ANDCompositeObjective,

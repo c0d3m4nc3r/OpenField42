@@ -1,5 +1,5 @@
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/librfa_)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/librfa)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SOIL2)
 
 set(GLAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glad)

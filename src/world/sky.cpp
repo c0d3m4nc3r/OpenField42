@@ -1,8 +1,9 @@
-#include "core/sky.h"
-#include "core/log.h"
-#include "assets/shader.h"
+#include "world/sky.h"
+
 #include "geometry/geometry.h"
 #include "geometry/template.h"
+#include "render/shader.h"
+#include "utils/log.h"
 
 #include "glad/glad.h"
 

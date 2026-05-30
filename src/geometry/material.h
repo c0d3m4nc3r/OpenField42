@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 
 struct Color
 {

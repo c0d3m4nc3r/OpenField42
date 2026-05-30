@@ -1,8 +1,8 @@
 #include "geometry/patch_terrain.h"
 #include "geometry/template.h"
-#include "assets/texture.h"
-#include "core/water.h"
-#include "core/log.h"
+#include "render/texture.h"
+#include "world/water.h"
+#include "utils/log.h"
 #include "vfs/vfs.h"
 #include "utils/texture_utils.h"
 

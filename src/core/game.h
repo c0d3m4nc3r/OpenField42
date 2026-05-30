@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/camera.h"
+#include "render/camera.h"
 #include "core/config.h"
 
 #include <SDL3/SDL_video.h>

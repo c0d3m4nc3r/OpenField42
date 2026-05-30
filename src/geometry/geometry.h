@@ -3,8 +3,6 @@
 #include "geometry/material.h"
 #include "math/aabb.h"
 
-#include <glm/glm.hpp>
-
 #include <vector>
 #include <unordered_map>
 #include <string>

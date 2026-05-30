@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.27)
 
 project(OpenField42 VERSION 0.1 LANGUAGES CXX C)
 
@@ -11,11 +11,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+
 # --- SDL3 ---
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.2.0
+    GIT_TAG main
 )
 
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
@@ -46,32 +48,32 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor)
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(SOURCES
-    ${SRC_DIR}/main.cpp
-    ${SRC_DIR}/assets/shader.cpp
-    ${SRC_DIR}/assets/texture.cpp
-    ${SRC_DIR}/core/camera.cpp
     ${SRC_DIR}/core/console.cpp
     ${SRC_DIR}/core/game.cpp
-    ${SRC_DIR}/core/input.cpp
-    ${SRC_DIR}/core/log.cpp
-    ${SRC_DIR}/core/renderer.cpp
-    ${SRC_DIR}/core/sky.cpp
-    ${SRC_DIR}/core/water.cpp
-    ${SRC_DIR}/core/window.cpp
     ${SRC_DIR}/geometry/geometry.cpp
     ${SRC_DIR}/geometry/material.cpp
     ${SRC_DIR}/geometry/patch_terrain.cpp
     ${SRC_DIR}/geometry/standard_mesh.cpp
     ${SRC_DIR}/geometry/template.cpp
+    ${SRC_DIR}/main.cpp
     ${SRC_DIR}/math/aabb.cpp
     ${SRC_DIR}/math/frustum.cpp
     ${SRC_DIR}/object/object.cpp
     ${SRC_DIR}/object/template.cpp
+    ${SRC_DIR}/platform/input.cpp
+    ${SRC_DIR}/platform/window.cpp
+    ${SRC_DIR}/render/camera.cpp
+    ${SRC_DIR}/render/renderer.cpp
+    ${SRC_DIR}/render/shader.cpp
+    ${SRC_DIR}/render/texture.cpp
+    ${SRC_DIR}/utils/log.cpp
     ${SRC_DIR}/utils/string_utils.cpp
     ${SRC_DIR}/utils/texture_utils.cpp
     ${SRC_DIR}/vfs/folder_provider.cpp
     ${SRC_DIR}/vfs/rfa_provider.cpp
     ${SRC_DIR}/vfs/vfs.cpp
+    ${SRC_DIR}/world/sky.cpp
+    ${SRC_DIR}/world/water.cpp
 )
 
 add_executable(of42 ${SOURCES})
@@ -82,3 +84,13 @@ endif()
 
 target_include_directories(of42 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(of42 PUBLIC SDL3::SDL3-static glad glm librfa soil2 imgui)
+
+target_precompile_headers(of42 PRIVATE
+    <vector>
+    <string>
+    <memory>
+    <SDL3/SDL.h>
+    <glm/glm.hpp>
+    <glm/gtc/matrix_transform.hpp>
+    "${SRC_DIR}/utils/log.h"
+)

@@ -1,6 +1,6 @@
 #include "core/game.h"
 #include "core/config.h"
-#include "core/log.h"
+#include "utils/log.h"
 
 #include <SDL3/SDL_timer.h>
 #include <iostream>

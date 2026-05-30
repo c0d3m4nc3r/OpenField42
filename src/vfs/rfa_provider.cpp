@@ -1,6 +1,6 @@
 #include "vfs/providers.h"
 #include "vfs/vfs.h"
-#include "core/log.h"
+#include "utils/log.h"
 
 RFAProvider::RFAProvider(const std::string& archive_path)
     : archive_path(archive_path) {}

@@ -3,7 +3,7 @@
 #include <string>
 #include <functional>
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 class Console
 {

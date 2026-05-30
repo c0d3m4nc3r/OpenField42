@@ -1,7 +1,7 @@
 #include "geometry/standard_mesh.h"
 #include "geometry/material.h"
 #include "geometry/template.h"
-#include "core/log.h"
+#include "utils/log.h"
 #include "vfs/vfs.h"
 #include "utils/string_utils.h"
 

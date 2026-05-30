@@ -1,7 +1,7 @@
 #include "geometry/material.h"
-#include "assets/shader.h"
-#include "assets/texture.h"
-#include "core/log.h"
+#include "render/shader.h"
+#include "render/texture.h"
+#include "utils/log.h"
 #include "vfs/vfs.h"
 #include "utils/string_utils.h"
 

@@ -1,5 +1,5 @@
-#include "core/input.h"
-#include "core/window.h"
+#include "platform/input.h"
+#include "platform/window.h"
 
 Input input;
 

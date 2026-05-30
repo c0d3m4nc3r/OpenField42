@@ -1,6 +1,6 @@
 #include "utils/texture_utils.h"
 #include "core/config.h"
-#include "core/log.h"
+#include "utils/log.h"
 #include "vfs/vfs.h"
 
 #include "SOIL2.h"

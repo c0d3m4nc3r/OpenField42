@@ -1,5 +1,5 @@
-#include "assets/shader.h"
-#include "core/log.h"
+#include "render/shader.h"
+#include "utils/log.h"
 #include "vfs/vfs.h"
 
 #include "glad/glad.h"

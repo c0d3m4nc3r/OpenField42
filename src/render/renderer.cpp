@@ -1,9 +1,9 @@
-#include "core/renderer.h"
-#include "core/camera.h"
+#include "render/renderer.h"
+#include "render/camera.h"
 #include "core/config.h"
 #include "core/game.h"
-#include "core/sky.h"
-#include "assets/shader.h"
+#include "world/sky.h"
+#include "render/shader.h"
 
 #include "glad/glad.h"
 

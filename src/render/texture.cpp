@@ -1,5 +1,5 @@
-#include "assets/texture.h"
-#include "core/log.h"
+#include "render/texture.h"
+#include "utils/log.h"
 
 #include "utils/texture_utils.h"
 

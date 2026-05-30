@@ -2,9 +2,11 @@
 
 ![C++](https://img.shields.io/badge/Language-C%2B%2B-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-green.svg)
-![Status](https://img.shields.io/badge/Status-Pre%20Alpha%20(On%20Hold%20but%20alive)-orange.svg)
+![Status](https://img.shields.io/badge/Status-Pre%20Alpha-orange.svg)
 
-*The project is currently on hold because I’m focusing on smaller projects right now. I will definitely return to OpenField42 later — it’s my passion project. In the meantime, contributions and stars are highly appreciated ❤*
+~~*The project is currently on hold because I’m focusing on smaller projects right now. I will definitely return to OpenField42 later — it’s my passion project. In the meantime, contributions and stars are highly appreciated ❤*~~
+
+*I'm back... maybe =)*
 
 ## 🚀 Overview
 
@@ -164,12 +166,12 @@ Since the core gameplay is not yet implemented, the engine currently utilizes de
 | **WASD** | Move camera forward, backward, left, and right. |
 | **Space** | Move camera up. |
 | **Shift** | Move camera down. |
+| **Mouse Wheel** | Increase/decrease camera speed. |
 | **ESC** | Toggle cursor capture/lock. |
 | **F1** | Toggle Wireframe mode. |
 | **F3** | Toggle Profiler display (shows simple performance metrics). |
 | **F5** | Reload certain resources (currently shaders). |
 | **F11** | Toggle Fullscreen mode. |
-| **Mouse Wheel** | Increase/decrease camera speed. |
 
 ## ⚖️ License
 
