@@ -34,37 +34,37 @@ void Camera::rotate(const glm::vec3& delta_rot)
 const glm::vec3& Camera::getPosition() const { return _position; }
 const glm::vec3& Camera::getRotation() const { return _rotation; }
 
-const glm::vec3& Camera::getForward()
+const glm::vec3& Camera::getForward() const
 {
     if (_view_dirty) update();
     return _forward;
 }
 
-const glm::vec3& Camera::getRight()
+const glm::vec3& Camera::getRight() const
 {
     if (_view_dirty) update();
     return _right;
 }
 
-const glm::vec3& Camera::getUp()
+const glm::vec3& Camera::getUp() const
 {
     if (_view_dirty) update();
     return _up;
 }
 
-const glm::mat4& Camera::getViewMat()
+const glm::mat4& Camera::getViewMat() const
 {
     if (_view_dirty) update();
     return _view_mat;
 }
 
-const glm::mat4& Camera::getProjMat()
+const glm::mat4& Camera::getProjMat() const
 {
     if (_proj_dirty) update();
     return _proj_mat;
 }
 
-const Frustum& Camera::getFrustum()
+const Frustum& Camera::getFrustum() const
 {
     if (_view_dirty || _proj_dirty)
         update();
@@ -106,7 +106,7 @@ void Camera::setFieldOfView(float field_of_view)
     this->_field_of_view = field_of_view; _proj_dirty = true;
 }
 
-void Camera::update()
+void Camera::update() const
 {
     if (_view_dirty)
     {

@@ -23,14 +23,14 @@ public:
     const glm::vec3& getPosition() const;
     const glm::vec3& getRotation() const;
 
-    const glm::vec3& getForward();
-    const glm::vec3& getRight();
-    const glm::vec3& getUp();
+    const glm::vec3& getForward() const;
+    const glm::vec3& getRight() const;
+    const glm::vec3& getUp() const;
 
-    const glm::mat4& getViewMat();
-    const glm::mat4& getProjMat();
+    const glm::mat4& getViewMat() const;
+    const glm::mat4& getProjMat() const;
 
-    const Frustum& getFrustum();
+    const Frustum& getFrustum() const;
 
     float getAspectRatio() const;
     float getNearPlane() const;
@@ -48,18 +48,17 @@ public:
 private:
     
     glm::vec3 _position, _rotation;
-    glm::vec3 _forward, _right, _up;
-    glm::mat4 _view_mat, _proj_mat;
-
-    Frustum _frustum;
-
+    
     float _aspect_ratio;
     float _near_plane;
     float _far_plane;
     float _field_of_view;
+    
+    mutable glm::vec3 _forward, _right, _up;
+    mutable glm::mat4 _view_mat, _proj_mat;
+    mutable bool _view_dirty, _proj_dirty;
+    
+    mutable Frustum _frustum;
 
-    bool _view_dirty;
-    bool _proj_dirty;
-
-    void update();
+    void update() const;
 };
