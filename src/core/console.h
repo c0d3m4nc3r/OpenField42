@@ -33,4 +33,4 @@ private:
 
 };
 
-extern Console console;
+extern Console g_Console;

@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-Renderer renderer;
+Renderer g_Renderer;
 
 static size_t calculateLOD(float distance, float max_distance, size_t max_lod)
 {
@@ -39,7 +39,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     if (USE_LODS && geom->type != GeometryType::PatchTerrain)
     {
         // TODO: Load LOD max distance from .con files
-        lod_index = calculateLOD(distance, game.view_distance*0.9f, geom->lods.size() - 1);
+        lod_index = calculateLOD(distance, g_Game.view_distance*0.9f, geom->lods.size() - 1);
     }
 
     Geometry::LOD& lod = geom->lods[lod_index];
@@ -49,9 +49,9 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         AABB world_aabb = geom->aabb.transform(model);
         if (!frustum.intersects(world_aabb))
         {
-            meshes_culled += lod.meshes.size();
+            stats.meshes_culled += lod.meshes.size();
             for (auto& mesh : lod.meshes)
-                polygons_culled += mesh.poly_count;
+                stats.polygons_culled += mesh.poly_count;
             return;
         }
     }
@@ -65,8 +65,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
             AABB world_aabb = mesh.aabb.transform(model);
             if (!frustum.intersects(world_aabb))
             {
-                meshes_culled++;
-                polygons_culled += mesh.poly_count;
+                stats.meshes_culled++;
+                stats.polygons_culled += mesh.poly_count;
                 continue;
             }
         }
@@ -82,8 +82,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         else
             opaque_queue.push_back(item);
 
-        meshes_rendered++;
-        polygons_rendered += mesh.poly_count;
+        stats.meshes_rendered++;
+        stats.polygons_rendered += mesh.poly_count;
     }
 }
 
@@ -145,6 +145,19 @@ void Renderer::flush()
     renderItems(transparent_queue);
 
     shader->unbind();
+}
+
+void Renderer::resetStats()
+{
+    stats.meshes_culled = 0;
+    stats.meshes_rendered = 0;
+    stats.polygons_culled = 0;
+    stats.polygons_rendered = 0;
+}
+
+const Renderer::Stats& Renderer::getStats() const
+{
+    return stats;
 }
 
 void Renderer::setCamera(Camera* camera) { this->camera = camera; }

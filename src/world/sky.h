@@ -16,8 +16,8 @@ public:
 
 private:
 
-    Geometry* geometry = nullptr;
+    Geometry* _geometry = nullptr;
 
 };
 
-extern Sky sky;
+extern Sky g_Sky;

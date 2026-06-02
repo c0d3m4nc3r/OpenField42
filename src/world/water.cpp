@@ -1,3 +1,3 @@
 #include "world/water.h"
 
-Water water;
+Water g_Water;

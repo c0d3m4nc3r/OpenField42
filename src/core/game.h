@@ -54,4 +54,4 @@ private:
     bool loadResources();
 };
 
-extern Game game;
+extern Game g_Game;

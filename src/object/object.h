@@ -63,7 +63,7 @@ ObjectType objectTypeFromString(const std::string& str);
 
 class Geometry;
 class Shader;
-class ObjectTemplate;
+struct ObjectTemplate;
 struct Object
 {
     ObjectType type = ObjectType::Unknown;

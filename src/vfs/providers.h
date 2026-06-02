@@ -8,6 +8,7 @@
 class IFileProvider
 {
 public:
+
     virtual ~IFileProvider() = default;
     virtual bool init() = 0;
     virtual bool exists(const std::string& path) const = 0;
@@ -18,21 +19,24 @@ public:
 
 class FolderProvider : public IFileProvider
 {
-    std::string base_path;
 public:
+
     FolderProvider(const std::string& path);
     bool init() override;
     bool exists(const std::string& path) const override;
     std::string findFile(const std::string& name) const override;
     std::vector<char> readFile(const std::string& path) override;
     std::vector<std::string> listFiles() override;
+    
+private:
+
+    std::string base_path;
 };
 
 class RFAProvider : public IFileProvider
 {
-    RFA_Archive* archive;
-    std::string archive_path;
 public:
+
     RFAProvider(const std::string& archive_path);
     ~RFAProvider();
     
@@ -44,4 +48,6 @@ public:
 
 private:
 
+    RFA_Archive* archive;
+    std::string archive_path;
 };

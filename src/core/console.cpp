@@ -13,7 +13,7 @@
 
 #include <sstream>
 
-Console console;
+Console g_Console;
 
 #define REGISTER_OBJECT_PROPERTY(ObjectName, ObjectRef, PropertyName, SetterFunction) \
     registerCmd(std::string(#ObjectName) + "." + #PropertyName, [](const CommandArgs& args) \
@@ -72,7 +72,7 @@ void Console::init()
         if (!path.ends_with(".con"))
             path += ".con";
 
-        return console.execFile(path);
+        return g_Console.execFile(path);
     });
 
     registerCmd("GeometryTemplate.create", [](const CommandArgs& args)
@@ -225,18 +225,18 @@ void Console::init()
     });
 
     // Renderer
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, fogColorVec, GEN_VEC3_SETTER(Renderer, fog.color));
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, fogStart, GEN_FLOAT_SETTER(Renderer, fog.start));
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, fogEnd, GEN_FLOAT_SETTER(Renderer, fog.end));
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, vertexFogEnable, GEN_INT_SETTER(Renderer, fog.enabled));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogColorVec, GEN_VEC3_SETTER(Renderer, fog.color));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogStart, GEN_FLOAT_SETTER(Renderer, fog.start));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogEnd, GEN_FLOAT_SETTER(Renderer, fog.end));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, vertexFogEnable, GEN_INT_SETTER(Renderer, fog.enabled));
 
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, diffuseColor, GEN_VEC3_SETTER(Renderer, lighting.diffuse));
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, specularColor, GEN_VEC3_SETTER(Renderer, lighting.specular));
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, ambientColor, GEN_VEC3_SETTER(Renderer, lighting.ambient));
-    REGISTER_OBJECT_PROPERTY(Renderer, &renderer, globalAmbientColor, GEN_VEC3_SETTER(Renderer, lighting.global_ambient));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, diffuseColor, GEN_VEC3_SETTER(Renderer, lighting.diffuse));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, specularColor, GEN_VEC3_SETTER(Renderer, lighting.specular));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, ambientColor, GEN_VEC3_SETTER(Renderer, lighting.ambient));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, globalAmbientColor, GEN_VEC3_SETTER(Renderer, lighting.global_ambient));
 
     // Game
-    REGISTER_OBJECT_PROPERTY(Game, &game, setViewDistance, GEN_INT_SETTER(Game, view_distance));
+    REGISTER_OBJECT_PROPERTY(Game, &g_Game, setViewDistance, GEN_INT_SETTER(Game, view_distance));
 
     // Sky
     REGISTER_OBJECT_PROPERTY(Sky, &sky, sunLightDirectionVec, GEN_VEC3_SETTER(Sky, sun_light_dir));

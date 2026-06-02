@@ -8,13 +8,14 @@
 
 #include <SDL3/SDL_events.h>
 
-Window window;
+Window g_Window;
 
 bool Window::init()
 {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     Uint64 window_flags = SDL_WINDOW_OPENGL;
     if (WINDOW_FULLSCREEN)
@@ -26,20 +27,20 @@ bool Window::init()
     if (WINDOW_BORDERLESS && !WINDOW_FULLSCREEN)
         window_flags |= SDL_WINDOW_BORDERLESS;
 
-    this->window = SDL_CreateWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
-    if (!window)
+    this->handle = SDL_CreateWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
+    if (!handle)
     {
         LOG_ERROR("Window::init: Failed to create window! : %s", SDL_GetError());
         return false;
     }
 
-    gl_context = SDL_GL_CreateContext(this->window);
+    gl_context = SDL_GL_CreateContext(this->handle);
     if (!gl_context)
     {
         LOG_ERROR("Window::init: Failed to create OpenGL context! : %s", SDL_GetError());
         return false;
     }
-    SDL_GL_MakeCurrent(this->window, gl_context);
+    SDL_GL_MakeCurrent(this->handle, gl_context);
 
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
@@ -55,7 +56,7 @@ bool Window::init()
 void Window::shutdown()
 {
     SDL_GL_DestroyContext(gl_context);
-    SDL_DestroyWindow(this->window);
+    SDL_DestroyWindow(this->handle);
 }
 
 void Window::pollEvents()
@@ -63,19 +64,19 @@ void Window::pollEvents()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        game.onEvent(event);
-        input.onEvent(event);
+        g_Game.onEvent(event);
+        g_Input.onEvent(event);
     }
 }
 
 void Window::update()
 {
-    SDL_GL_SwapWindow(this->window);
+    SDL_GL_SwapWindow(this->handle);
 }
 
-SDL_Window* Window::getWindow() const
+SDL_Window* Window::getHandle() const
 {
-    return this->window;
+    return this->handle;
 }
 
 SDL_GLContext Window::getGLContext() const
@@ -85,7 +86,7 @@ SDL_GLContext Window::getGLContext() const
 
 bool Window::getSize(int* width, int* height) const
 {
-    return SDL_GetWindowSize(this->window, width, height);
+    return SDL_GetWindowSize(this->handle, width, height);
 }
 
 float Window::getAspectRatio() const

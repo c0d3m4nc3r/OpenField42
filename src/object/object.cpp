@@ -203,7 +203,7 @@ Object* Object::create(const ObjectTemplate* tmpl)
 void Object::draw()
 {
     if (!geometry) return;
-    renderer.submit(geometry, getModelMatrix());
+    g_Renderer.submit(geometry, getModelMatrix());
 }
 
 void Object::update(float dt)

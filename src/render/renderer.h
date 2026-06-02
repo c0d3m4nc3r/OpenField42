@@ -7,6 +7,14 @@ class Renderer
 {
 public:
 
+    struct Stats
+    {
+        size_t meshes_rendered = 0;
+        size_t meshes_culled = 0;
+        size_t polygons_rendered = 0;
+        size_t polygons_culled = 0;
+    };
+
     struct Lighting
     {
         Color diffuse;
@@ -23,17 +31,14 @@ public:
         bool enabled = true;
     } fog;
 
-    /* Stats */
-
-    size_t meshes_rendered = 0;
-    size_t meshes_culled = 0;
-    size_t polygons_rendered = 0;
-    size_t polygons_culled = 0;
-
     bool wireframe_mode = false;
 
     void submit(Geometry* geo, const glm::mat4& model);
     void flush();
+    
+    void resetStats();
+
+    const Stats& getStats() const;
 
     void setCamera(Camera* camera);
     void setShader(std::shared_ptr<Shader> shader);
@@ -49,12 +54,14 @@ private:
     };
 
     Camera* camera = nullptr;
-
+    
     std::shared_ptr<Shader> shader;
-
+    
     std::vector<RenderItem> opaque_queue;
     std::vector<RenderItem> transparent_queue;
+    
+    Stats stats;
 
 };
 
-extern Renderer renderer;
+extern Renderer g_Renderer;

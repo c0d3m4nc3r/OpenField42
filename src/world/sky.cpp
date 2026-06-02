@@ -9,7 +9,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-Sky sky;
+Sky g_Sky;
 
 bool Sky::init()
 {
@@ -29,8 +29,8 @@ bool Sky::init()
         return false;
     }
 
-    geometry = Geometry::create(geom_tmpl);
-    if (!geometry)
+    _geometry = Geometry::create(geom_tmpl);
+    if (!_geometry)
     {
         LOG_ERROR("Sky::init: Failed to create sky geometry!");
         return false;
@@ -43,14 +43,14 @@ bool Sky::init()
 
 void Sky::draw(Shader* shader)
 {
-    if (!shader || !geometry) return;
+    if (!shader || !_geometry) return;
 
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_FALSE);
     
     shader->setBool("uIsSky", true);
     shader->setVec3("uWireframeColor", glm::vec3(0.0f, 0.0f, 1.0f));
-    geometry->draw(shader, glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), glm::vec3(0.0f, 1.0f, 0.0f)));
+    _geometry->draw(shader, glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), glm::vec3(0.0f, 1.0f, 0.0f)));
     shader->setBool("uIsSky", false);
     
     glDepthMask(GL_TRUE);

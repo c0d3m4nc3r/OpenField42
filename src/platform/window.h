@@ -4,9 +4,6 @@
 
 class Window
 {
-    SDL_Window* window = nullptr;
-    SDL_GLContext gl_context = nullptr;
-
 public:
 
     bool init();
@@ -14,11 +11,16 @@ public:
     void pollEvents();
     void update();
 
-    SDL_Window* getWindow() const;
+    SDL_Window* getHandle() const;
     SDL_GLContext getGLContext() const;
 
     bool getSize(int* width, int* height) const;
     float getAspectRatio() const;
+
+private:
+
+    SDL_Window* handle = nullptr;
+    SDL_GLContext gl_context = nullptr;
 };
 
-extern Window window;
+extern Window g_Window;

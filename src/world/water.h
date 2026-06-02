@@ -36,4 +36,4 @@ public:
 
 };
 
-extern Water water;
+extern Water g_Water;

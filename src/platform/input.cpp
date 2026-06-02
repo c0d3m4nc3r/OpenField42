@@ -1,29 +1,7 @@
 #include "platform/input.h"
 #include "platform/window.h"
 
-Input input;
-
-bool Input::getKeyState(Key key) const
-{
-    auto it = keys.find(key);
-    return it != keys.end() ? it->second : false;
-}
-
-bool Input::getPrevKeyState(Key key) const
-{
-    auto it = prev_keys.find(key);
-    return it != prev_keys.end() ? it->second : false;
-}
-
-bool Input::getMouseButtonState(MouseButton button) const
-{
-    return mouse_buttons.test(static_cast<size_t>(button));
-}
-
-bool Input::getPrevMouseButtonState(MouseButton button) const
-{
-    return prev_mouse_buttons.test(static_cast<size_t>(button));
-}
+Input g_Input;
 
 void Input::onEvent(const SDL_Event& event)
 {
@@ -124,6 +102,28 @@ void Input::setMouseCaptured(bool captured)
     //     SDL_WarpMouseInWindow(window.getWindow(), last_mouse_pos.x, last_mouse_pos.y);
     // }
 
-    SDL_SetWindowRelativeMouseMode(window.getWindow(), mouse_captured);
+    SDL_SetWindowRelativeMouseMode(g_Window.getHandle(), mouse_captured);
     SDL_GetRelativeMouseState(nullptr, nullptr);
+}
+
+bool Input::getKeyState(Key key) const
+{
+    auto it = keys.find(key);
+    return it != keys.end() ? it->second : false;
+}
+
+bool Input::getPrevKeyState(Key key) const
+{
+    auto it = prev_keys.find(key);
+    return it != prev_keys.end() ? it->second : false;
+}
+
+bool Input::getMouseButtonState(MouseButton button) const
+{
+    return mouse_buttons.test(static_cast<size_t>(button));
+}
+
+bool Input::getPrevMouseButtonState(MouseButton button) const
+{
+    return prev_mouse_buttons.test(static_cast<size_t>(button));
 }

@@ -63,14 +63,14 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (!game.init())
+    if (!g_Game.init())
         return 2;
 
     std::string level_name = "Market_Garden";
     if (argc > 1)
         level_name = argv[1];
 
-    if (!game.loadLevel(level_name))
+    if (!g_Game.loadLevel(level_name))
     {
         LOG_ERROR("Failed to load level '%s'!", level_name.c_str());
         return 3;
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
     Uint64 frequency = SDL_GetPerformanceFrequency();
     Uint64 previous_counter = SDL_GetPerformanceCounter();
     
-    while (game.isRunning())
+    while (g_Game.isRunning())
     {
         Uint64 current_counter = SDL_GetPerformanceCounter();
         float delta_time = (float)(current_counter - previous_counter) / frequency;
@@ -89,10 +89,10 @@ int main(int argc, char* argv[])
         if (delta_time > 0.0f)
             fps = 1.0f / delta_time;
 
-        game.tick(delta_time, fps, frequency);
+        g_Game.tick(delta_time, fps, frequency);
     }
 
-    game.shutdown();
+    g_Game.shutdown();
     
     return 0;
 }

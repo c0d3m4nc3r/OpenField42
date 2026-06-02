@@ -19,7 +19,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
 
-Game game;
+Game g_Game;
 
 bool Game::init()
 {
@@ -33,7 +33,7 @@ bool Game::init()
     }
 
     // Initialize window
-    if (!window.init())
+    if (!g_Window.init())
     {
         LOG_ERROR("Game::init: Failed to initialize window!");
         return false;
@@ -55,7 +55,7 @@ bool Game::init()
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
 
-    ImGui_ImplSDL3_InitForOpenGL(window.getWindow(), window.getGLContext());
+    ImGui_ImplSDL3_InitForOpenGL(g_Window.getHandle(), g_Window.getGLContext());
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // Mount folders and game archives
@@ -66,7 +66,7 @@ bool Game::init()
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture_001.rfa"));
 
     // Initialize console
-    console.init();
+    g_Console.init();
 
     // Load internal resources
     if (!loadResources())
@@ -76,7 +76,7 @@ bool Game::init()
     }
 
     // Initialize renderer
-    renderer.setCamera(&camera);
+    g_Renderer.setCamera(&camera);
 
     // Load all game objects from "Objects.rfa"
     if (!loadGameObjs())
@@ -86,7 +86,7 @@ bool Game::init()
     }
 
     // Capture mouse
-    input.setMouseCaptured(true);
+    g_Input.setMouseCaptured(true);
 
     // Move camera to center and setup far plane
 
@@ -114,7 +114,7 @@ void Game::shutdown()
     
     main_shader.reset();
 
-    window.shutdown();
+    g_Window.shutdown();
 
     SDL_Quit();
 
@@ -161,11 +161,11 @@ void Game::onEvent(const SDL_Event& event)
         {
             if (event.key.scancode == SDL_SCANCODE_ESCAPE)
             {
-                input.setMouseCaptured(!input.isMouseCaptured());
+                g_Input.setMouseCaptured(!g_Input.isMouseCaptured());
             }
             else if (event.key.scancode == SDL_SCANCODE_F1)
             {
-                renderer.wireframe_mode = !renderer.wireframe_mode;
+                g_Renderer.wireframe_mode = !g_Renderer.wireframe_mode;
             }
             else if (event.key.scancode == SDL_SCANCODE_F3)
             {
@@ -180,7 +180,7 @@ void Game::onEvent(const SDL_Event& event)
                 fullscreen = !fullscreen;
 
                 // TODO: Replace with window.setFullscreen(bool fullscreen)
-                SDL_SetWindowFullscreen(window.getWindow(), fullscreen);
+                SDL_SetWindowFullscreen(g_Window.getHandle(), fullscreen);
             }
         }
         break;
@@ -206,8 +206,8 @@ void Game::onEvent(const SDL_Event& event)
 
 void Game::update()
 {
-    input.update();
-    window.pollEvents();
+    g_Input.update();
+    g_Window.pollEvents();
 
     float move_speed = camera_speed * delta_time;
 
@@ -222,12 +222,12 @@ void Game::update()
     if (glm::length(right) > 0.0f)
         right = glm::normalize(right);
 
-    if (input.isKeyDown(MOVE_FORWARD_KEY))  move_dir += forward;
-    if (input.isKeyDown(MOVE_BACKWARD_KEY)) move_dir -= forward;
-    if (input.isKeyDown(MOVE_LEFT_KEY))     move_dir -= right;
-    if (input.isKeyDown(MOVE_RIGHT_KEY))    move_dir += right;
-    if (input.isKeyDown(MOVE_UP_KEY))       move_dir += glm::vec3(0.0f, 1.0f, 0.0f);
-    if (input.isKeyDown(MOVE_DOWN_KEY))     move_dir += glm::vec3(0.0f, -1.0f, 0.0f);
+    if (g_Input.isKeyDown(MOVE_FORWARD_KEY))  move_dir += forward;
+    if (g_Input.isKeyDown(MOVE_BACKWARD_KEY)) move_dir -= forward;
+    if (g_Input.isKeyDown(MOVE_LEFT_KEY))     move_dir -= right;
+    if (g_Input.isKeyDown(MOVE_RIGHT_KEY))    move_dir += right;
+    if (g_Input.isKeyDown(MOVE_UP_KEY))       move_dir += glm::vec3(0.0f, 1.0f, 0.0f);
+    if (g_Input.isKeyDown(MOVE_DOWN_KEY))     move_dir += glm::vec3(0.0f, -1.0f, 0.0f);
 
     if (glm::length(move_dir) > 0.0f)
     {
@@ -235,10 +235,10 @@ void Game::update()
         camera.move(move_dir * camera_speed * delta_time);
     }
     
-    if (input.isMouseCaptured())
+    if (g_Input.isMouseCaptured())
     {
         int delta_x, delta_y;
-        input.getMouseDelta(&delta_x, &delta_y);
+        g_Input.getMouseDelta(&delta_x, &delta_y);
 
         float sensitivity = 0.15f;
         glm::vec3 rot = camera.getRotation();
@@ -263,7 +263,7 @@ void Game::update()
 void Game::render()
 {
     int width, height;
-    window.getSize(&width, &height);
+    g_Window.getSize(&width, &height);
 
     float aspect_ratio = static_cast<float>(width) /
                          static_cast<float>(height);
@@ -274,22 +274,18 @@ void Game::render()
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Reset renderer stats
-    renderer.meshes_culled = 0;
-    renderer.meshes_rendered = 0;
-    renderer.polygons_culled = 0;
-    renderer.polygons_rendered = 0;
+    g_Renderer.resetStats();
 
     // Draw all objects
     for (auto& obj : Object::registry)
         obj->draw();
 
-    renderer.flush();
+    g_Renderer.flush();
     
     // Draw debug information
     if (!draw_debug_info)
     {
-        window.update();
+        g_Window.update();
         return;
     }
     
@@ -324,23 +320,25 @@ void Game::render()
     ImGui::Text("Update: [%.2f%%]", (update_time_ms / total_frame_time_ms) * 100.0f);
     ImGui::Text("Render: [%.2f%%]", (render_time_ms / total_frame_time_ms) * 100.0f);
 
+    const auto& render_stats = g_Renderer.getStats(); 
+
     ImGui::Separator();
     ImGui::Text("Renderer Statistics:");
-    ImGui::Text("Meshes Rendered: %zu", renderer.meshes_rendered);
-    ImGui::Text("Meshes Culled: %zu", renderer.meshes_culled);
-    ImGui::Text("Polygons Rendered: %zu", renderer.polygons_rendered);
-    ImGui::Text("Polygons Culled: %zu", renderer.polygons_culled);
+    ImGui::Text("Meshes Rendered: %zu", render_stats.meshes_rendered);
+    ImGui::Text("Meshes Culled: %zu", render_stats.meshes_culled);
+    ImGui::Text("Polygons Rendered: %zu", render_stats.polygons_rendered);
+    ImGui::Text("Polygons Culled: %zu", render_stats.polygons_culled);
 
-    size_t total_meshes = renderer.meshes_rendered + renderer.meshes_culled;
+    size_t total_meshes = render_stats.meshes_rendered + render_stats.meshes_culled;
     if (total_meshes > 0) 
     {
-        float culling_efficiency = (static_cast<float>(renderer.meshes_culled) / total_meshes) * 100.0f;
+        float culling_efficiency = (static_cast<float>(render_stats.meshes_culled) / total_meshes) * 100.0f;
         ImGui::Text("Culling Efficiency: %.1f%%", culling_efficiency);
         
         ImGui::Text("Visible/Culled Ratio: ");
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%zu/%zu", 
-                        renderer.meshes_rendered, renderer.meshes_culled);
+                        render_stats.meshes_rendered, render_stats.meshes_culled);
     }
 
     ImGui::Separator();
@@ -357,7 +355,7 @@ void Game::render()
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    window.update();
+    g_Window.update();
 }
 
 bool Game::loadGameObjs()
@@ -377,7 +375,7 @@ bool Game::loadGameObjs()
     {
         if (!path.ends_with(".con")) continue;
         
-        if (!console.execFile(path))
+        if (!g_Console.execFile(path))
         {
             LOG_ERROR("Game::loadGameObjs: Failed to load game objects: Error in '%s'!", path.c_str());
             return false;
@@ -405,8 +403,8 @@ bool Game::loadLevel(const std::string& name)
     }
 
     // 2. Run level init scripts
-    console.execFile("bf1942/levels/" + name + "/Init.con");
-    console.execFile("bf1942/levels/" + name + "/StaticObjects.con");
+    g_Console.execFile("bf1942/levels/" + name + "/Init.con");
+    g_Console.execFile("bf1942/levels/" + name + "/StaticObjects.con");
 
     // 3. Upload all geometries
     if (!Geometry::uploadAll())
@@ -435,7 +433,7 @@ bool Game::loadResources()
         return false;
     }
 
-    renderer.setShader(main_shader);
+    g_Renderer.setShader(main_shader);
 
     LOG_INFO("Game::loadResources: Loaded successfully!");
 
