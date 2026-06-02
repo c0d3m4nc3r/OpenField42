@@ -11,16 +11,16 @@ public:
     void pollEvents();
     void update();
 
-    SDL_Window* getHandle() const;
-    SDL_GLContext getGLContext() const;
+    SDL_Window* getHandle() const { return _handle; }
+    SDL_GLContext getGLContext() const { return _gl_context; }
 
     bool getSize(int* width, int* height) const;
     float getAspectRatio() const;
 
 private:
 
-    SDL_Window* handle = nullptr;
-    SDL_GLContext gl_context = nullptr;
+    SDL_Window* _handle = nullptr;
+    SDL_GLContext _gl_context = nullptr;
 };
 
 extern Window g_Window;

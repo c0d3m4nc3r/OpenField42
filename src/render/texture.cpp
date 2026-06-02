@@ -6,10 +6,10 @@
 #include <cmath>
 #include <cstddef>
 
-Texture::Texture(unsigned int id) : id(id) {}
+Texture::Texture(unsigned int id) : _id(id) {}
 Texture::~Texture()
 {
-    if (id != 0) glDeleteTextures(1, &id);
+    if (_id != 0) glDeleteTextures(1, &_id);
 }
 
 std::shared_ptr<Texture> Texture::load(const std::string& path)
@@ -31,7 +31,7 @@ std::shared_ptr<Texture> Texture::load(const std::string& path)
     );
     
     auto result = std::make_shared<Texture>(texture);
-    result->transparent = channels == 4 ? true : false;
+    result->_transparent = channels == 4 ? true : false;
     return result;
 }
 
@@ -103,7 +103,7 @@ void Texture::bind(int slot)
 {
     if (slot < 0 || slot >= 32) return;
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, id);
+    glBindTexture(GL_TEXTURE_2D, _id);
 }
 
 void Texture::unbind(int slot)
@@ -112,5 +112,3 @@ void Texture::unbind(int slot)
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
-
-bool Texture::isTransparent() const { return transparent; }

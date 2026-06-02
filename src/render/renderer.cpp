@@ -28,8 +28,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     if (!geom) return;
     if (geom->lods.empty()) return;
 
-    glm::vec3 cam_pos = camera->getPosition();
-    const Frustum& frustum = camera->getFrustum();
+    glm::vec3 cam_pos = _camera->getPosition();
+    const Frustum& frustum = _camera->getFrustum();
 
     glm::vec3 world_center = glm::vec3(model * glm::vec4(geom->aabb.center(), 1.0f));
     float distance = glm::length(world_center - cam_pos);
@@ -49,9 +49,9 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         AABB world_aabb = geom->aabb.transform(model);
         if (!frustum.intersects(world_aabb))
         {
-            stats.meshes_culled += lod.meshes.size();
+            _stats.meshes_culled += lod.meshes.size();
             for (auto& mesh : lod.meshes)
-                stats.polygons_culled += mesh.poly_count;
+                _stats.polygons_culled += mesh.poly_count;
             return;
         }
     }
@@ -65,8 +65,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
             AABB world_aabb = mesh.aabb.transform(model);
             if (!frustum.intersects(world_aabb))
             {
-                stats.meshes_culled++;
-                stats.polygons_culled += mesh.poly_count;
+                _stats.meshes_culled++;
+                _stats.polygons_culled += mesh.poly_count;
                 continue;
             }
         }
@@ -78,48 +78,48 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         item.distance_to_camera = distance;
 
         if (mesh.material->transparent || mesh.is_water)
-            transparent_queue.push_back(item);
+            _transparent_queue.push_back(item);
         else
-            opaque_queue.push_back(item);
+            _opaque_queue.push_back(item);
 
-        stats.meshes_rendered++;
-        stats.polygons_rendered += mesh.poly_count;
+        _stats.meshes_rendered++;
+        _stats.polygons_rendered += mesh.poly_count;
     }
 }
 
 void Renderer::flush()
 {
-    if (!shader || !camera) return;
+    if (!_shader || !_camera) return;
 
-    shader->bind();
+    _shader->bind();
 
-    shader->setMat4("uView", camera->getViewMat());
-    shader->setMat4("uProjection", camera->getProjMat());
-    shader->setVec3("uViewPos", camera->getPosition());
-    shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
+    _shader->setMat4("uView", _camera->getViewMat());
+    _shader->setMat4("uProjection", _camera->getProjMat());
+    _shader->setVec3("uViewPos", _camera->getPosition());
+    _shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
 
     if (fog.enabled && RENDER_FOG)
     {
-        shader->setVec3("uFog.color", fog.color.toVec3());
-        shader->setFloat("uFog.start", fog.start);
-        shader->setFloat("uFog.end", fog.end);
-        shader->setBool("uFog.enabled", fog.enabled);
+        _shader->setVec3("uFog.color", fog.color.toVec3());
+        _shader->setFloat("uFog.start", fog.start);
+        _shader->setFloat("uFog.end", fog.end);
+        _shader->setBool("uFog.enabled", fog.enabled);
     } else {
-        shader->setBool("uFog.enabled", false);
+        _shader->setBool("uFog.enabled", false);
     }
 
-    shader->setVec3("uLighting.diffuse", lighting.diffuse.toVec3());
-    shader->setVec3("uLighting.specular", lighting.specular.toVec3());
-    shader->setVec3("uLighting.ambient", lighting.ambient.toVec3());
-    shader->setVec3("uLighting.globalAmbient", lighting.global_ambient.toVec3());
+    _shader->setVec3("uLighting.diffuse", lighting.diffuse.toVec3());
+    _shader->setVec3("uLighting.specular", lighting.specular.toVec3());
+    _shader->setVec3("uLighting.ambient", lighting.ambient.toVec3());
+    _shader->setVec3("uLighting.globalAmbient", lighting.global_ambient.toVec3());
 
-    shader->setVec3("uSunLightDir", sky.sun_light_dir);
+    _shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
 
-    shader->setBool("uWireframeMode", wireframe_mode);
+    _shader->setBool("uWireframeMode", wireframe_mode);
     glPolygonMode(GL_FRONT_AND_BACK, wireframe_mode ? GL_LINE : GL_FILL);
 
     // Sort transparent objects by distance to camera
-    std::sort(transparent_queue.begin(), transparent_queue.end(), 
+    std::sort(_transparent_queue.begin(), _transparent_queue.end(), 
         [](const RenderItem& a, const RenderItem& b) {
             return a.distance_to_camera > b.distance_to_camera;
         });
@@ -128,37 +128,37 @@ void Renderer::flush()
     {
         for (auto& item : queue)
         {
-            shader->setMat4("uModel", *item.model);
+            _shader->setMat4("uModel", *item.model);
             if (item.geom->type == GeometryType::StandardMesh)
-                shader->setVec3("uWireframeColor", glm::vec3(1.0f, 0.0f, 0.0f));
+                _shader->setVec3("uWireframeColor", glm::vec3(1.0f, 0.0f, 0.0f));
             else if (item.geom->type == GeometryType::PatchTerrain)
-                shader->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
-            item.mesh->draw(shader.get());
+                _shader->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
+            item.mesh->draw(_shader.get());
         }
         queue.clear();
     };
 
-    renderItems(opaque_queue);
+    renderItems(_opaque_queue);
 
-    sky.draw(shader.get());
+    g_Sky.draw(_shader.get());
     
-    renderItems(transparent_queue);
+    renderItems(_transparent_queue);
 
-    shader->unbind();
+    _shader->unbind();
 }
 
 void Renderer::resetStats()
 {
-    stats.meshes_culled = 0;
-    stats.meshes_rendered = 0;
-    stats.polygons_culled = 0;
-    stats.polygons_rendered = 0;
+    _stats.meshes_culled = 0;
+    _stats.meshes_rendered = 0;
+    _stats.polygons_culled = 0;
+    _stats.polygons_rendered = 0;
 }
 
 const Renderer::Stats& Renderer::getStats() const
 {
-    return stats;
+    return _stats;
 }
 
-void Renderer::setCamera(Camera* camera) { this->camera = camera; }
-void Renderer::setShader(std::shared_ptr<Shader> shader) { this->shader = shader; }
+void Renderer::setCamera(Camera* camera) { this->_camera = camera; }
+void Renderer::setShader(std::shared_ptr<Shader> shader) { this->_shader = shader; }

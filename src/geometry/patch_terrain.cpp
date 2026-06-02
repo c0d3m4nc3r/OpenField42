@@ -123,11 +123,11 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         return false;
     }
 
-    size = tmpl->material_size;
-    world_size = tmpl->world_size;
+    _size = tmpl->material_size;
+    _world_size = tmpl->world_size;
 
-    heightmap.clear();
-    heightmap.reserve(size * size);
+    _heightmap.clear();
+    _heightmap.reserve(_size * _size);
 
     const uint16_t* data16 = reinterpret_cast<const uint16_t*>(heightmap_data.data());
     size_t num_elements = heightmap_data.size() / sizeof(uint16_t);
@@ -136,7 +136,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
     {
         uint16_t hh = data16[i];
         float height_value = (((float)hh / (float)UINT16_MAX) * (float)MAX_HEIGHT) * tmpl->y_scale;
-        heightmap.push_back(height_value);
+        _heightmap.push_back(height_value);
     }
 
     // 2. Create materials
@@ -187,8 +187,8 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
             const int start_x = tx * VERTS_PER_TILE;
             const int start_z = tz * VERTS_PER_TILE;
     
-            const int end_x = std::min(start_x + VERTS_PER_TILE, size);
-            const int end_z = std::min(start_z + VERTS_PER_TILE, size);
+            const int end_x = std::min(start_x + VERTS_PER_TILE, _size);
+            const int end_z = std::min(start_z + VERTS_PER_TILE, _size);
     
             const int w = (end_x - start_x);
             const int h = (end_z - start_z);
@@ -213,8 +213,8 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
                     };
                     v.normal = { 0.0f, 1.0f, 0.0f };
                     v.uv = {
-                        (float)x / ((float)size - 1.0f),
-                        (float)z / ((float)size - 1.0f)
+                        (float)x / ((float)_size - 1.0f),
+                        (float)z / ((float)_size - 1.0f)
                     };
         
                     chunk_min = glm::min(chunk_min, v.position);
@@ -263,39 +263,39 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
 
     // 5. Create water depth map
 
-    std::vector<float> depthmap(heightmap.size());
+    std::vector<float> depthmap(_heightmap.size());
 
-    for (size_t i = 0; i < heightmap.size(); i++)
+    for (size_t i = 0; i < _heightmap.size(); i++)
     {
-        float depth = tmpl->water_level - heightmap[i];
-        if (depth < water.min_depth) water.min_depth = depth;
-        if (depth > water.max_depth) water.max_depth = depth;
+        float depth = tmpl->water_level - _heightmap[i];
+        if (depth < g_Water.min_depth) g_Water.min_depth = depth;
+        if (depth > g_Water.max_depth) g_Water.max_depth = depth;
         depthmap[i] = depth;
     }
 
     GLuint depthmap_tex = TextureUtils::createGLTexture(
-        size, size, GL_R32F, GL_RED, GL_FLOAT, depthmap.data()
+        _size, _size, GL_R32F, GL_RED, GL_FLOAT, depthmap.data()
     );
 
-    water.depth_map = std::make_shared<Texture>(depthmap_tex);
+    g_Water.depth_map = std::make_shared<Texture>(depthmap_tex);
 
     return true;
 }
 
-int PatchTerrain::getSize() const { return size; }
-int PatchTerrain::getWorldSize() const { return world_size; }
+int PatchTerrain::getSize() const { return _size; }
+int PatchTerrain::getWorldSize() const { return _world_size; }
 
 float PatchTerrain::getHeightAt(int x, int z) const
 {
-    if (x < 0 || x >= size || z < 0 || z >= size)
+    if (x < 0 || x >= _size || z < 0 || z >= _size)
         return 0.0f;
 
-    return heightmap[z * size + x];
+    return _heightmap[z * _size + x];
 }
 
 float PatchTerrain::getHeightAtWorld(float x, float z) const
 {
-    int local_x = static_cast<int>((x / world_size) * (size - 1));
-    int local_z = static_cast<int>((z / world_size) * (size - 1));
+    int local_x = static_cast<int>((x / _world_size) * (_size - 1));
+    int local_z = static_cast<int>((z / _world_size) * (_size - 1));
     return getHeightAt(local_x, local_z);
 }

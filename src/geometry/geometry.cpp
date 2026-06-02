@@ -63,34 +63,34 @@ void Geometry::Mesh::draw(Shader* shader)
 
     if (is_water)
     {
-        if (water.layers[0].texture)
+        if (g_Water.layers[0].texture)
         {
-            water.layers[0].texture->bind(0);
+            g_Water.layers[0].texture->bind(0);
             shader->setInt("uWater.texLayer1", 0);
-            shader->setVec2("uWater.scrollDir1", water.layers[0].scroll_dir);
-            shader->setFloat("uWater.scrollSpeed1", water.layers[0].scroll_speed);
+            shader->setVec2("uWater.scrollDir1", g_Water.layers[0].scroll_dir);
+            shader->setFloat("uWater.scrollSpeed1", g_Water.layers[0].scroll_speed);
         }
 
-        if (water.layers[1].texture)
+        if (g_Water.layers[1].texture)
         {
-            water.layers[1].texture->bind(1);
+            g_Water.layers[1].texture->bind(1);
             shader->setInt("uWater.texLayer2", 1);
-            shader->setVec2("uWater.scrollDir2", water.layers[1].scroll_dir);
-            shader->setFloat("uWater.scrollSpeed2", water.layers[1].scroll_speed);
+            shader->setVec2("uWater.scrollDir2", g_Water.layers[1].scroll_dir);
+            shader->setFloat("uWater.scrollSpeed2", g_Water.layers[1].scroll_speed);
         }
 
-        if (water.depth_map)
+        if (g_Water.depth_map)
         {
-            water.depth_map->bind(2);
+            g_Water.depth_map->bind(2);
             shader->setInt("uWater.depthMap", 2);
         }
 
-        shader->setFloat("uWater.minDepth", water.min_depth);
-        shader->setFloat("uWater.maxDepth", water.max_depth);
+        shader->setFloat("uWater.minDepth", g_Water.min_depth);
+        shader->setFloat("uWater.maxDepth", g_Water.max_depth);
         
-        shader->setVec4("uWater.shallowColor", water.shallow_color.toVec4());
-        shader->setVec4("uWater.deepColor", water.deep_color.toVec4());
-        shader->setFloat("uWater.alphaDepth", water.alpha_depth);
+        shader->setVec4("uWater.shallowColor", g_Water.shallow_color.toVec4());
+        shader->setVec4("uWater.deepColor", g_Water.deep_color.toVec4());
+        shader->setFloat("uWater.alphaDepth", g_Water.alpha_depth);
 
 
         shader->setVec3("uWireframeColor", glm::vec3(0.0f, 0.0f, 1.0f));

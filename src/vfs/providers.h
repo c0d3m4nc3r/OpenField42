@@ -27,10 +27,10 @@ public:
     std::string findFile(const std::string& name) const override;
     std::vector<char> readFile(const std::string& path) override;
     std::vector<std::string> listFiles() override;
-    
+
 private:
 
-    std::string base_path;
+    std::string _base_path;
 };
 
 class RFAProvider : public IFileProvider
@@ -48,6 +48,6 @@ public:
 
 private:
 
-    RFA_Archive* archive;
-    std::string archive_path;
+    RFA_Archive* _archive;
+    std::string _archive_path;
 };

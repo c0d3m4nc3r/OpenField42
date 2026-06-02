@@ -5,13 +5,13 @@
 #include <fstream>
 
 FolderProvider::FolderProvider(const std::string& path)
-    : base_path(path) {}
+    : _base_path(path) {}
 
 bool FolderProvider::init()
 {
-    if (!std::filesystem::exists(base_path) || !std::filesystem::is_directory(base_path))
+    if (!std::filesystem::exists(_base_path) || !std::filesystem::is_directory(_base_path))
     {
-        LOG_ERROR("FolderProvider::init: Path '%s' doesn't exist or is not a directory!", base_path.c_str());
+        LOG_ERROR("FolderProvider::init: Path '%s' doesn't exist or is not a directory!", _base_path.c_str());
         return false;
     }
 
@@ -20,7 +20,7 @@ bool FolderProvider::init()
 
 bool FolderProvider::exists(const std::string& path) const
 {
-    std::filesystem::path full_path = std::filesystem::path(base_path) / path;
+    std::filesystem::path full_path = std::filesystem::path(_base_path) / path;
     return std::filesystem::exists(full_path) && std::filesystem::is_regular_file(full_path);
 }
 
@@ -28,11 +28,11 @@ std::string FolderProvider::findFile(const std::string& name) const
 {
     std::filesystem::path target_path(name);
     
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(base_path))
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(_base_path))
     {
         if (entry.is_regular_file())
         {
-            std::filesystem::path relative_path = std::filesystem::relative(entry.path(), base_path);
+            std::filesystem::path relative_path = std::filesystem::relative(entry.path(), _base_path);
             
             if (relative_path == target_path)
             {
@@ -46,7 +46,7 @@ std::string FolderProvider::findFile(const std::string& name) const
 
 std::vector<char> FolderProvider::readFile(const std::string& path)
 {
-    std::filesystem::path full_path = std::filesystem::path(base_path) / path;
+    std::filesystem::path full_path = std::filesystem::path(_base_path) / path;
     std::ifstream file(full_path, std::ios::binary | std::ios::ate);
     
     if (!file.is_open())
@@ -72,11 +72,11 @@ std::vector<std::string> FolderProvider::listFiles()
 {
     std::vector<std::string> files;
 
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(base_path))
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(_base_path))
     {
         if (entry.is_regular_file())
         {
-            std::string relative_path = std::filesystem::relative(entry.path(), base_path).string();
+            std::string relative_path = std::filesystem::relative(entry.path(), _base_path).string();
             files.push_back(relative_path);
         }
     }

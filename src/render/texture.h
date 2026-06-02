@@ -17,11 +17,11 @@ public:
     void bind(int slot = 0);
     void unbind(int slot = 0);
 
-    bool isTransparent() const;
+    bool isTransparent() const { return _transparent; }
 
 private:
 
-    unsigned int id;
+    unsigned int _id;
 
-    bool transparent = false;
+    bool _transparent = false;
 };

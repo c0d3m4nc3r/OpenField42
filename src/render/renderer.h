@@ -53,14 +53,14 @@ private:
         float distance_to_camera = 0.0f;
     };
 
-    Camera* camera = nullptr;
+    Camera* _camera = nullptr;
     
-    std::shared_ptr<Shader> shader;
+    std::shared_ptr<Shader> _shader;
     
-    std::vector<RenderItem> opaque_queue;
-    std::vector<RenderItem> transparent_queue;
+    std::vector<RenderItem> _opaque_queue;
+    std::vector<RenderItem> _transparent_queue;
     
-    Stats stats;
+    Stats _stats;
 
 };
 

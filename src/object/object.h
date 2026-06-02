@@ -101,11 +101,11 @@ struct Object
 
 private:
 
-    glm::vec3 position, rotation, scale;
-    glm::mat4 model_mat;
-    bool dirty = true;
+    glm::vec3 _position, _rotation, _scale;
+    glm::mat4 _model_mat;
+    bool _dirty = true;
 
-    Geometry* geometry = nullptr;
+    Geometry* _geometry = nullptr;
 
-    std::vector<Object*> children;
+    std::vector<Object*> _children;
 };

@@ -3,12 +3,12 @@
 #include "utils/log.h"
 
 RFAProvider::RFAProvider(const std::string& archive_path)
-    : archive_path(archive_path) {}
+    : _archive_path(archive_path) {}
 
 RFAProvider::~RFAProvider()
 {
-    if (!archive) return;
-    RFA_Close(archive);
+    if (!_archive) return;
+    RFA_Close(_archive);
 }
 
 bool RFAProvider::init()
@@ -19,10 +19,10 @@ bool RFAProvider::init()
         return false;
     }
 
-    archive = RFA_Open(archive_path.c_str());
-    if (!archive)
+    _archive = RFA_Open(_archive_path.c_str());
+    if (!_archive)
     {
-        LOG_ERROR("RFAProvider::init: Failed to open archive at '%s'!", archive_path.c_str());
+        LOG_ERROR("RFAProvider::init: Failed to open archive at '%s'!", _archive_path.c_str());
         return false;
     }
 
@@ -31,17 +31,17 @@ bool RFAProvider::init()
 
 bool RFAProvider::exists(const std::string& path) const
 {
-    if (!archive) return false;
-    return RFA_FileExists(archive, path.c_str());
+    if (!_archive) return false;
+    return RFA_FileExists(_archive, path.c_str());
 }
 
 std::string RFAProvider::findFile(const std::string& name) const
 {
-    if (!archive) return "";
+    if (!_archive) return "";
     
-    for (uint32_t i = 0; i < archive->entries_count; i++)
+    for (uint32_t i = 0; i < _archive->entries_count; i++)
     {
-        const RFA_FileEntry* entry = &archive->entries[i];
+        const RFA_FileEntry* entry = &_archive->entries[i];
         if (!entry->name) continue;
         
         std::string fullpath = VFS::normalizePath(entry->name);
@@ -55,7 +55,7 @@ std::string RFAProvider::findFile(const std::string& name) const
 
 std::vector<char> RFAProvider::readFile(const std::string& path)
 {
-    if (!archive) return {};
+    if (!_archive) return {};
 
     if (!exists(path))
     {
@@ -66,7 +66,7 @@ std::vector<char> RFAProvider::readFile(const std::string& path)
     void* data = nullptr;
     size_t size = 0;
 
-    int result = RFA_ExtractFile(archive, path.c_str(), &data, &size);
+    int result = RFA_ExtractFile(_archive, path.c_str(), &data, &size);
     if (result != 0 || !data)
     {
         LOG_ERROR("RFAProvider::readFile: Failed to extract file '%s' from archive!", path.c_str());
@@ -83,14 +83,14 @@ std::vector<char> RFAProvider::readFile(const std::string& path)
 
 std::vector<std::string> RFAProvider::listFiles()
 {
-    if (!archive) return {};
+    if (!_archive) return {};
 
     std::vector<std::string> files;
-    files.resize(archive->entries_count);
+    files.resize(_archive->entries_count);
 
-    for (uint32_t i = 0; i < archive->entries_count; i++)
+    for (uint32_t i = 0; i < _archive->entries_count; i++)
     {
-        files[i] = std::string(archive->entries[i].name);
+        files[i] = std::string(_archive->entries[i].name);
     }
 
     return files;

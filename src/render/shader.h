@@ -31,7 +31,7 @@ public:
 
 private:
 
-    unsigned int id;
+    unsigned int _id;
 
-    static unsigned int current_bound_id;
+    static unsigned int _current_bound_id;
 };

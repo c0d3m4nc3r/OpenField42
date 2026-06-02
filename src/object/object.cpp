@@ -124,7 +124,7 @@ Object::Object(
     const glm::vec3& position,
     const glm::vec3& rotation,
     const glm::vec3& scale
-) : position(position), rotation(rotation), scale(scale), model_mat(1.0f) {}
+) : _position(position), _rotation(rotation), _scale(scale), _model_mat(1.0f) {}
 
 Object* Object::create(const ObjectTemplate* tmpl)
 {
@@ -159,7 +159,7 @@ Object* Object::create(const ObjectTemplate* tmpl)
         child_ptr->setPosition(child.position);
         child_ptr->setRotation(child.rotation);
         child_ptr->parent = raw;
-        obj->children.push_back(child_ptr);
+        obj->_children.push_back(child_ptr);
     }
 
     if (tmpl->geometry.empty())
@@ -187,8 +187,8 @@ Object* Object::create(const ObjectTemplate* tmpl)
         return raw;
     }
 
-    obj->geometry = Geometry::create(geom_tmpl);
-    if (!obj->geometry)
+    obj->_geometry = Geometry::create(geom_tmpl);
+    if (!obj->_geometry)
     {
         LOG_ERROR("Object::create: Failed to load geometry!");
         return nullptr;
@@ -202,8 +202,8 @@ Object* Object::create(const ObjectTemplate* tmpl)
 
 void Object::draw()
 {
-    if (!geometry) return;
-    g_Renderer.submit(geometry, getModelMatrix());
+    if (!_geometry) return;
+    g_Renderer.submit(_geometry, getModelMatrix());
 }
 
 void Object::update(float dt)
@@ -213,57 +213,57 @@ void Object::update(float dt)
 
 void Object::move(const glm::vec3& delta_pos)
 {
-    setPosition(position + delta_pos);
+    setPosition(_position + delta_pos);
 }
 
 void Object::rotate(const glm::vec3& delta_rot)
 {
-    setRotation(rotation + delta_rot);
+    setRotation(_rotation + delta_rot);
 }
 
-const glm::vec3& Object::getPosition() const { return position; }
-const glm::vec3& Object::getRotation() const { return rotation; }
-const glm::vec3& Object::getScale() const { return scale; }
+const glm::vec3& Object::getPosition() const { return _position; }
+const glm::vec3& Object::getRotation() const { return _rotation; }
+const glm::vec3& Object::getScale() const { return _scale; }
 
 const glm::mat4& Object::getModelMatrix()
 {
-    if (dirty)
+    if (_dirty)
     {
-        model_mat = glm::mat4(1.0f);
-        model_mat = glm::translate(model_mat, position);
-        model_mat = glm::rotate(model_mat, glm::radians(rotation.x), glm::vec3(0,1,0));
-        model_mat = glm::rotate(model_mat, glm::radians(rotation.y), glm::vec3(1,0,0));
-        model_mat = glm::rotate(model_mat, glm::radians(rotation.z), glm::vec3(0,0,1));
-        model_mat = glm::scale(model_mat, scale);
+        _model_mat = glm::mat4(1.0f);
+        _model_mat = glm::translate(_model_mat, _position);
+        _model_mat = glm::rotate(_model_mat, glm::radians(_rotation.x), glm::vec3(0,1,0));
+        _model_mat = glm::rotate(_model_mat, glm::radians(_rotation.y), glm::vec3(1,0,0));
+        _model_mat = glm::rotate(_model_mat, glm::radians(_rotation.z), glm::vec3(0,0,1));
+        _model_mat = glm::scale(_model_mat, _scale);
 
         if (parent)
-            model_mat = parent->getModelMatrix() * model_mat;
+            _model_mat = parent->getModelMatrix() * _model_mat;
 
-        dirty = false;
+        _dirty = false;
     }
 
-    return model_mat;
+    return _model_mat;
 }
 
 void Object::setPosition(const glm::vec3& position)
 {
-    this->position = position; setDirty();
+    this->_position = position; setDirty();
 }
 
 void Object::setRotation(const glm::vec3& rotation)
 {
-    this->rotation = rotation; setDirty();
+    this->_rotation = rotation; setDirty();
 }
 
 void Object::setScale(const glm::vec3& scale)
 {
-    this->scale = scale; setDirty();
+    this->_scale = scale; setDirty();
 }
 
 void Object::setDirty(bool dirty)
 {
-    this->dirty = dirty;
+    this->_dirty = dirty;
 
-    for (auto child : children)
+    for (auto child : _children)
         if (child) child->setDirty(dirty);
 }

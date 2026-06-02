@@ -194,7 +194,7 @@ void Console::init()
 
     registerCmd("Sky.initSky", [](const CommandArgs& args)
     {
-        return sky.init();
+        return g_Sky.init();
     });
 
     // GeometryTemplate
@@ -239,32 +239,32 @@ void Console::init()
     REGISTER_OBJECT_PROPERTY(Game, &g_Game, setViewDistance, GEN_INT_SETTER(Game, view_distance));
 
     // Sky
-    REGISTER_OBJECT_PROPERTY(Sky, &sky, sunLightDirectionVec, GEN_VEC3_SETTER(Sky, sun_light_dir));
-    REGISTER_OBJECT_PROPERTY(Sky, &sky, setRotAngle, GEN_FLOAT_SETTER(Sky, rot_angle));
+    REGISTER_OBJECT_PROPERTY(Sky, &g_Sky, sunLightDirectionVec, GEN_VEC3_SETTER(Sky, sun_light_dir));
+    REGISTER_OBJECT_PROPERTY(Sky, &g_Sky, setRotAngle, GEN_FLOAT_SETTER(Sky, rot_angle));
 
     // Water
 
-    REGISTER_OBJECT_PROPERTY(Water, &water, texLayer1, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, texLayer1, [](Water* w, const std::string& value) {
         w->layers[0].texture = Texture::load(value);
     });
     
-    REGISTER_OBJECT_PROPERTY(Water, &water, texLayer2, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, texLayer2, [](Water* w, const std::string& value) {
         w->layers[1].texture = Texture::load(value);
     });
 
-    REGISTER_OBJECT_PROPERTY(Water, &water, scrollDirection1, GEN_VEC2_SETTER(Water, layers[0].scroll_dir));
-    REGISTER_OBJECT_PROPERTY(Water, &water, scrollDirection2, GEN_VEC2_SETTER(Water, layers[1].scroll_dir));
-    REGISTER_OBJECT_PROPERTY(Water, &water, scrollLayer1, GEN_FLOAT_SETTER(Water, layers[0].scroll_speed));
-    REGISTER_OBJECT_PROPERTY(Water, &water, scrollLayer2, GEN_FLOAT_SETTER(Water, layers[1].scroll_speed));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollDirection1, GEN_VEC2_SETTER(Water, layers[0].scroll_dir));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollDirection2, GEN_VEC2_SETTER(Water, layers[1].scroll_dir));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer1, GEN_FLOAT_SETTER(Water, layers[0].scroll_speed));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer2, GEN_FLOAT_SETTER(Water, layers[1].scroll_speed));
 
-    REGISTER_OBJECT_PROPERTY(Water, &water, color, GEN_VEC3_SETTER(Water, shallow_color));
-    REGISTER_OBJECT_PROPERTY(Water, &water, waterShallowAlpha, GEN_FLOAT_SETTER(Water, shallow_color.a));
-    REGISTER_OBJECT_PROPERTY(Water, &water, waterAlphaDepth, GEN_FLOAT_SETTER(Water, alpha_depth));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, color, GEN_VEC3_SETTER(Water, shallow_color));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, waterShallowAlpha, GEN_FLOAT_SETTER(Water, shallow_color.a));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, waterAlphaDepth, GEN_FLOAT_SETTER(Water, alpha_depth));
 }
 
 void Console::registerCmd(const std::string& name, CommandHandler fn)
 {
-    commands[StringUtils::lowercase(name)] = fn;
+    _commands[StringUtils::lowercase(name)] = fn;
 }
 
 bool Console::exec(const std::string& line)
@@ -277,8 +277,8 @@ bool Console::exec(const std::string& line)
     std::string cmd = StringUtils::lowercase(tokens[0]);
     std::vector<std::string> args(tokens.begin() + 1, tokens.end());
 
-    auto it = commands.find(cmd);
-    if (it != commands.end())
+    auto it = _commands.find(cmd);
+    if (it != _commands.end())
     {
         if (!it->second(args))
             return true;

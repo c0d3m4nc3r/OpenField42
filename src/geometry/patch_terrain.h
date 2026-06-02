@@ -16,9 +16,9 @@ public:
 
 private:
 
-    int size;
-    int world_size;
+    int _size;
+    int _world_size;
 
-    std::vector<float> heightmap;
+    std::vector<float> _heightmap;
 
 };

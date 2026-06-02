@@ -27,20 +27,20 @@ bool Window::init()
     if (WINDOW_BORDERLESS && !WINDOW_FULLSCREEN)
         window_flags |= SDL_WINDOW_BORDERLESS;
 
-    this->handle = SDL_CreateWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
-    if (!handle)
+    this->_handle = SDL_CreateWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
+    if (!_handle)
     {
         LOG_ERROR("Window::init: Failed to create window! : %s", SDL_GetError());
         return false;
     }
 
-    gl_context = SDL_GL_CreateContext(this->handle);
-    if (!gl_context)
+    _gl_context = SDL_GL_CreateContext(this->_handle);
+    if (!_gl_context)
     {
         LOG_ERROR("Window::init: Failed to create OpenGL context! : %s", SDL_GetError());
         return false;
     }
-    SDL_GL_MakeCurrent(this->handle, gl_context);
+    SDL_GL_MakeCurrent(this->_handle, _gl_context);
 
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
@@ -55,8 +55,8 @@ bool Window::init()
 
 void Window::shutdown()
 {
-    SDL_GL_DestroyContext(gl_context);
-    SDL_DestroyWindow(this->handle);
+    SDL_GL_DestroyContext(_gl_context);
+    SDL_DestroyWindow(this->_handle);
 }
 
 void Window::pollEvents()
@@ -71,22 +71,12 @@ void Window::pollEvents()
 
 void Window::update()
 {
-    SDL_GL_SwapWindow(this->handle);
-}
-
-SDL_Window* Window::getHandle() const
-{
-    return this->handle;
-}
-
-SDL_GLContext Window::getGLContext() const
-{
-    return this->gl_context;
+    SDL_GL_SwapWindow(this->_handle);
 }
 
 bool Window::getSize(int* width, int* height) const
 {
-    return SDL_GetWindowSize(this->handle, width, height);
+    return SDL_GetWindowSize(this->_handle, width, height);
 }
 
 float Window::getAspectRatio() const

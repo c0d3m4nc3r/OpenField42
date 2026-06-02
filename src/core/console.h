@@ -29,7 +29,7 @@ public:
 
 private:
 
-    std::unordered_map<std::string, CommandHandler> commands;
+    std::unordered_map<std::string, CommandHandler> _commands;
 
 };
 

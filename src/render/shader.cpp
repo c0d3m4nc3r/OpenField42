@@ -8,17 +8,17 @@
 
 #include <vector>
 
-unsigned int Shader::current_bound_id = 0;
+unsigned int Shader::_current_bound_id = 0;
 
 static GLuint compileShader(const std::string& src, GLenum type);
 static GLuint linkProgram(GLuint vertex_shader, GLuint fragment_shader);
 
 Shader::Shader(unsigned int id)
-    : id(id) {}
+    : _id(id) {}
 
 Shader::~Shader()
 {
-    if (id) glDeleteShader(id);
+    if (_id) glDeleteShader(_id);
 }
 
 std::shared_ptr<Shader> Shader::load(const std::string& vs_path, const std::string& fs_path)
@@ -58,56 +58,56 @@ std::shared_ptr<Shader> Shader::load(const std::string& vs_path, const std::stri
 
 void Shader::bind()
 {
-    if (current_bound_id == id) return;
-    glUseProgram(id);
-    current_bound_id = id;
+    if (_current_bound_id == _id) return;
+    glUseProgram(_id);
+    _current_bound_id = _id;
 }
 
 void Shader::unbind()
 {
-    if (current_bound_id == 0) return;
+    if (_current_bound_id == 0) return;
     glUseProgram(0);
-    current_bound_id = 0;
+    _current_bound_id = 0;
 }
 
 void Shader::setInt(const char* name, int value)
 {
-    glUniform1i(glGetUniformLocation(id, name), value);
+    glUniform1i(glGetUniformLocation(_id, name), value);
 }
 
 void Shader::setFloat(const char* name, float value)
 {
-    glUniform1f(glGetUniformLocation(id, name), value);
+    glUniform1f(glGetUniformLocation(_id, name), value);
 }
 
 void Shader::setBool(const char* name, bool value)
 {
-    glUniform1i(glGetUniformLocation(id, name), static_cast<int>(value));
+    glUniform1i(glGetUniformLocation(_id, name), static_cast<int>(value));
 }
 
 void Shader::setVec2(const char* name, const glm::vec2& value)
 {
-    glUniform2fv(glGetUniformLocation(id, name), 1, glm::value_ptr(value));
+    glUniform2fv(glGetUniformLocation(_id, name), 1, glm::value_ptr(value));
 }
 
 void Shader::setVec3(const char* name, const glm::vec3& value)
 {
-    glUniform3fv(glGetUniformLocation(id, name), 1, glm::value_ptr(value));
+    glUniform3fv(glGetUniformLocation(_id, name), 1, glm::value_ptr(value));
 }
 
 void Shader::setVec4(const char* name, const glm::vec4& value)
 {
-    glUniform4fv(glGetUniformLocation(id, name), 1, glm::value_ptr(value));
+    glUniform4fv(glGetUniformLocation(_id, name), 1, glm::value_ptr(value));
 }
 
 void Shader::setMat3(const char* name, const glm::mat3& value)
 {
-    glUniformMatrix3fv(glGetUniformLocation(id, name), 1, GL_FALSE, glm::value_ptr(value));
+    glUniformMatrix3fv(glGetUniformLocation(_id, name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::setMat4(const char* name, const glm::mat4& value)
 {
-    glUniformMatrix4fv(glGetUniformLocation(id, name), 1, GL_FALSE, glm::value_ptr(value));
+    glUniformMatrix4fv(glGetUniformLocation(_id, name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 static GLuint compileShader(const std::string& src, GLenum type)

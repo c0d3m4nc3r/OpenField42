@@ -34,15 +34,15 @@ public:
 
 private:
 
-    std::unordered_map<Key, bool> keys;
-    std::unordered_map<Key, bool> prev_keys;
+    std::unordered_map<Key, bool> _keys;
+    std::unordered_map<Key, bool> _prev_keys;
 
-    std::bitset<8> mouse_buttons;
-    std::bitset<8> prev_mouse_buttons;
+    std::bitset<8> _mouse_buttons;
+    std::bitset<8> _prev_mouse_buttons;
 
-    glm::vec2 mouse_pos, mouse_delta;
+    glm::vec2 _mouse_pos, _mouse_delta;
 
-    bool mouse_captured = false;
+    bool _mouse_captured = false;
     
     bool getKeyState(Key key) const;
     bool getPrevKeyState(Key key) const;

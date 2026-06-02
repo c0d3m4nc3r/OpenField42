@@ -76,7 +76,7 @@ bool Game::init()
     }
 
     // Initialize renderer
-    g_Renderer.setCamera(&camera);
+    g_Renderer.setCamera(&_camera);
 
     // Load all game objects from "Objects.rfa"
     if (!loadGameObjs())
@@ -96,12 +96,12 @@ bool Game::init()
     // glm::vec3 world_center(0.0f);
     world_center.y = 75.0f;
 
-    camera.setPosition(world_center);
+    _camera.setPosition(world_center);
 
     if (VIEW_DISTANCE != 0)
         view_distance = VIEW_DISTANCE;
 
-    is_running = true;
+    _running = true;
 
     LOG_INFO("Game::init: Game initialized!");
 
@@ -112,7 +112,7 @@ void Game::shutdown()
 {
     LOG_INFO("Game::shutdown: Shutting down game...");
     
-    main_shader.reset();
+    _main_shader.reset();
 
     g_Window.shutdown();
 
@@ -123,29 +123,24 @@ void Game::shutdown()
 
 void Game::tick(float delta_time, float fps, Uint64 frequency)
 {
-    this->delta_time = delta_time;
-    this->fps = fps;
+    this->_delta_time = delta_time;
+    this->_fps = fps;
 
     Uint64 frame_start = SDL_GetPerformanceCounter();
     
     Uint64 update_start = SDL_GetPerformanceCounter();
     update();
     Uint64 update_end = SDL_GetPerformanceCounter();
-    update_time_ms = (float)(update_end - update_start) / frequency * 1000.0f;
+    _update_time_ms = (float)(update_end - update_start) / frequency * 1000.0f;
     
     Uint64 render_start = SDL_GetPerformanceCounter();
     render();
     Uint64 render_end = SDL_GetPerformanceCounter();
-    render_time_ms = (float)(render_end - render_start) / frequency * 1000.0f;
+    _render_time_ms = (float)(render_end - render_start) / frequency * 1000.0f;
     
     Uint64 frame_end = SDL_GetPerformanceCounter();
-    total_frame_time_ms = (float)(frame_end - frame_start) / frequency * 1000.0f;
+    _total_frame_time_ms = (float)(frame_end - frame_start) / frequency * 1000.0f;
 }
-
-float Game::getFPS() const { return fps; }
-float Game::getDeltaTime() const { return delta_time; }
-
-bool Game::isRunning() const { return is_running; }
 
 void Game::onEvent(const SDL_Event& event)
 {
@@ -154,7 +149,7 @@ void Game::onEvent(const SDL_Event& event)
     {
     case SDL_EVENT_QUIT:
         {
-            is_running = false;
+            _running = false;
         }
         break;
     case SDL_EVENT_KEY_DOWN:
@@ -169,7 +164,7 @@ void Game::onEvent(const SDL_Event& event)
             }
             else if (event.key.scancode == SDL_SCANCODE_F3)
             {
-                draw_debug_info = !draw_debug_info;
+                _draw_debug_info = !_draw_debug_info;
             }
             else if (event.key.scancode == SDL_SCANCODE_F5)
             {
@@ -177,10 +172,10 @@ void Game::onEvent(const SDL_Event& event)
             }
             else if (event.key.scancode == SDL_SCANCODE_F11)
             {
-                fullscreen = !fullscreen;
+                _fullscreen = !_fullscreen;
 
                 // TODO: Replace with window.setFullscreen(bool fullscreen)
-                SDL_SetWindowFullscreen(g_Window.getHandle(), fullscreen);
+                SDL_SetWindowFullscreen(g_Window.getHandle(), _fullscreen);
             }
         }
         break;
@@ -189,13 +184,13 @@ void Game::onEvent(const SDL_Event& event)
             const float speed_change = 2.0f;
             if (event.wheel.y > 0)
             {
-                camera_speed += speed_change;
+                _camera_speed += speed_change;
             }
             else if (event.wheel.y < 0)
             {
-                camera_speed -= speed_change;
-                if (camera_speed < 0.1f)
-                    camera_speed = 0.1f;
+                _camera_speed -= speed_change;
+                if (_camera_speed < 0.1f)
+                    _camera_speed = 0.1f;
             }
         }
         break;
@@ -209,15 +204,15 @@ void Game::update()
     g_Input.update();
     g_Window.pollEvents();
 
-    float move_speed = camera_speed * delta_time;
+    float move_speed = _camera_speed * _delta_time;
 
     glm::vec3 move_dir(0.0f);
-    glm::vec3 forward = camera.getForward();
+    glm::vec3 forward = _camera.getForward();
     forward.y = 0.0f;
     if (glm::length(forward) > 0.0f)
         forward = glm::normalize(forward);
 
-    glm::vec3 right = camera.getRight();
+    glm::vec3 right = _camera.getRight();
     right.y = 0.0f;
     if (glm::length(right) > 0.0f)
         right = glm::normalize(right);
@@ -232,7 +227,7 @@ void Game::update()
     if (glm::length(move_dir) > 0.0f)
     {
         move_dir = glm::normalize(move_dir);
-        camera.move(move_dir * camera_speed * delta_time);
+        _camera.move(move_dir * _camera_speed * _delta_time);
     }
     
     if (g_Input.isMouseCaptured())
@@ -241,7 +236,7 @@ void Game::update()
         g_Input.getMouseDelta(&delta_x, &delta_y);
 
         float sensitivity = 0.15f;
-        glm::vec3 rot = camera.getRotation();
+        glm::vec3 rot = _camera.getRotation();
 
         rot.y += (float)delta_x * sensitivity;
         rot.x -= (float)delta_y * sensitivity;
@@ -250,14 +245,14 @@ void Game::update()
         if (rot.y > 360.0f) rot.y -= 360.0f;
         else if (rot.y < 0.0f) rot.y += 360.0f;
 
-        camera.setRotation(rot);
+        _camera.setRotation(rot);
     }
 
-    if (camera.getFarPlane() != view_distance)
-        camera.setFarPlane(view_distance);
+    if (_camera.getFarPlane() != view_distance)
+        _camera.setFarPlane(view_distance);
 
     for (auto& obj : Object::registry)
-        obj->update(delta_time);
+        obj->update(_delta_time);
 }
 
 void Game::render()
@@ -268,8 +263,8 @@ void Game::render()
     float aspect_ratio = static_cast<float>(width) /
                          static_cast<float>(height);
 
-    if (camera.getAspectRatio() != aspect_ratio)
-        camera.setAspectRatio(aspect_ratio);
+    if (_camera.getAspectRatio() != aspect_ratio)
+        _camera.setAspectRatio(aspect_ratio);
     
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -283,7 +278,7 @@ void Game::render()
     g_Renderer.flush();
     
     // Draw debug information
-    if (!draw_debug_info)
+    if (!_draw_debug_info)
     {
         g_Window.update();
         return;
@@ -306,19 +301,19 @@ void Game::render()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::Begin("Debug Info", nullptr, flags);
 
-    ImGui::Text("FPS: %.1f", fps);
-    ImGui::Text("Frame Time: %.2f ms", delta_time * 1000.0f);
+    ImGui::Text("FPS: %.1f", _fps);
+    ImGui::Text("Frame Time: %.2f ms", _delta_time * 1000.0f);
 
     ImGui::Separator();
     ImGui::Text("Performance Profiling:");
-    ImGui::Text("Update: %.2f ms", update_time_ms);
-    ImGui::Text("Render: %.2f ms", render_time_ms);
-    ImGui::Text("Total Frame: %.2f ms", total_frame_time_ms);
+    ImGui::Text("Update: %.2f ms", _update_time_ms);
+    ImGui::Text("Render: %.2f ms", _render_time_ms);
+    ImGui::Text("Total Frame: %.2f ms", _total_frame_time_ms);
 
     ImGui::Separator();
     ImGui::Text("Frame Time Distribution:");
-    ImGui::Text("Update: [%.2f%%]", (update_time_ms / total_frame_time_ms) * 100.0f);
-    ImGui::Text("Render: [%.2f%%]", (render_time_ms / total_frame_time_ms) * 100.0f);
+    ImGui::Text("Update: [%.2f%%]", (_update_time_ms / _total_frame_time_ms) * 100.0f);
+    ImGui::Text("Render: [%.2f%%]", (_render_time_ms / _total_frame_time_ms) * 100.0f);
 
     const auto& render_stats = g_Renderer.getStats(); 
 
@@ -342,12 +337,12 @@ void Game::render()
     }
 
     ImGui::Separator();
-    const glm::vec3& camera_pos = camera.getPosition();
-    const glm::vec3& camera_rot = camera.getRotation();
+    const glm::vec3& camera_pos = _camera.getPosition();
+    const glm::vec3& camera_rot = _camera.getRotation();
     ImGui::Text("Camera:");
     ImGui::Text("\tPosition: X:%.2f, Y:%.2f, Z:%.2f", camera_pos.x, camera_pos.y, camera_pos.z);
     ImGui::Text("\tRotation: Pitch:%.2f, Yaw:%.2f", camera_rot.x, camera_rot.y);
-    ImGui::Text("\tSpeed: %.2f", camera_speed);
+    ImGui::Text("\tSpeed: %.2f", _camera_speed);
 
     ImGui::End();
     ImGui::PopStyleVar();
@@ -422,18 +417,18 @@ bool Game::loadResources()
 {
     LOG_INFO("Game::loadResources: Loading internal resources...");
 
-    main_shader = Shader::load(
+    _main_shader = Shader::load(
         "shaders/main.vs",
         "shaders/main.fs"
     );
 
-    if (!main_shader)
+    if (!_main_shader)
     {
         LOG_ERROR("Game::loadResources: Failed to load main shader!");
         return false;
     }
 
-    g_Renderer.setShader(main_shader);
+    g_Renderer.setShader(_main_shader);
 
     LOG_INFO("Game::loadResources: Loaded successfully!");
 

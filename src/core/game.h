@@ -25,27 +25,27 @@ public:
 
     bool loadLevel(const std::string& name);
 
-    float getFPS() const;
-    float getDeltaTime() const;
+    float getFPS() const { return _fps; }
+    float getDeltaTime() const { return _delta_time; }
 
-    bool isRunning() const;
+    bool isRunning() const { return _running; }
 
 private:
 
-    Camera camera;
-    float camera_speed = CAMERA_MOVE_SPEED;
+    Camera _camera;
+    float _camera_speed = CAMERA_MOVE_SPEED;
 
-    std::shared_ptr<Shader> main_shader;
+    std::shared_ptr<Shader> _main_shader;
 
-    float fps;
-    float delta_time;
-    float update_time_ms;
-    float render_time_ms;
-    float total_frame_time_ms;
+    float _fps;
+    float _delta_time;
+    float _update_time_ms;
+    float _render_time_ms;
+    float _total_frame_time_ms;
 
-    bool fullscreen = false;
-    bool draw_debug_info = false;
-    bool is_running = false;
+    bool _fullscreen = false;
+    bool _draw_debug_info = false;
+    bool _running = false;
 
     void update();
     void render();

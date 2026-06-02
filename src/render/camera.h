@@ -47,19 +47,19 @@ public:
 
 private:
     
-    glm::vec3 position, rotation;
-    glm::vec3 forward, right, up;
-    glm::mat4 view_mat, proj_mat;
+    glm::vec3 _position, _rotation;
+    glm::vec3 _forward, _right, _up;
+    glm::mat4 _view_mat, _proj_mat;
 
-    Frustum frustum;
+    Frustum _frustum;
 
-    float aspect_ratio;
-    float near_plane;
-    float far_plane;
-    float field_of_view;
+    float _aspect_ratio;
+    float _near_plane;
+    float _far_plane;
+    float _field_of_view;
 
-    bool view_dirty;
-    bool proj_dirty;
+    bool _view_dirty;
+    bool _proj_dirty;
 
     void update();
 };
