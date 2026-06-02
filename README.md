@@ -6,7 +6,7 @@
 
 ~~*The project is currently on hold because I’m focusing on smaller projects right now. I will definitely return to OpenField42 later — it’s my passion project. In the meantime, contributions and stars are highly appreciated ❤*~~
 
-*I'm back... maybe =)*
+*I'm back =)*
 
 ## 🚀 Overview
 
@@ -32,8 +32,6 @@ Here are a few screenshots showcasing the current rendering progress across diff
 ---
 
 ## ✨ Current Status & Features
-
-The project is currently in the **Pre-Alpha** stage. While highly functional, development is temporarily paused as I am focusing on other work.
 
 ## 📊 Detailed Progress Tracker
 
@@ -100,7 +98,7 @@ OpenField42 uses a straightforward CMake-based build process. All necessary thir
 ### Prerequisites
 
 * **Git**
-* **CMake** (version 3.25 or higher)
+* **CMake** (version 3.27 or higher)
 * A modern C++ compiler (e.g., GCC, Clang, MSVC)
 
 ### Steps
