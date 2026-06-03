@@ -4,12 +4,17 @@ layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoord;
 
+layout (std140) uniform CameraBlock
+{
+    mat4 uView;
+    mat4 uProjection;
+    vec3 uViewPos;
+};
+
 out vec2 vTexCoords;
 out vec3 vNormal;
 out vec3 vFragPos;
 
-uniform mat4 uProjection;
-uniform mat4 uView;
 uniform mat4 uModel;
 
 uniform bool uIsSky;

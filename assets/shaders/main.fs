@@ -1,5 +1,28 @@
 #version 330 core
 
+layout (std140) uniform CameraBlock
+{
+    mat4 uView;
+    mat4 uProjection;
+    vec3 uViewPos;
+};
+
+layout (std140) uniform FogBlock
+{
+    vec4 uFogColor;
+    float uFogStart;
+    float uFogEnd;
+    bool uFogEnabled;
+};
+
+layout (std140) uniform LightingBlock
+{
+    vec4 uDiffuseLight;
+    vec4 uSpecularLight;
+    vec4 uAmbientLight;
+    vec4 uGlobalAmbientLight;
+};
+
 in vec2 vTexCoords;
 in vec3 vNormal;
 in vec3 vFragPos;
@@ -22,22 +45,6 @@ struct Material
     bool lightingSpecular;
 };
 
-struct Fog
-{
-    vec3 color;
-    float start;
-    float end;
-    bool enabled;
-};
-
-struct Lighting
-{
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
-    vec3 globalAmbient;
-};
-
 struct Water
 {
     sampler2D texLayer1;
@@ -57,11 +64,8 @@ struct Water
 };
 
 uniform Material uMaterial;
-uniform Fog uFog;
-uniform Lighting uLighting;
 uniform Water uWater;
 
-uniform vec3 uViewPos;
 uniform float uTime;
 
 uniform vec3 uSunLightDir;
@@ -71,8 +75,6 @@ uniform vec3 uWireframeColor;
 
 uniform bool uIsSky;
 uniform bool uIsWater;
-
-const float worldSize = 2048.0;
 
 void main()
 {
@@ -116,13 +118,13 @@ void main()
     if (uIsWater || uMaterial.lighting)
     {
         // --- Ambient ---
-        vec3 ambient = ((uLighting.ambient + uLighting.globalAmbient) * 2.0) * objectColor;
+        vec3 ambient = ((uAmbientLight.rgb + uGlobalAmbientLight.rgb) * 2.0) * objectColor;
         
         // --- Diffuse ---
         vec3 norm = normalize(vNormal);
         vec3 lightDir = normalize(uSunLightDir);
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * uLighting.diffuse * objectColor;
+        vec3 diffuse = diff * uDiffuseLight.rgb * objectColor;
         
         // --- Specular ---
         vec3 specular = vec3(0.0);
@@ -131,7 +133,7 @@ void main()
             vec3 viewDir = normalize(uViewPos - vFragPos);
             vec3 reflectDir = reflect(lightDir, norm);
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.specularPower);
-            specular = spec * uLighting.specular * uMaterial.specularColor; 
+            specular = spec * uSpecularLight.rgb * uMaterial.specularColor; 
         }
 
         result = ambient + diffuse + specular;
@@ -139,11 +141,11 @@ void main()
         result = objectColor; 
     }
 
-    if (uFog.enabled && !uIsSky)
+    if (uFogEnabled && !uIsSky)
     {
         float distance = length(uViewPos - vFragPos);
-        float fogFactor = clamp((uFog.end - distance) / (uFog.end - uFog.start), 0.0, 1.0);
-        result = mix(uFog.color, result, fogFactor);
+        float fogFactor = clamp((uFogEnd - distance) / (uFogEnd - uFogStart), 0.0, 1.0);
+        result = mix(uFogColor.rgb, result, fogFactor);
     }
 
     FragColor = vec4(result, alpha);

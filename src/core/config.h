@@ -3,16 +3,16 @@
 /* Window */
 
 #define WINDOW_TITLE "OpenField42"
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
-#define WINDOW_FULLSCREEN 1
+#define WINDOW_WIDTH 1600
+#define WINDOW_HEIGHT 900
+#define WINDOW_FULLSCREEN 0
 #define WINDOW_RESIZABLE 0
 #define WINDOW_BORDERLESS 0
-#define WINDOW_VSYNC_ON 1
+#define WINDOW_VSYNC_ON 0
 
 /* Rendering */
 
-#define USE_LODS 0
+#define USE_LODS 1
 #define USE_FRUSTUM_CULLING 1
 #define RENDER_FOG 1
 #define VIEW_DISTANCE 0 // Set to 0 to use view distance from Init.con

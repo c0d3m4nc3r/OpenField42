@@ -66,8 +66,7 @@ const glm::mat4& Camera::getProjMat() const
 
 const Frustum& Camera::getFrustum() const
 {
-    if (_view_dirty || _proj_dirty)
-        update();
+    if (_view_dirty || _proj_dirty) update();
     return _frustum;
 }
 

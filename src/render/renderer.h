@@ -15,33 +15,28 @@ public:
         size_t polygons_culled = 0;
     };
 
-    struct Lighting
-    {
-        Color diffuse;
-        Color specular;
-        Color ambient;
-        Color global_ambient;
-    } lighting;
-
-    struct Fog
-    {
-        Color color = Color(0.5f, 0.5f, 0.5f, 1.0f);
-        float start = 50.0f;
-        float end = 200.0f;
-        bool enabled = true;
-    } fog;
-
     bool wireframe_mode = false;
 
+    bool init();
+    void shutdown();
     void submit(Geometry* geo, const glm::mat4& model);
     void flush();
     
     void resetStats();
 
-    const Stats& getStats() const;
+    const Stats& getStats() const { return _stats; }
+    
+    void setCamera(Camera* camera) { _camera = camera; }
 
-    void setCamera(Camera* camera);
-    void setShader(std::shared_ptr<Shader> shader);
+    void setFogColor(const Color& color) { _fog.color = color; _fog_dirty = true; }
+    void setFogStart(float start) { _fog.start = start; _fog_dirty = true; }
+    void setFogEnd(float end) { _fog.end = end; _fog_dirty = true; }
+    void setFogEnabled(bool enabled) { _fog.enabled = enabled; _fog_dirty = true; }
+
+    void setDiffuseLight(const Color& color) { _lighting.diffuse = color; _lighting_dirty = true; }
+    void setSpecularLight(const Color& color) { _lighting.specular = color; _lighting_dirty = true; }
+    void setAmbientLight(const Color& color) { _lighting.ambient = color; _lighting_dirty = true; }
+    void setGlobalAmbientLight(const Color& color) { _lighting.global_ambient = color; _lighting_dirty = true; }
 
 private:
 
@@ -53,12 +48,46 @@ private:
         float distance_to_camera = 0.0f;
     };
 
-    Camera* _camera = nullptr;
-    
+    struct UBO_CameraBlock
+    {
+        glm::mat4 view;
+        glm::mat4 projection;
+        glm::vec3 view_pos;
+        float padding; // for std140 alignment
+    };
+
+    struct UBO_FogBlock
+    {
+        Color color = Color(0.5f, 0.5f, 0.5f, 1.0f);
+        float start = 50.0f;
+        float end = 200.0f;
+        bool enabled = true;
+        float padding; // for std140 alignment
+    };
+
+    struct alignas(16) UBO_LightingBlock
+    {
+        Color diffuse;
+        Color specular;
+        Color ambient;
+        Color global_ambient;
+    };
+
     std::shared_ptr<Shader> _shader;
     
     std::vector<RenderItem> _opaque_queue;
     std::vector<RenderItem> _transparent_queue;
+    
+    Camera* _camera = nullptr;
+    unsigned int _camera_ubo = 0;
+    
+    UBO_FogBlock _fog;
+    unsigned int _fog_ubo = 0;
+    bool _fog_dirty = true;
+
+    UBO_LightingBlock _lighting;
+    unsigned int _lighting_ubo = 0;
+    bool _lighting_dirty = true;
     
     Stats _stats;
 

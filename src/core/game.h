@@ -35,8 +35,6 @@ private:
     Camera _camera;
     float _camera_speed = CAMERA_MOVE_SPEED;
 
-    std::shared_ptr<Shader> _main_shader;
-
     float _fps;
     float _delta_time;
     float _update_time_ms;
@@ -51,7 +49,6 @@ private:
     void render();
     
     bool loadGameObjs();
-    bool loadResources();
 };
 
 extern Game g_Game;

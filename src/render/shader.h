@@ -20,6 +20,8 @@ public:
     void bind();
     void unbind();
 
+    unsigned int getID() const { return _id; }
+
     void setInt(const char* name, int value);
     void setFloat(const char* name, float value);
     void setBool(const char* name, bool value);

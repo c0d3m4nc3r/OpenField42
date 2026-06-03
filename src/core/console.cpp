@@ -225,15 +225,31 @@ void Console::init()
     });
 
     // Renderer
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogColorVec, GEN_VEC3_SETTER(Renderer, fog.color));
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogStart, GEN_FLOAT_SETTER(Renderer, fog.start));
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogEnd, GEN_FLOAT_SETTER(Renderer, fog.end));
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, vertexFogEnable, GEN_INT_SETTER(Renderer, fog.enabled));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogColorVec, [](Renderer* r, const std::string& value) {
+        if (r) r->setFogColor(Console::parseVec3(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogStart, [](Renderer* r, const std::string& value) {
+        if (r) r->setFogStart(Console::parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, fogEnd, [](Renderer* r, const std::string& value) {
+        if (r) r->setFogEnd(Console::parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, vertexFogEnable, [](Renderer* r, const std::string& value) {
+        if (r) r->setFogEnabled(Console::parseInt(value) != 0);
+    });
 
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, diffuseColor, GEN_VEC3_SETTER(Renderer, lighting.diffuse));
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, specularColor, GEN_VEC3_SETTER(Renderer, lighting.specular));
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, ambientColor, GEN_VEC3_SETTER(Renderer, lighting.ambient));
-    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, globalAmbientColor, GEN_VEC3_SETTER(Renderer, lighting.global_ambient));
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, diffuseColor, [](Renderer* r, const std::string& value) {
+        if (r) r->setDiffuseLight(Console::parseVec3(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, specularColor, [](Renderer* r, const std::string& value) {
+        if (r) r->setSpecularLight(Console::parseVec3(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, ambientColor, [](Renderer* r, const std::string& value) {
+        if (r) r->setAmbientLight(Console::parseVec3(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, &g_Renderer, globalAmbientColor, [](Renderer* r, const std::string& value) {
+        if (r) r->setGlobalAmbientLight(Console::parseVec3(value));
+    });
 
     // Game
     REGISTER_OBJECT_PROPERTY(Game, &g_Game, setViewDistance, GEN_INT_SETTER(Game, view_distance));
@@ -243,7 +259,6 @@ void Console::init()
     REGISTER_OBJECT_PROPERTY(Sky, &g_Sky, setRotAngle, GEN_FLOAT_SETTER(Sky, rot_angle));
 
     // Water
-
     REGISTER_OBJECT_PROPERTY(Water, &g_Water, texLayer1, [](Water* w, const std::string& value) {
         w->layers[0].texture = Texture::load(value);
     });

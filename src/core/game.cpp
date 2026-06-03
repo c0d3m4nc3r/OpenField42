@@ -6,7 +6,6 @@
 #include "platform/input.h"
 #include "platform/window.h"
 #include "render/renderer.h"
-#include "render/shader.h"
 #include "object/object.h"
 #include "vfs/vfs.h"
 
@@ -39,12 +38,15 @@ bool Game::init()
         return false;
     }
 
-    // Setup OpenGL
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glCullFace(GL_BACK);
-    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    // Mount assets folder
+    VFS::mountProvider(std::make_shared<FolderProvider>("assets"));
+
+    // Initialize renderer
+    if (!g_Renderer.init())
+    {
+        LOG_ERROR("Game::init: Failed to initialize renderer!");
+        return false;
+    }
 
     // Setup ImGui
     IMGUI_CHECKVERSION();
@@ -58,8 +60,7 @@ bool Game::init()
     ImGui_ImplSDL3_InitForOpenGL(g_Window.getHandle(), g_Window.getGLContext());
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    // Mount folders and game archives
-    VFS::mountProvider(std::make_shared<FolderProvider>("assets"));
+    // Mount game archives
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/standardMesh.rfa"));
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/StandardMesh_001.rfa"));
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture.rfa"));
@@ -67,13 +68,6 @@ bool Game::init()
 
     // Initialize console
     g_Console.init();
-
-    // Load internal resources
-    if (!loadResources())
-    {
-        LOG_ERROR("Game::init: Failed to load resources!");
-        return false;
-    }
 
     // Initialize renderer
     g_Renderer.setCamera(&_camera);
@@ -111,11 +105,9 @@ bool Game::init()
 void Game::shutdown()
 {
     LOG_INFO("Game::shutdown: Shutting down game...");
-    
-    _main_shader.reset();
 
+    g_Renderer.shutdown();
     g_Window.shutdown();
-
     SDL_Quit();
 
     LOG_INFO("Game::shutdown: Game shutdown!");
@@ -165,10 +157,6 @@ void Game::onEvent(const SDL_Event& event)
             else if (event.key.scancode == SDL_SCANCODE_F3)
             {
                 _draw_debug_info = !_draw_debug_info;
-            }
-            else if (event.key.scancode == SDL_SCANCODE_F5)
-            {
-                loadResources();
             }
             else if (event.key.scancode == SDL_SCANCODE_F11)
             {
@@ -409,28 +397,6 @@ bool Game::loadLevel(const std::string& name)
     }
 
     LOG_INFO("Game::loadLevel: Level '%s' loaded!", name.c_str());
-
-    return true;
-}
-
-bool Game::loadResources()
-{
-    LOG_INFO("Game::loadResources: Loading internal resources...");
-
-    _main_shader = Shader::load(
-        "shaders/main.vs",
-        "shaders/main.fs"
-    );
-
-    if (!_main_shader)
-    {
-        LOG_ERROR("Game::loadResources: Failed to load main shader!");
-        return false;
-    }
-
-    g_Renderer.setShader(_main_shader);
-
-    LOG_INFO("Game::loadResources: Loaded successfully!");
 
     return true;
 }

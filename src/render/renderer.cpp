@@ -13,6 +13,73 @@
 
 Renderer g_Renderer;
 
+bool Renderer::init()
+{
+    LOG_INFO("Renderer::init: Initializing renderer...");
+
+    // Load main shader
+    _shader = Shader::load("shaders/main.vs", "shaders/main.fs");
+    if (!_shader)
+    {
+        LOG_ERROR("Renderer::init: Failed to load main shader!");
+        return false;
+    }
+
+    // Setup Camera UBO
+    glGenBuffers(1, &_camera_ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_CameraBlock), nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    GLuint camera_block_index = glGetUniformBlockIndex(_shader->getID(), "CameraBlock");
+    glUniformBlockBinding(_shader->getID(), camera_block_index, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, _camera_ubo);
+
+    // Setup Fog UBO
+    glGenBuffers(1, &_fog_ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, _fog_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_FogBlock), &_fog, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    GLuint fog_block_index = glGetUniformBlockIndex(_shader->getID(), "FogBlock");
+    glUniformBlockBinding(_shader->getID(), fog_block_index, 1);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, _fog_ubo);
+
+    // Setup Lighting UBO
+    glGenBuffers(1, &_lighting_ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, _lighting_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_LightingBlock), &_lighting, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    GLuint lighting_block_index = glGetUniformBlockIndex(_shader->getID(), "LightingBlock");
+    glUniformBlockBinding(_shader->getID(), lighting_block_index, 2);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 2, _lighting_ubo);
+
+    // Setup OpenGL state
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glCullFace(GL_BACK);
+    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+
+    LOG_INFO("Renderer::init: Renderer initialized!");
+
+    return true;
+}
+
+void Renderer::shutdown()
+{
+    LOG_INFO("Renderer::shutdown: Shutting down renderer...");
+
+    if (_camera_ubo) glDeleteBuffers(1, &_camera_ubo);
+    if (_fog_ubo) glDeleteBuffers(1, &_fog_ubo);
+    if (_lighting_ubo) glDeleteBuffers(1, &_lighting_ubo);
+
+    _shader.reset();
+
+    LOG_INFO("Renderer::shutdown: Renderer shutdown!");
+}
+
 static size_t calculateLOD(float distance, float max_distance, size_t max_lod)
 {
     if (distance >= max_distance) 
@@ -91,27 +158,34 @@ void Renderer::flush()
 {
     if (!_shader || !_camera) return;
 
-    _shader->bind();
+    UBO_CameraBlock camera_data;
+    camera_data.view = _camera->getViewMat();
+    camera_data.projection = _camera->getProjMat();
+    camera_data.view_pos = _camera->getPosition();
 
-    _shader->setMat4("uView", _camera->getViewMat());
-    _shader->setMat4("uProjection", _camera->getProjMat());
-    _shader->setVec3("uViewPos", _camera->getPosition());
-    _shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
+    glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_CameraBlock), &camera_data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    if (fog.enabled && RENDER_FOG)
+    if (_fog_dirty)
     {
-        _shader->setVec3("uFog.color", fog.color.toVec3());
-        _shader->setFloat("uFog.start", fog.start);
-        _shader->setFloat("uFog.end", fog.end);
-        _shader->setBool("uFog.enabled", fog.enabled);
-    } else {
-        _shader->setBool("uFog.enabled", false);
+        glBindBuffer(GL_UNIFORM_BUFFER, _fog_ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_FogBlock), &_fog);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        _fog_dirty = false;
     }
 
-    _shader->setVec3("uLighting.diffuse", lighting.diffuse.toVec3());
-    _shader->setVec3("uLighting.specular", lighting.specular.toVec3());
-    _shader->setVec3("uLighting.ambient", lighting.ambient.toVec3());
-    _shader->setVec3("uLighting.globalAmbient", lighting.global_ambient.toVec3());
+    if (_lighting_dirty)
+    {
+        glBindBuffer(GL_UNIFORM_BUFFER, _lighting_ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_LightingBlock), &_lighting);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        _lighting_dirty = false;
+    }
+
+    _shader->bind();
+
+    _shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
 
     _shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
 
@@ -154,11 +228,3 @@ void Renderer::resetStats()
     _stats.polygons_culled = 0;
     _stats.polygons_rendered = 0;
 }
-
-const Renderer::Stats& Renderer::getStats() const
-{
-    return _stats;
-}
-
-void Renderer::setCamera(Camera* camera) { this->_camera = camera; }
-void Renderer::setShader(std::shared_ptr<Shader> shader) { this->_shader = shader; }
