@@ -25,6 +25,8 @@ bool Water::init(float size, float scale_xz, float height)
     
             v.uv.x = (x / (size - 1)) * 64.0f;
             v.uv.y = (z / (size - 1)) * 64.0f;
+
+            v.color = {0.3f, 0.3f, 0.3f, 1.0f};
     
             _mesh.vertices.push_back(v);
         }

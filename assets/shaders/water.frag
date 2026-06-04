@@ -32,6 +32,7 @@ layout(std140) uniform WaterBlock
 in vec2 vTexCoords;
 in vec3 vNormal;
 in vec3 vFragPos;
+in vec4 vColor;
 
 out vec4 FragColor;
 
@@ -54,26 +55,26 @@ void main()
     vec2 uv1 = vTexCoords + uScroll1.xz * uScroll1.z * uTime;
     vec2 uv2 = vTexCoords + uScroll2.xz * uScroll2.z * uTime;
 
-    vec3 layerColor1 = texture(uTexLayer1, uv1).rgb;
-    vec3 layerColor2 = texture(uTexLayer2, uv2).rgb;
-    vec3 objectColor = layerColor1 + layerColor2;
-    float alpha = 0.5;
+    vec4 layerColor1 = texture(uTexLayer1, uv1);
+    vec4 layerColor2 = texture(uTexLayer2, uv2);
+    vec4 objectColor = (layerColor1 + layerColor2) * vColor;
 
-    vec3 ambient = ((uAmbientLight.rgb + uGlobalAmbientLight.rgb) * 2.0) * objectColor;
+    vec4 ambient = ((uAmbientLight + uGlobalAmbientLight) * 2.0) * objectColor;
 
     vec3 norm = normalize(vNormal);
     vec3 lightDir = normalize(uSunLightDir);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * uDiffuseLight.rgb * objectColor;
 
-    vec3 result = ambient + diffuse;
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec4 diffuse = diff * uDiffuseLight * objectColor;
+
+    vec4 result = ambient + diffuse;
 
     if (uFogEnabled)
     {
         float distance = length(uViewPos - vFragPos);
         float fogFactor = clamp((uFogEnd - distance) / (uFogEnd - uFogStart), 0.0, 1.0);
-        result = mix(uFogColor.rgb, result, fogFactor);
+        result = mix(uFogColor, result, fogFactor);
     }
 
-    FragColor = vec4(result, alpha);
+    FragColor = result;
 }

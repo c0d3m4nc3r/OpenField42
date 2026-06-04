@@ -156,6 +156,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
                         (float)x / ((float)_size - 1.0f),
                         (float)z / ((float)_size - 1.0f)
                     };
+                    v.color = {1.0f, 1.0f, 1.0f, 1.0f};
         
                     chunk_min = glm::min(chunk_min, v.position);
                     chunk_max = glm::max(chunk_max, v.position);

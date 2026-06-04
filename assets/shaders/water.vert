@@ -3,6 +3,7 @@
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoord;
+layout(location = 3) in vec4 aColor;
 
 layout (std140) uniform CameraBlock
 {
@@ -14,11 +15,13 @@ layout (std140) uniform CameraBlock
 out vec2 vTexCoords;
 out vec3 vNormal;
 out vec3 vFragPos;
+out vec4 vColor;
 
 uniform mat4 uModel;
 
 void main()
 {
+    vColor = aColor;
     vTexCoords = aTexCoord;
     vFragPos = vec3(uModel * vec4(aPos, 1.0));
     vNormal = mat3(transpose(inverse(uModel))) * aNormal;

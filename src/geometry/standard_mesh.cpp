@@ -151,6 +151,7 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
                 READ_DATA(vertex.position, glm::vec3);
                 READ_DATA(vertex.normal, glm::vec3);
                 READ_DATA(vertex.uv, glm::vec2);
+                vertex.color = {1.0f, 1.0f, 1.0f, 1.0f};
                 
                 size_t extra = mesh.source_stride - (sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
                 ptr += extra;
