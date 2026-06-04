@@ -42,7 +42,6 @@ public:
         AABB aabb;
         int index_count = 0;
         int poly_count = 0;
-        bool is_water = false;
         bool use_geom_aabb = false;
         bool uploaded = false;
 
@@ -57,8 +56,10 @@ public:
 
         ~Mesh();
 
-        void draw(Shader* shader);
         bool upload();
+        void unload();
+        
+        void draw(Shader* shader);
     };
 
     struct LOD

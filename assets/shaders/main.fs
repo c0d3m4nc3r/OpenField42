@@ -57,10 +57,6 @@ struct Water
     vec4 deepColor;
     vec4 shallowColor;
     float alphaDepth;
-
-    sampler2D depthMap;
-    float minDepth;
-    float maxDepth;
 };
 
 uniform Material uMaterial;

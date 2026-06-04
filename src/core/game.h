@@ -7,7 +7,6 @@
 #include <SDL3/SDL_events.h>
 
 #include <string>
-#include <memory>
 
 class Geometry;
 class Shader;

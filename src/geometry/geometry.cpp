@@ -1,11 +1,9 @@
 #include "geometry/geometry.h"
-#include "render/texture.h"
 #include "geometry/template.h"
 #include "geometry/material.h"
 #include "geometry/standard_mesh.h"
 #include "geometry/patch_terrain.h"
 #include "utils/log.h"
-#include "world/water.h"
 #include "render/shader.h"
 #include "utils/string_utils.h"
 
@@ -47,9 +45,7 @@ Geometry::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsi
 
 Geometry::Mesh::~Mesh()
 {
-    if (vao) glDeleteVertexArrays(1, &vao);
-    if (ebo) glDeleteBuffers(1, &ebo);
-    if (vbo) glDeleteBuffers(1, &vbo);
+    unload();
 }
 
 void Geometry::Mesh::draw(Shader* shader)
@@ -58,43 +54,6 @@ void Geometry::Mesh::draw(Shader* shader)
 
     if (material)
         material->apply(shader);
-
-    shader->setBool("uIsWater", is_water);
-
-    if (is_water)
-    {
-        if (g_Water.layers[0].texture)
-        {
-            g_Water.layers[0].texture->bind(0);
-            shader->setInt("uWater.texLayer1", 0);
-            shader->setVec2("uWater.scrollDir1", g_Water.layers[0].scroll_dir);
-            shader->setFloat("uWater.scrollSpeed1", g_Water.layers[0].scroll_speed);
-        }
-
-        if (g_Water.layers[1].texture)
-        {
-            g_Water.layers[1].texture->bind(1);
-            shader->setInt("uWater.texLayer2", 1);
-            shader->setVec2("uWater.scrollDir2", g_Water.layers[1].scroll_dir);
-            shader->setFloat("uWater.scrollSpeed2", g_Water.layers[1].scroll_speed);
-        }
-
-        if (g_Water.depth_map)
-        {
-            g_Water.depth_map->bind(2);
-            shader->setInt("uWater.depthMap", 2);
-        }
-
-        shader->setFloat("uWater.minDepth", g_Water.min_depth);
-        shader->setFloat("uWater.maxDepth", g_Water.max_depth);
-        
-        shader->setVec4("uWater.shallowColor", g_Water.shallow_color.toVec4());
-        shader->setVec4("uWater.deepColor", g_Water.deep_color.toVec4());
-        shader->setFloat("uWater.alphaDepth", g_Water.alpha_depth);
-
-
-        shader->setVec3("uWireframeColor", glm::vec3(0.0f, 0.0f, 1.0f));
-    }
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
@@ -148,6 +107,22 @@ bool Geometry::Mesh::upload()
     return true;
 }
 
+void Geometry::Mesh::unload()
+{
+    if (!uploaded) return;
+    
+    if (vao) glDeleteVertexArrays(1, &vao);
+    if (ebo) glDeleteBuffers(1, &ebo);
+    if (vbo) glDeleteBuffers(1, &vbo);
+
+    vao = 0;
+    vbo = 0;
+    ebo = 0;
+    index_count = 0;
+    poly_count = 0;
+    uploaded = false;
+}
+
 Geometry* Geometry::create(const GeometryTemplate* tmpl)
 {
     if (!tmpl)
@@ -175,7 +150,7 @@ Geometry* Geometry::create(const GeometryTemplate* tmpl)
                 return nullptr;
             }
         } break;
-        case GeometryType::PatchTerrain:
+    case GeometryType::PatchTerrain:
         {
             PatchTerrain* terrain = new PatchTerrain();
             geom = terrain;

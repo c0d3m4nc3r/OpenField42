@@ -6,6 +6,7 @@
 #include "render/shader.h"
 
 #include "glad/glad.h"
+#include "world/water.h"
 
 #include <SDL3/SDL_timer.h>
 
@@ -144,7 +145,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         item.geom = geom;
         item.distance_to_camera = distance;
 
-        if (mesh.material->transparent || mesh.is_water)
+        if (mesh.material->transparent)
             _transparent_queue.push_back(item);
         else
             _opaque_queue.push_back(item);
@@ -182,11 +183,12 @@ void Renderer::flush()
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
         _lighting_dirty = false;
     }
+    
+    //
 
     _shader->bind();
 
     _shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-
     _shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
 
     _shader->setBool("uWireframeMode", wireframe_mode);
@@ -213,9 +215,10 @@ void Renderer::flush()
     };
 
     renderItems(_opaque_queue);
-
-    g_Sky.draw(_shader.get());
     
+    g_Sky.draw(_shader.get());
+    g_Water.draw(_shader.get());
+
     renderItems(_transparent_queue);
 
     _shader->unbind();

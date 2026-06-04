@@ -4,7 +4,6 @@
 #include "world/water.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
-#include "utils/texture_utils.h"
 
 #define TILE_SIZE 64
 #define VERTS_PER_TILE TILE_SIZE + 1
@@ -47,62 +46,6 @@ static std::vector<std::string> genTexturePaths(const std::string& base_path, in
     return texture_paths;
 }
 
-static Geometry::Mesh generateWaterMesh(const GeometryTemplate* tmpl)
-{
-    float size = (float)tmpl->material_size / 4.0f;
-    float scale_xz = (float)tmpl->world_size / (size - 1.0f);
-    float height = (float)tmpl->water_level;
-
-    std::vector<Geometry::Vertex> vertices;
-    vertices.reserve(size * size);
-
-    for (float z = 0.0f; z < size; z++)
-    {
-        for (float x = 0.0f; x < size; x++)
-        {
-            Geometry::Vertex v;
-            v.position = {
-                x * scale_xz,
-                height,
-                z * scale_xz
-            };
-    
-            v.normal = {0.0f, 1.0f, 0.0f};
-    
-            v.uv.x = (x / (size - 1)) * 64.0f;
-            v.uv.y = (z / (size - 1)) * 64.0f;
-    
-            vertices.push_back(v);
-        }
-    }
-
-    std::vector<unsigned int> indices;
-
-    int i_size = (int)size;
-    indices.reserve((i_size - 1) * (i_size - 1) * 6);
-
-    for (int z = 0; z < i_size - 1; z++)
-    {
-        for (int x = 0; x < i_size - 1; x++)
-        {
-            unsigned int v0 = z * i_size + x;
-            unsigned int v1 = (z + 1) * i_size + x;
-            unsigned int v2 = z * i_size + (x + 1);
-            unsigned int v3 = (z + 1) * i_size + (x + 1);
-    
-            indices.push_back(v0);
-            indices.push_back(v1);
-            indices.push_back(v2);
-    
-            indices.push_back(v2);
-            indices.push_back(v1);
-            indices.push_back(v3);
-        }
-    }
-
-    return Geometry::Mesh(std::move(vertices), std::move(indices));
-}
-
 bool PatchTerrain::load(const GeometryTemplate* tmpl)
 {
     if (tmpl->type != GeometryType::PatchTerrain)
@@ -143,9 +86,6 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
     
     materials["base"] = Material();
     auto& base_mat = materials["base"];
-
-    materials["water"] = Material();
-    auto& water_mat = materials["water"];
     
     // 3. Load textures
 
@@ -253,31 +193,9 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         }
     }
 
-    auto water_mesh = generateWaterMesh(tmpl);
-    water_mesh.material = &water_mat;
-    water_mesh.use_geom_aabb = true;
-    water_mesh.is_water = true;
-    lod.meshes.push_back(std::move(water_mesh));
+    g_Water.init((float)_size / 4, (float)tmpl->world_size / ((float)_size / 4 - 1.0f), (float)tmpl->water_level);
 
     aabb = AABB(global_min, global_max);
-
-    // 5. Create water depth map
-
-    std::vector<float> depthmap(_heightmap.size());
-
-    for (size_t i = 0; i < _heightmap.size(); i++)
-    {
-        float depth = tmpl->water_level - _heightmap[i];
-        if (depth < g_Water.min_depth) g_Water.min_depth = depth;
-        if (depth > g_Water.max_depth) g_Water.max_depth = depth;
-        depthmap[i] = depth;
-    }
-
-    GLuint depthmap_tex = TextureUtils::createGLTexture(
-        _size, _size, GL_R32F, GL_RED, GL_FLOAT, depthmap.data()
-    );
-
-    g_Water.depth_map = std::make_shared<Texture>(depthmap_tex);
 
     return true;
 }

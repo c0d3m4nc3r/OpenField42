@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geometry/material.h"
+#include "geometry/geometry.h"
 
 #include <glm/vec2.hpp>
 
@@ -30,9 +30,13 @@ public:
     Color deep_color;
     float alpha_depth = 1.0f;
 
-    std::shared_ptr<Texture> depth_map;
-    float min_depth = 0.0f;
-    float max_depth = 0.0f;
+    bool init(float size, float world_size, float height);
+    void shutdown();
+    void draw(Shader* shader);
+
+private:
+
+    Geometry::Mesh _mesh;
 
 };
 

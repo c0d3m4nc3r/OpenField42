@@ -8,7 +8,7 @@
 #define WINDOW_FULLSCREEN 0
 #define WINDOW_RESIZABLE 0
 #define WINDOW_BORDERLESS 0
-#define WINDOW_VSYNC_ON 0
+#define WINDOW_VSYNC_ON 1
 
 /* Rendering */
 

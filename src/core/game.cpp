@@ -8,6 +8,7 @@
 #include "render/renderer.h"
 #include "object/object.h"
 #include "vfs/vfs.h"
+#include "world/water.h"
 
 #include "glad/glad.h"
 
@@ -106,8 +107,10 @@ void Game::shutdown()
 {
     LOG_INFO("Game::shutdown: Shutting down game...");
 
+    g_Water.shutdown();
     g_Renderer.shutdown();
     g_Window.shutdown();
+
     SDL_Quit();
 
     LOG_INFO("Game::shutdown: Game shutdown!");
@@ -115,8 +118,8 @@ void Game::shutdown()
 
 void Game::tick(float delta_time, float fps, Uint64 frequency)
 {
-    this->_delta_time = delta_time;
-    this->_fps = fps;
+    _delta_time = delta_time;
+    _fps = fps;
 
     Uint64 frame_start = SDL_GetPerformanceCounter();
     
