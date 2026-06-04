@@ -45,14 +45,13 @@ void Sky::draw(Shader* shader)
 {
     if (!shader || !_geometry) return;
 
+    shader->bind();
+    
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_FALSE);
-    
-    shader->setBool("uIsSky", true);
-    shader->setVec3("uWireframeColor", glm::vec3(0.0f, 0.0f, 1.0f));
+
     _geometry->draw(shader, glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), glm::vec3(0.0f, 1.0f, 0.0f)));
-    shader->setBool("uIsSky", false);
     
     glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LESS);    
 }

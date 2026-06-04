@@ -73,7 +73,11 @@ private:
         Color global_ambient;
     };
 
-    std::shared_ptr<Shader> _shader;
+    struct {
+        std::shared_ptr<Shader> standard;
+        std::shared_ptr<Shader> sky;
+        std::shared_ptr<Shader> water;
+    } _shaders;
     
     std::vector<RenderItem> _opaque_queue;
     std::vector<RenderItem> _transparent_queue;
@@ -91,6 +95,10 @@ private:
     
     Stats _stats;
 
+    void opaquePass();
+    void transparentPass();
+    void skyPass();
+    void waterPass();
 };
 
 extern Renderer g_Renderer;

@@ -45,32 +45,11 @@ struct Material
     bool lightingSpecular;
 };
 
-struct Water
-{
-    sampler2D texLayer1;
-    sampler2D texLayer2;
-    vec2 scrollDir1;
-    vec2 scrollDir2;
-    float scrollSpeed1;
-    float scrollSpeed2;
-
-    vec4 deepColor;
-    vec4 shallowColor;
-    float alphaDepth;
-};
-
 uniform Material uMaterial;
-uniform Water uWater;
-
-uniform float uTime;
-
 uniform vec3 uSunLightDir;
 
 uniform bool uWireframeMode;
 uniform vec3 uWireframeColor;
-
-uniform bool uIsSky;
-uniform bool uIsWater;
 
 void main()
 {
@@ -83,25 +62,9 @@ void main()
     vec3 objectColor = vec3(1.0, 1.0, 1.0);
     float alpha = 1.0;
 
-    if (uIsWater)
-    {
-        vec2 uv1 = vTexCoords + uWater.scrollDir1 * uWater.scrollSpeed1 * uTime;
-        vec2 uv2 = vTexCoords + uWater.scrollDir2 * uWater.scrollSpeed2 * uTime;
-
-        vec3 layerColor1 = texture(uWater.texLayer1, uv1).rgb;
-        vec3 layerColor2 = texture(uWater.texLayer2, uv2).rgb;
-
-        vec3 waterColor = layerColor1 + layerColor2;
-
-        objectColor = waterColor;
-        alpha = 0.5;
-
-    } else {
-        vec4 texColor = uMaterial.hasTexture ? texture(uMaterial.texture, vTexCoords) : uMaterial.diffuseColor;
-        
-        objectColor = texColor.rgb;
-        alpha = texColor.a;
-    }
+    vec4 texColor = uMaterial.hasTexture ? texture(uMaterial.texture, vTexCoords) : uMaterial.diffuseColor;
+    objectColor = texColor.rgb;
+    alpha = texColor.a;
     
     if (uMaterial.hasDetailTexture)
     {
@@ -110,34 +73,32 @@ void main()
     }
 
     vec3 result;
-
-    if (uIsWater || uMaterial.lighting)
+    if (uMaterial.lighting)
     {
-        // --- Ambient ---
         vec3 ambient = ((uAmbientLight.rgb + uGlobalAmbientLight.rgb) * 2.0) * objectColor;
-        
-        // --- Diffuse ---
+
         vec3 norm = normalize(vNormal);
         vec3 lightDir = normalize(uSunLightDir);
         float diff = max(dot(norm, lightDir), 0.0);
         vec3 diffuse = diff * uDiffuseLight.rgb * objectColor;
-        
-        // --- Specular ---
+
         vec3 specular = vec3(0.0);
         if (uMaterial.lightingSpecular)
         {
             vec3 viewDir = normalize(uViewPos - vFragPos);
             vec3 reflectDir = reflect(lightDir, norm);
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.specularPower);
-            specular = spec * uSpecularLight.rgb * uMaterial.specularColor; 
+            specular = spec * uSpecularLight.rgb * uMaterial.specularColor;
         }
 
         result = ambient + diffuse + specular;
-    } else {
-        result = objectColor; 
+    } 
+    else 
+    {
+        result = objectColor;
     }
 
-    if (uFogEnabled && !uIsSky)
+    if (uFogEnabled)
     {
         float distance = length(uViewPos - vFragPos);
         float fogFactor = clamp((uFogEnd - distance) / (uFogEnd - uFogStart), 0.0, 1.0);

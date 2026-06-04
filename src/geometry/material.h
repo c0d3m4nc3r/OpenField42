@@ -16,7 +16,7 @@ struct Color
         : r(_r), g(_g), b(_b), a(_a) {}
 
     Color(const glm::vec3& vec)
-        : r(vec.r), g(vec.g), b(vec.b) {}
+        : r(vec.r), g(vec.g), b(vec.b), a(1.0f) {}
 
     Color(const glm::vec4& vec)
         : r(vec.r), g(vec.g), b(vec.b), a(vec.a) {}

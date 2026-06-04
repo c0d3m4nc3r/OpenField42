@@ -260,21 +260,25 @@ void Console::init()
 
     // Water
     REGISTER_OBJECT_PROPERTY(Water, &g_Water, texLayer1, [](Water* w, const std::string& value) {
-        w->layers[0].texture = Texture::load(value);
+        w->setTexture(0, Texture::load(value));
     });
     
     REGISTER_OBJECT_PROPERTY(Water, &g_Water, texLayer2, [](Water* w, const std::string& value) {
-        w->layers[1].texture = Texture::load(value);
+        w->setTexture(1, Texture::load(value));
     });
 
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollDirection1, GEN_VEC2_SETTER(Water, layers[0].scroll_dir));
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollDirection2, GEN_VEC2_SETTER(Water, layers[1].scroll_dir));
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer1, GEN_FLOAT_SETTER(Water, layers[0].scroll_speed));
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer2, GEN_FLOAT_SETTER(Water, layers[1].scroll_speed));
-
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, color, GEN_VEC3_SETTER(Water, shallow_color));
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, waterShallowAlpha, GEN_FLOAT_SETTER(Water, shallow_color.a));
-    REGISTER_OBJECT_PROPERTY(Water, &g_Water, waterAlphaDepth, GEN_FLOAT_SETTER(Water, alpha_depth));
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollDirection1, [](Water* w, const std::string& value) {
+        w->setScrollDir(0, parseVec2(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollDirection2, [](Water* w, const std::string& value) {
+        w->setScrollDir(1, parseVec2(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer1, [](Water* w, const std::string& value) {
+        w->setScrollSpeed(0, parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer2, [](Water* w, const std::string& value) {
+        w->setScrollSpeed(1, parseFloat(value));
+    });
 }
 
 void Console::registerCmd(const std::string& name, CommandHandler fn)
