@@ -18,25 +18,25 @@ bool Renderer::init()
 {
     LOG_INFO("Renderer::init: Initializing renderer...");
 
-    // Load main shader
-    _shaders.standard = Shader::load("shaders/standard.vert", "shaders/standard.frag");
-    if (!_shaders.standard)
+    // Load standard shader
+    _shaders.standard = std::make_unique<Shader>();
+    if (!_shaders.standard->load("shaders/standard.vert", "shaders/standard.frag"))
     {
         LOG_ERROR("Renderer::init: Failed to load standard shader!");
         return false;
     }
 
     // Load sky shader
-    _shaders.sky = Shader::load("shaders/sky.vert", "shaders/sky.frag");
-    if (!_shaders.sky)
+    _shaders.sky = std::make_unique<Shader>();
+    if (!_shaders.sky->load("shaders/sky.vert", "shaders/sky.frag"))
     {
         LOG_ERROR("Renderer::init: Failed to load sky shader!");
         return false;
     }
 
     // Load water shader
-    _shaders.water = Shader::load("shaders/water.vert", "shaders/water.frag");
-    if (!_shaders.water)
+    _shaders.water = std::make_unique<Shader>();
+    if (!_shaders.water->load("shaders/water.vert", "shaders/water.frag"))
     {
         LOG_ERROR("Renderer::init: Failed to load water shader!");
         return false;
@@ -236,7 +236,7 @@ void Renderer::opaquePass()
 {
     Shader* shader = _shaders.standard.get();
 
-    shader->bind();
+    shader->use();
 
     shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
     shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
@@ -259,7 +259,7 @@ void Renderer::transparentPass()
 {
     Shader* shader = _shaders.standard.get();
 
-    shader->bind();
+    shader->use();
 
     std::sort(_transparent_queue.begin(), _transparent_queue.end(), 
         [](const RenderItem& a, const RenderItem& b) {
@@ -279,7 +279,7 @@ void Renderer::skyPass()
 {
     Shader* shader = _shaders.sky.get();
 
-    shader->bind();
+    shader->use();
     shader->setBool("uWireframeMode", wireframe_mode);
 
     g_Sky.draw(shader);
@@ -289,7 +289,7 @@ void Renderer::waterPass()
 {
     Shader* shader = _shaders.water.get();
 
-    shader->bind();
+    shader->use();
     shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
     shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
 

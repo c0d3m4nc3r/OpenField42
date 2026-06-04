@@ -107,7 +107,7 @@ void Water::draw(Shader* shader)
         _dirty = false;
     }
 
-    shader->bind();
+    shader->use();
 
     if (_layers[0].texture)
     {

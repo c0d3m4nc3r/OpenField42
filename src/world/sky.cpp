@@ -45,7 +45,7 @@ void Sky::draw(Shader* shader)
 {
     if (!shader || !_geometry) return;
 
-    shader->bind();
+    shader->use();
     
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_FALSE);

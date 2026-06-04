@@ -2,23 +2,22 @@
 
 #include <glm/fwd.hpp>
 
-#include <memory>
 #include <string>
 
 class Shader
 {
 public:
 
-    Shader(unsigned int id);
+    Shader() = default;
     ~Shader();
 
-    static std::shared_ptr<Shader> load(
-        const std::string& vs_path,
-        const std::string& fs_path
+    bool load(
+        const std::string& vert_path,
+        const std::string& frag_path
     );
 
-    void bind();
-    void unbind();
+    void unload();
+    void use();
 
     unsigned int getID() const { return _id; }
 
@@ -33,7 +32,5 @@ public:
 
 private:
 
-    unsigned int _id;
-
-    static unsigned int _current_bound_id;
+    unsigned int _id = 0;
 };

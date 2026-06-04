@@ -8,20 +8,15 @@
 
 #include <vector>
 
-unsigned int Shader::_current_bound_id = 0;
-
 static GLuint compileShader(const std::string& src, GLenum type);
 static GLuint linkProgram(GLuint vertex_shader, GLuint fragment_shader);
 
-Shader::Shader(unsigned int id)
-    : _id(id) {}
-
 Shader::~Shader()
 {
-    if (_id) glDeleteShader(_id);
+    unload();
 }
 
-std::shared_ptr<Shader> Shader::load(const std::string& vs_path, const std::string& fs_path)
+bool Shader::load(const std::string& vs_path, const std::string& fs_path)
 {
     LOG_INFO("Shader::load: Loading shader from '%s' and '%s'...", vs_path.c_str(), fs_path.c_str());
 
@@ -30,8 +25,8 @@ std::shared_ptr<Shader> Shader::load(const std::string& vs_path, const std::stri
 
     if (vertex_src.empty() || fragment_src.empty())
     {
-        LOG_ERROR("Shader::load: Failed to read shader files!");
-        return nullptr;
+        LOG_ERROR("Shader::load: Failed to read shader sources!");
+        return false;
     }
 
     GLuint vertex_shader = compileShader(vertex_src, GL_VERTEX_SHADER);
@@ -41,33 +36,37 @@ std::shared_ptr<Shader> Shader::load(const std::string& vs_path, const std::stri
     {
         glDeleteShader(vertex_shader);
         glDeleteShader(fragment_shader);
-        return nullptr;
+        return false;
     }
 
-    GLuint program = linkProgram(vertex_shader, fragment_shader);
+    _id = linkProgram(vertex_shader, fragment_shader);
     
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
-    if (!program) return nullptr;
+    if (!_id) return false;
 
-    LOG_INFO("Shader::load: Loaded successfully! (ID=%u)", program);
+    LOG_INFO("Shader::load: Shader loaded! (ID: %u)", _id);
 
-    return std::make_shared<Shader>(program);
+    return true;
 }
 
-void Shader::bind()
+void Shader::unload()
 {
-    if (_current_bound_id == _id) return;
+    if (!_id) return;
+
+    glDeleteProgram(_id);
+    LOG_INFO("Shader::unload: Shader unloaded! (ID: %u)", _id);
+    _id = 0;
+}
+
+void Shader::use()
+{
+    static unsigned int current_bound_id = 0;
+    
+    if (current_bound_id == _id) return;
     glUseProgram(_id);
-    _current_bound_id = _id;
-}
-
-void Shader::unbind()
-{
-    if (_current_bound_id == 0) return;
-    glUseProgram(0);
-    _current_bound_id = 0;
+    current_bound_id = _id;
 }
 
 void Shader::setInt(const char* name, int value)

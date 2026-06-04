@@ -74,9 +74,9 @@ private:
     };
 
     struct {
-        std::shared_ptr<Shader> standard;
-        std::shared_ptr<Shader> sky;
-        std::shared_ptr<Shader> water;
+        std::unique_ptr<Shader> standard;
+        std::unique_ptr<Shader> sky;
+        std::unique_ptr<Shader> water;
     } _shaders;
     
     std::vector<RenderItem> _opaque_queue;
