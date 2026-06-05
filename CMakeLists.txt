@@ -73,6 +73,7 @@ set(SOURCES
     ${SRC_DIR}/vfs/rfa_provider.cpp
     ${SRC_DIR}/vfs/vfs.cpp
     ${SRC_DIR}/world/sky.cpp
+    ${SRC_DIR}/world/terrain.cpp
     ${SRC_DIR}/world/water.cpp
 )
 

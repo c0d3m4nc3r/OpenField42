@@ -1,9 +1,10 @@
 #include "geometry/patch_terrain.h"
 #include "geometry/template.h"
 #include "render/texture.h"
-#include "world/water.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
+#include "world/terrain.h"
+#include "world/water.h"
 
 #define TILE_SIZE 64
 #define VERTS_PER_TILE TILE_SIZE + 1
@@ -54,7 +55,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         return false;
     }
 
-    const float scale_xz = static_cast<float>(tmpl->world_size) / (tmpl->material_size - 1);
+    const float scale_xz = static_cast<float>(tmpl->world_size) / tmpl->material_size;
     const int tiles_per_side = std::max(1, tmpl->material_size / TILE_SIZE);
 
     // 1. Load heightmap
@@ -66,11 +67,9 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         return false;
     }
 
-    _size = tmpl->material_size;
-    _world_size = tmpl->world_size;
-
-    _heightmap.clear();
-    _heightmap.reserve(_size * _size);
+    g_Terrain.setSize(tmpl->material_size);
+    g_Terrain.setWorldSize(tmpl->world_size);
+    g_Terrain.setWaterHeight(tmpl->water_level);
 
     const uint16_t* data16 = reinterpret_cast<const uint16_t*>(heightmap_data.data());
     size_t num_elements = heightmap_data.size() / sizeof(uint16_t);
@@ -79,7 +78,11 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
     {
         uint16_t hh = data16[i];
         float height_value = (((float)hh / (float)UINT16_MAX) * (float)MAX_HEIGHT) * tmpl->y_scale;
-        _heightmap.push_back(height_value);
+        
+        int z = static_cast<int>(i / tmpl->material_size);
+        int x = static_cast<int>(i % tmpl->material_size);
+
+        g_Terrain.setHeight(x, z, height_value);
     }
 
     // 2. Create materials
@@ -124,11 +127,11 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
     {
         for (int tx = 0; tx < tiles_per_side; ++tx)
         {
-            const int start_x = tx * VERTS_PER_TILE;
-            const int start_z = tz * VERTS_PER_TILE;
+            const int start_x = tx * TILE_SIZE;
+            const int start_z = tz * TILE_SIZE;
     
-            const int end_x = std::min(start_x + VERTS_PER_TILE, _size);
-            const int end_z = std::min(start_z + VERTS_PER_TILE, _size);
+            const int end_x = std::min(start_x + VERTS_PER_TILE, tmpl->material_size + 1);
+            const int end_z = std::min(start_z + VERTS_PER_TILE, tmpl->material_size + 1);
     
             const int w = (end_x - start_x);
             const int h = (end_z - start_z);
@@ -148,13 +151,13 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
                     Vertex v{};
                     v.position = {
                         (float)x * scale_xz,
-                        getHeightAt(x, z),
+                        g_Terrain.getHeight(x, z),
                         (float)z * scale_xz
                     };
                     v.normal = { 0.0f, 1.0f, 0.0f };
                     v.uv = {
-                        (float)x / ((float)_size - 1.0f),
-                        (float)z / ((float)_size - 1.0f)
+                        (float)x / (float)tmpl->material_size,
+                        (float)z / (float)tmpl->material_size
                     };
                     v.color = {1.0f, 1.0f, 1.0f, 1.0f};
         
@@ -194,27 +197,9 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         }
     }
 
-    g_Water.init((float)_size / 4, (float)tmpl->world_size / ((float)_size / 4 - 1.0f), (float)tmpl->water_level);
-
     aabb = AABB(global_min, global_max);
 
+    g_Terrain.setGeometry(this);
+
     return true;
-}
-
-int PatchTerrain::getSize() const { return _size; }
-int PatchTerrain::getWorldSize() const { return _world_size; }
-
-float PatchTerrain::getHeightAt(int x, int z) const
-{
-    if (x < 0 || x >= _size || z < 0 || z >= _size)
-        return 0.0f;
-
-    return _heightmap[z * _size + x];
-}
-
-float PatchTerrain::getHeightAtWorld(float x, float z) const
-{
-    int local_x = static_cast<int>((x / _world_size) * (_size - 1));
-    int local_z = static_cast<int>((z / _world_size) * (_size - 1));
-    return getHeightAt(local_x, local_z);
 }

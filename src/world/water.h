@@ -11,7 +11,7 @@ class Water
 {
 public:
 
-    bool init(float size, float world_size, float height);
+    bool init();
     void shutdown();
     void draw(Shader* shader);
 
@@ -33,6 +33,9 @@ public:
         _dirty = true;
     }
 
+    void setColor(const Color& color) { _color = color; }
+    void setDeepColor(const Color& color) { _deep_color = color; }
+
 private:
 
     struct UBO_WaterBlock
@@ -49,6 +52,9 @@ private:
     };
 
     Layer _layers[2];
+
+    Color _color = Color(1.0f, 1.0f, 1.0f, 1.0f);
+    Color _deep_color = Color(0.3f, 0.3f, 0.3f, 1.0f);
 
     unsigned int _water_ubo = 0;
 

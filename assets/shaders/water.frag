@@ -15,14 +15,6 @@ layout (std140) uniform FogBlock
     bool uFogEnabled;
 };
 
-layout (std140) uniform LightingBlock
-{
-    vec4 uDiffuseLight;
-    vec4 uSpecularLight;
-    vec4 uAmbientLight;
-    vec4 uGlobalAmbientLight;
-};
-
 layout(std140) uniform WaterBlock
 {
     vec4 uScroll1; // xy = dir, z = speed, w = padding
@@ -57,24 +49,18 @@ void main()
 
     vec4 layerColor1 = texture(uTexLayer1, uv1);
     vec4 layerColor2 = texture(uTexLayer2, uv2);
+    
     vec4 objectColor = (layerColor1 + layerColor2) * vColor;
 
-    vec4 ambient = ((uAmbientLight + uGlobalAmbientLight) * 2.0) * objectColor;
-
-    vec3 norm = normalize(vNormal);
-    vec3 lightDir = normalize(uSunLightDir);
-
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec4 diffuse = diff * uDiffuseLight * objectColor;
-
-    vec4 result = ambient + diffuse;
+    vec3 finalColor = objectColor.rgb;
 
     if (uFogEnabled)
     {
         float distance = length(uViewPos - vFragPos);
         float fogFactor = clamp((uFogEnd - distance) / (uFogEnd - uFogStart), 0.0, 1.0);
-        result = mix(uFogColor, result, fogFactor);
+        
+        finalColor = mix(uFogColor.rgb, finalColor, fogFactor);
     }
 
-    FragColor = result;
+    FragColor = vec4(finalColor, vColor.a);
 }

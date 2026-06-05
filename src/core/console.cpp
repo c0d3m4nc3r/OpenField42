@@ -279,6 +279,12 @@ void Console::init()
     REGISTER_OBJECT_PROPERTY(Water, &g_Water, scrollLayer2, [](Water* w, const std::string& value) {
         w->setScrollSpeed(1, parseFloat(value));
     });
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, color, [](Water* w, const std::string& value) {
+        w->setColor(parseVec3(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &g_Water, deepColor, [](Water* w, const std::string& value) {
+        w->setDeepColor(parseVec3(value));
+    });
 }
 
 void Console::registerCmd(const std::string& name, CommandHandler fn)

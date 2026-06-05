@@ -81,9 +81,6 @@ bool Renderer::init()
 
     GLuint lighting_block_index = glGetUniformBlockIndex(_shaders.standard->getID(), "LightingBlock");
     glUniformBlockBinding(_shaders.standard->getID(), lighting_block_index, 2);
-    
-    lighting_block_index = glGetUniformBlockIndex(_shaders.water->getID(), "LightingBlock");
-    glUniformBlockBinding(_shaders.water->getID(), lighting_block_index, 2);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, _lighting_ubo);
 
@@ -91,7 +88,7 @@ bool Renderer::init()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glCullFace(GL_BACK);
+    glCullFace(GL_BACK); glFrontFace(GL_CW);
     glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 
     LOG_INFO("Renderer::init: Renderer initialized!");

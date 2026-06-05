@@ -1,33 +1,50 @@
 #include "world/water.h"
 #include "render/shader.h"
 #include "render/texture.h"
+#include "world/terrain.h"
 
 #include "glad/glad.h"
 
+#include <glm/common.hpp>
+
 Water g_Water;
 
-bool Water::init(float size, float scale_xz, float height)
+bool Water::init()
 {
+    int terrain_size = g_Terrain.getSize();
+    float world_size = (float)g_Terrain.getWorldSize();
+    int step = 4;
+    
+    float scale_xz = world_size / (float)terrain_size;
+    int size = (terrain_size + step - 1) / step + 1;
+
     _mesh.vertices.reserve(size * size);
 
-    for (float z = 0.0f; z < size; z++)
+    for (int z = 0; z < size; z++)
     {
-        for (float x = 0.0f; x < size; x++)
+        for (int x = 0; x < size; x++)
         {
             Geometry::Vertex v;
-            v.position = {
-                x * scale_xz,
-                height,
-                z * scale_xz
-            };
-    
-            v.normal = {0.0f, 1.0f, 0.0f};
-    
-            v.uv.x = (x / (size - 1)) * 64.0f;
-            v.uv.y = (z / (size - 1)) * 64.0f;
 
-            v.color = {0.3f, 0.3f, 0.3f, 1.0f};
-    
+            int tx = x * step;
+            int tz = z * step;
+            
+            if (tx > terrain_size) tx = terrain_size;
+            if (tz > terrain_size) tz = terrain_size;
+
+            v.position = {
+                (float)tx * scale_xz,
+                (float)g_Terrain.getWaterHeight(),
+                (float)tz * scale_xz
+            };
+
+            v.normal = {0.0f, 1.0f, 0.0f};
+
+            v.uv.x = (v.position.x / world_size) * 64.0f;
+            v.uv.y = (v.position.z / world_size) * 64.0f;
+
+            v.color = glm::vec4(_deep_color.toVec3(), 0.8f);
+
             _mesh.vertices.push_back(v);
         }
     }

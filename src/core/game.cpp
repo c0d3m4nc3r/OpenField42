@@ -229,8 +229,8 @@ void Game::update()
         float sensitivity = 0.15f;
         glm::vec3 rot = _camera.getRotation();
 
-        rot.y += (float)delta_x * sensitivity;
-        rot.x -= (float)delta_y * sensitivity;
+        rot.y -= (float)delta_x * sensitivity;
+        rot.x += (float)delta_y * sensitivity;
         rot.x = glm::clamp(rot.x, -89.0f, 89.0f);
 
         if (rot.y > 360.0f) rot.y -= 360.0f;
@@ -398,6 +398,8 @@ bool Game::loadLevel(const std::string& name)
         LOG_ERROR("Game::loadLevel: Failed to upload geometries to GPU!");
         return false;
     }
+
+    g_Water.init();
 
     LOG_INFO("Game::loadLevel: Level '%s' loaded!", name.c_str());
 

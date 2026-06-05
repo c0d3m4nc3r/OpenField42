@@ -115,17 +115,17 @@ void Camera::update() const
             glm::radians(_rotation.z)
         );
 
-        _forward = glm::normalize(glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+        _forward = glm::normalize(glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
         _right   = glm::normalize(glm::vec3(rotation_matrix * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
         _up      = glm::normalize(glm::vec3(rotation_matrix * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
 
-        _view_mat = glm::lookAt(_position, _position + _forward, _up);
+        _view_mat = glm::lookAtLH(_position, _position + _forward, _up);
         _view_dirty = false;
     }
 
     if (_proj_dirty)
     {
-        _proj_mat = glm::perspective(
+        _proj_mat = glm::perspectiveLH_NO(
             glm::radians(_field_of_view),
             _aspect_ratio,
             _near_plane,
