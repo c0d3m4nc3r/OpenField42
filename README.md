@@ -14,8 +14,6 @@
 
 My goal is to create an engine that can fully reproduce the original game by utilizing its proprietary asset files, thereby overcoming the technical limitations of the legacy engine. Ultimately, I aim to provide the community with a stable, modern, and robust platform for advanced modding, much like what **OpenMW** did for *Morrowind*.
 
-> *"I just love Battlefield 1942 and want to revive it. This project is my attempt to bring the game into the modern era and provide the necessary tools for the community to keep it alive."*
-
 ---
 
 ## 📸 Gallery / Visual Progress
@@ -168,7 +166,6 @@ Since the core gameplay is not yet implemented, the engine currently utilizes de
 | **ESC** | Toggle cursor capture/lock. |
 | **F1** | Toggle Wireframe mode. |
 | **F3** | Toggle Profiler display (shows simple performance metrics). |
-| **F5** | Reload certain resources (currently shaders). |
 | **F11** | Toggle Fullscreen mode. |
 
 ## ⚖️ License
