@@ -8,6 +8,14 @@
 
 #include <string>
 
+struct EngineStats
+{
+    float fps, delta_time;
+    float update_time_ms;
+    float render_time_ms;
+    float total_frame_time_ms;
+};
+
 class Geometry;
 class Shader;
 class Game
@@ -24,8 +32,8 @@ public:
 
     bool loadLevel(const std::string& name);
 
-    float getFPS() const { return _fps; }
-    float getDeltaTime() const { return _delta_time; }
+    float getFPS() const { return _stats.fps; }
+    float getDeltaTime() const { return _stats.delta_time; }
 
     bool isRunning() const { return _running; }
 
@@ -34,11 +42,7 @@ private:
     Camera _camera;
     float _camera_speed = CAMERA_MOVE_SPEED;
 
-    float _fps;
-    float _delta_time;
-    float _update_time_ms;
-    float _render_time_ms;
-    float _total_frame_time_ms;
+    EngineStats _stats;
 
     bool _fullscreen = false;
     bool _draw_debug_info = false;

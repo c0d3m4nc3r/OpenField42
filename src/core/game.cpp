@@ -1,6 +1,7 @@
 #include "core/game.h"
 
 #include "core/console.h"
+#include "core/debugui.h"
 #include "world/sky.h"
 #include "utils/log.h"
 #include "platform/input.h"
@@ -10,12 +11,6 @@
 #include "vfs/vfs.h"
 #include "world/water.h"
 
-#include "glad/glad.h"
-
-#include "imgui.h"
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl3.h"
-
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
 
@@ -24,71 +19,42 @@ Game g_Game;
 bool Game::init()
 {
     LOG_INFO("Game::init: Initializing game...");
-    
-    // Initialize SDL3
-    if (!SDL_Init(SDL_INIT_VIDEO))
-    {
-        LOG_ERROR("Game::init: Failed to initialize SDL! : %s", SDL_GetError());
-        return false;
-    }
 
-    // Initialize window
     if (!g_Window.init())
     {
         LOG_ERROR("Game::init: Failed to initialize window!");
         return false;
     }
 
-    // Mount assets folder
     VFS::mountProvider(std::make_shared<FolderProvider>("assets"));
 
-    // Initialize renderer
     if (!g_Renderer.init())
     {
         LOG_ERROR("Game::init: Failed to initialize renderer!");
         return false;
     }
 
-    // Setup ImGui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    g_Renderer.setCamera(&_camera);
 
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+    g_DebugUI.init();
 
-    ImGui_ImplSDL3_InitForOpenGL(g_Window.getHandle(), g_Window.getGLContext());
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    // Mount game archives
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/standardMesh.rfa"));
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/StandardMesh_001.rfa"));
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture.rfa"));
     VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture_001.rfa"));
 
-    // Initialize console
     g_Console.init();
 
-    // Initialize renderer
-    g_Renderer.setCamera(&_camera);
-
-    // Load all game objects from "Objects.rfa"
     if (!loadGameObjs())
     {
         LOG_ERROR("Game::init: Failed to load game objects!");
         return false;
     }
 
-    // Capture mouse
     g_Input.setMouseCaptured(true);
 
-    // Move camera to center and setup far plane
-
-    // TODO: Get world size from Terrain.con
     const float WORLD_SIZE = 2048.0f;
     glm::vec3 world_center(WORLD_SIZE/2.0f);
-    // glm::vec3 world_center(0.0f);
     world_center.y = 75.0f;
 
     _camera.setPosition(world_center);
@@ -111,35 +77,32 @@ void Game::shutdown()
     g_Renderer.shutdown();
     g_Window.shutdown();
 
-    SDL_Quit();
-
     LOG_INFO("Game::shutdown: Game shutdown!");
 }
 
 void Game::tick(float delta_time, float fps, Uint64 frequency)
 {
-    _delta_time = delta_time;
-    _fps = fps;
+    _stats.delta_time = delta_time;
+    _stats.fps = fps;
 
     Uint64 frame_start = SDL_GetPerformanceCounter();
     
     Uint64 update_start = SDL_GetPerformanceCounter();
     update();
     Uint64 update_end = SDL_GetPerformanceCounter();
-    _update_time_ms = (float)(update_end - update_start) / frequency * 1000.0f;
+    _stats.update_time_ms = (float)(update_end - update_start) / frequency * 1000.0f;
     
     Uint64 render_start = SDL_GetPerformanceCounter();
     render();
     Uint64 render_end = SDL_GetPerformanceCounter();
-    _render_time_ms = (float)(render_end - render_start) / frequency * 1000.0f;
+    _stats.render_time_ms = (float)(render_end - render_start) / frequency * 1000.0f;
     
     Uint64 frame_end = SDL_GetPerformanceCounter();
-    _total_frame_time_ms = (float)(frame_end - frame_start) / frequency * 1000.0f;
+    _stats.total_frame_time_ms = (float)(frame_end - frame_start) / frequency * 1000.0f;
 }
 
 void Game::onEvent(const SDL_Event& event)
-{
-    ImGui_ImplSDL3_ProcessEvent(&event);
+{    
     switch (event.type)
     {
     case SDL_EVENT_QUIT:
@@ -195,7 +158,7 @@ void Game::update()
     g_Input.update();
     g_Window.pollEvents();
 
-    float move_speed = _camera_speed * _delta_time;
+    float move_speed = _camera_speed * _stats.delta_time;
 
     glm::vec3 move_dir(0.0f);
     glm::vec3 forward = _camera.getForward();
@@ -218,7 +181,7 @@ void Game::update()
     if (glm::length(move_dir) > 0.0f)
     {
         move_dir = glm::normalize(move_dir);
-        _camera.move(move_dir * _camera_speed * _delta_time);
+        _camera.move(move_dir * _camera_speed * _stats.delta_time);
     }
     
     if (g_Input.isMouseCaptured())
@@ -243,7 +206,7 @@ void Game::update()
         _camera.setFarPlane(view_distance);
 
     for (auto& obj : Object::registry)
-        obj->update(_delta_time);
+        obj->update(_stats.delta_time);
 }
 
 void Game::render()
@@ -256,9 +219,6 @@ void Game::render()
 
     if (_camera.getAspectRatio() != aspect_ratio)
         _camera.setAspectRatio(aspect_ratio);
-    
-    glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     g_Renderer.resetStats();
 
@@ -275,71 +235,7 @@ void Game::render()
         return;
     }
     
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
-    ImVec2 pos = ImVec2(0, 0);
-    ImGui::SetNextWindowPos(pos);
-    ImGui::SetNextWindowBgAlpha(0.05f);
-
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
-                             ImGuiWindowFlags_NoResize |
-                             ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoSavedSettings;
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::Begin("Debug Info", nullptr, flags);
-
-    ImGui::Text("FPS: %.1f", _fps);
-    ImGui::Text("Frame Time: %.2f ms", _delta_time * 1000.0f);
-
-    ImGui::Separator();
-    ImGui::Text("Performance Profiling:");
-    ImGui::Text("Update: %.2f ms", _update_time_ms);
-    ImGui::Text("Render: %.2f ms", _render_time_ms);
-    ImGui::Text("Total Frame: %.2f ms", _total_frame_time_ms);
-
-    ImGui::Separator();
-    ImGui::Text("Frame Time Distribution:");
-    ImGui::Text("Update: [%.2f%%]", (_update_time_ms / _total_frame_time_ms) * 100.0f);
-    ImGui::Text("Render: [%.2f%%]", (_render_time_ms / _total_frame_time_ms) * 100.0f);
-
-    const auto& render_stats = g_Renderer.getStats(); 
-
-    ImGui::Separator();
-    ImGui::Text("Renderer Statistics:");
-    ImGui::Text("Meshes Rendered: %zu", render_stats.meshes_rendered);
-    ImGui::Text("Meshes Culled: %zu", render_stats.meshes_culled);
-    ImGui::Text("Polygons Rendered: %zu", render_stats.polygons_rendered);
-    ImGui::Text("Polygons Culled: %zu", render_stats.polygons_culled);
-
-    size_t total_meshes = render_stats.meshes_rendered + render_stats.meshes_culled;
-    if (total_meshes > 0) 
-    {
-        float culling_efficiency = (static_cast<float>(render_stats.meshes_culled) / total_meshes) * 100.0f;
-        ImGui::Text("Culling Efficiency: %.1f%%", culling_efficiency);
-        
-        ImGui::Text("Visible/Culled Ratio: ");
-        ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%zu/%zu", 
-                        render_stats.meshes_rendered, render_stats.meshes_culled);
-    }
-
-    ImGui::Separator();
-    const glm::vec3& camera_pos = _camera.getPosition();
-    const glm::vec3& camera_rot = _camera.getRotation();
-    ImGui::Text("Camera:");
-    ImGui::Text("\tPosition: X:%.2f, Y:%.2f, Z:%.2f", camera_pos.x, camera_pos.y, camera_pos.z);
-    ImGui::Text("\tRotation: Pitch:%.2f, Yaw:%.2f", camera_rot.x, camera_rot.y);
-    ImGui::Text("\tSpeed: %.2f", _camera_speed);
-
-    ImGui::End();
-    ImGui::PopStyleVar();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    g_DebugUI.render(_stats, _camera);
 
     g_Window.update();
 }

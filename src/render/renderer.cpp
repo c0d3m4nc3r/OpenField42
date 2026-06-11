@@ -187,6 +187,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
 void Renderer::flush()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     UBO_CameraBlock camera_data;
     camera_data.view = _camera->getViewMat();
     camera_data.projection = _camera->getProjMat();
