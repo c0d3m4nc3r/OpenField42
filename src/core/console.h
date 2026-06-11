@@ -5,6 +5,7 @@
 
 #include <glm/fwd.hpp>
 
+class Engine;
 class Console
 {
 public:
@@ -12,7 +13,7 @@ public:
     using CommandArgs = std::vector<std::string>;
     using CommandHandler = std::function<bool(const CommandArgs&)>;
 
-    void init();
+    void init(const Engine& engine);
 
     void registerCmd(const std::string& name, CommandHandler handler);
 
@@ -32,5 +33,3 @@ private:
     std::unordered_map<std::string, CommandHandler> _commands;
 
 };
-
-extern Console g_Console;

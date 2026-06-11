@@ -1,15 +1,10 @@
 #include "platform/window.h"
 #include "core/config.h"
-#include "core/debugui.h"
-#include "core/game.h"
-#include "platform/input.h"
 #include "utils/log.h"
 
 #include "glad/glad.h"
 
 #include <SDL3/SDL_events.h>
-
-Window g_Window;
 
 bool Window::init()
 {
@@ -65,21 +60,9 @@ void Window::shutdown()
     SDL_GL_DestroyContext(_gl_context);
     SDL_DestroyWindow(_handle);
     SDL_Quit();
-
 }
 
-void Window::pollEvents()
-{
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-        g_DebugUI.onEvent(event);
-        g_Game.onEvent(event);
-        g_Input.onEvent(event);
-    }
-}
-
-void Window::update()
+void Window::swapBuffers()
 {
     SDL_GL_SwapWindow(_handle);
 }

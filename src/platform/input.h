@@ -9,9 +9,13 @@
 #include <unordered_map>
 #include <bitset>
 
+class Window;
 class Input
 {
 public:
+
+    Input(Window& window) : _window(window) {}
+    ~Input() = default;
 
     void onEvent(const SDL_Event& event);
     void update();
@@ -34,6 +38,8 @@ public:
 
 private:
 
+    Window& _window;
+
     std::unordered_map<Key, bool> _keys;
     std::unordered_map<Key, bool> _prev_keys;
 
@@ -49,5 +55,3 @@ private:
     bool getMouseButtonState(MouseButton button) const;
     bool getPrevMouseButtonState(MouseButton button) const;
 };
-
-extern Input g_Input;

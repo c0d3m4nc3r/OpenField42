@@ -47,7 +47,7 @@ static std::vector<std::string> genTexturePaths(const std::string& base_path, in
     return texture_paths;
 }
 
-bool PatchTerrain::load(const GeometryTemplate* tmpl)
+bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
 {
     if (tmpl->type != GeometryType::PatchTerrain)
     {
@@ -67,9 +67,9 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         return false;
     }
 
-    g_Terrain.setSize(tmpl->material_size);
-    g_Terrain.setWorldSize(tmpl->world_size);
-    g_Terrain.setWaterHeight(tmpl->water_level);
+    terrain.setSize(tmpl->material_size);
+    terrain.setWorldSize(tmpl->world_size);
+    terrain.setWaterHeight(tmpl->water_level);
 
     const uint16_t* data16 = reinterpret_cast<const uint16_t*>(heightmap_data.data());
     size_t num_elements = heightmap_data.size() / sizeof(uint16_t);
@@ -82,7 +82,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
         int z = static_cast<int>(i / tmpl->material_size);
         int x = static_cast<int>(i % tmpl->material_size);
 
-        g_Terrain.setHeight(x, z, height_value);
+        terrain.setHeight(x, z, height_value);
     }
 
     // 2. Create materials
@@ -151,7 +151,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
                     Vertex v{};
                     v.position = {
                         (float)x * scale_xz,
-                        g_Terrain.getHeight(x, z),
+                        terrain.getHeight(x, z),
                         (float)z * scale_xz
                     };
                     v.normal = { 0.0f, 1.0f, 0.0f };
@@ -199,7 +199,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl)
 
     aabb = AABB(global_min, global_max);
 
-    g_Terrain.setGeometry(this);
+    terrain.setGeometry(this);
 
     return true;
 }

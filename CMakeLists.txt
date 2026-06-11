@@ -50,7 +50,8 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(SOURCES
     ${SRC_DIR}/core/console.cpp
     ${SRC_DIR}/core/debugui.cpp
-    ${SRC_DIR}/core/game.cpp
+    ${SRC_DIR}/core/engine.cpp
+    ${SRC_DIR}/game/game.cpp
     ${SRC_DIR}/geometry/geometry.cpp
     ${SRC_DIR}/geometry/material.cpp
     ${SRC_DIR}/geometry/patch_terrain.cpp
@@ -74,8 +75,8 @@ set(SOURCES
     ${SRC_DIR}/vfs/rfa_provider.cpp
     ${SRC_DIR}/vfs/vfs.cpp
     ${SRC_DIR}/world/sky.cpp
-    ${SRC_DIR}/world/terrain.cpp
     ${SRC_DIR}/world/water.cpp
+    ${SRC_DIR}/world/world.cpp
 )
 
 add_executable(of42 ${SOURCES})

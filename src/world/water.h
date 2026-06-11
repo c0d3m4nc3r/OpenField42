@@ -6,14 +6,15 @@
 
 #include <memory>
 
+class Terrain;
 class Texture;
 class Water
 {
 public:
 
-    bool init();
+    bool init(const Terrain& terrain);
     void shutdown();
-    void draw(Shader* shader);
+    void draw(Shader* shader) const;
 
     void setTexture(int layer, std::shared_ptr<Texture> texture)
     {
@@ -58,11 +59,9 @@ private:
 
     unsigned int _water_ubo = 0;
 
-    bool _ubo_bound = false;
-    bool _dirty = true;
+    mutable bool _ubo_bound = false;
+    mutable bool _dirty = true;
 
     Geometry::Mesh _mesh;
 
 };
-
-extern Water g_Water;

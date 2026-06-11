@@ -22,6 +22,7 @@ GeometryType geometryTypeFromString(const std::string& str);
 
 struct GeometryTemplate;
 
+class Terrain;
 class Shader;
 class Geometry
 {
@@ -60,7 +61,7 @@ public:
         bool upload();
         void unload();
         
-        void draw(Shader* shader);
+        void draw(Shader* shader) const;
     };
 
     struct LOD
@@ -78,10 +79,10 @@ public:
     std::unordered_map<std::string, Material> materials;
 
     static inline std::unordered_map<std::string, std::unique_ptr<Geometry>> cache;
-    static Geometry* create(const GeometryTemplate* tmpl);
+    static Geometry* create(const GeometryTemplate* tmpl, Terrain* terrain = nullptr);
     static bool uploadAll();
 
-    virtual void draw(Shader* shader, const glm::mat4& model);
+    void draw(Shader* shader, const glm::mat4& model) const;
 
     bool upload();
  

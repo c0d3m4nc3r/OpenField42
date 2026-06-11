@@ -21,6 +21,7 @@ layout (std140) uniform LightingBlock
     vec4 uSpecularLight;
     vec4 uAmbientLight;
     vec4 uGlobalAmbientLight;
+    vec4 uSunDirection;
 };
 
 in vec2 vTexCoords;
@@ -46,14 +47,13 @@ struct Material
 };
 
 uniform Material uMaterial;
-uniform vec3 uSunLightDir;
 
-uniform bool uWireframeMode;
+uniform bool uWireframeEnabled;
 uniform vec3 uWireframeColor;
 
 void main()
 {
-    if (uWireframeMode)
+    if (uWireframeEnabled)
     {
         FragColor = vec4(uWireframeColor, 1.0);
         return;
@@ -78,7 +78,7 @@ void main()
         vec3 ambient = ((uAmbientLight.rgb + uGlobalAmbientLight.rgb) * 2.0) * objectColor;
 
         vec3 norm = normalize(vNormal);
-        vec3 lightDir = normalize(uSunLightDir);
+        vec3 lightDir = normalize(uSunDirection.rgb);
         float diff = max(dot(norm, lightDir), 0.0);
         vec3 diffuse = diff * uDiffuseLight.rgb * objectColor;
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <vector>
 #include <string>
 
@@ -63,6 +62,7 @@ ObjectType objectTypeFromString(const std::string& str);
 
 class Geometry;
 class Shader;
+class Terrain;
 struct ObjectTemplate;
 struct Object
 {
@@ -70,7 +70,6 @@ struct Object
     Object* parent = nullptr;
     glm::vec3 continous_rot_speed = glm::vec3(0.0f);
 
-    static inline std::vector<std::unique_ptr<Object>> registry;
     static inline Object* current = nullptr;
 
     Object(
@@ -79,23 +78,26 @@ struct Object
         const glm::vec3& scale = glm::vec3(1.0f)
     );
 
-    static Object* create(const ObjectTemplate* tmpl);
-
-    void draw();
     void update(float dt);
 
     void move(const glm::vec3& delta_pos);
     void rotate(const glm::vec3& delta_rot);
 
-    const glm::vec3& getPosition() const;
-    const glm::vec3& getRotation() const;
-    const glm::vec3& getScale() const;
+    void addChild(Object* object);
+
+    const glm::vec3& getPosition() const { return _position; }
+    const glm::vec3& getRotation() const { return _rotation; }
+    const glm::vec3& getScale() const { return _scale; }
 
     const glm::mat4& getModelMatrix();
 
-    void setPosition(const glm::vec3& position);
-    void setRotation(const glm::vec3& rotation);
-    void setScale(const glm::vec3& scale);
+    Geometry* getGeometry() { return _geometry; }
+
+    void setPosition(const glm::vec3& position) { _position = position; }
+    void setRotation(const glm::vec3& rotation) { _rotation = rotation; }
+    void setScale(const glm::vec3& scale) { _scale = scale; }
+
+    void setGeometry(Geometry* geometry) { _geometry = geometry; }
 
     void setDirty(bool dirty = true);
 

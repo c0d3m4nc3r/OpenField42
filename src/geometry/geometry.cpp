@@ -1,10 +1,11 @@
 #include "geometry/geometry.h"
+
 #include "geometry/template.h"
 #include "geometry/material.h"
 #include "geometry/standard_mesh.h"
 #include "geometry/patch_terrain.h"
-#include "utils/log.h"
 #include "render/shader.h"
+#include "utils/log.h"
 #include "utils/string_utils.h"
 
 #include "glad/glad.h"
@@ -48,7 +49,7 @@ Geometry::Mesh::~Mesh()
     unload();
 }
 
-void Geometry::Mesh::draw(Shader* shader)
+void Geometry::Mesh::draw(Shader* shader) const
 {
     if (!vao || !shader || !uploaded) return;
 
@@ -126,7 +127,7 @@ void Geometry::Mesh::unload()
     uploaded = false;
 }
 
-Geometry* Geometry::create(const GeometryTemplate* tmpl)
+Geometry* Geometry::create(const GeometryTemplate* tmpl, Terrain* terrain)
 {
     if (!tmpl)
     {
@@ -144,23 +145,23 @@ Geometry* Geometry::create(const GeometryTemplate* tmpl)
     {
     case GeometryType::StandardMesh:
         {
-            StandardMesh* mesh = new StandardMesh();
-            geom = mesh;
-            if (!mesh->load(tmpl))
+            StandardMesh* stdmesh_geom = new StandardMesh();
+            geom = stdmesh_geom;
+            if (!stdmesh_geom->load(tmpl))
             {
                 LOG_ERROR("Geometry::create: Failed to load StandardMesh geometry from template '%s'!", tmpl->name.c_str());
-                delete mesh;
+                delete stdmesh_geom;
                 return nullptr;
             }
         } break;
     case GeometryType::PatchTerrain:
         {
-            PatchTerrain* terrain = new PatchTerrain();
-            geom = terrain;
-            if (!terrain->load(tmpl))
+            PatchTerrain* terrain_geom = new PatchTerrain();
+            geom = terrain_geom;
+            if (!terrain_geom->load(tmpl, *terrain))
             {
                 LOG_ERROR("Geometry::create: Failed to load PatchTerrain geometry from template '%s'!", tmpl->name.c_str());
-                delete terrain;
+                delete terrain_geom;
                 return nullptr;
             }
         } break;
@@ -195,14 +196,14 @@ bool Geometry::uploadAll()
     return true;
 }
 
-void Geometry::draw(Shader* shader, const glm::mat4& model)
+void Geometry::draw(Shader* shader, const glm::mat4& model) const
 {
     if (lods.empty() || !shader) return;
 
     shader->setMat4("uModel", model);
 
-    LOD& current_lod = lods[0];
-    for (auto& mesh : current_lod.meshes)
+    const LOD& current_lod = lods[0];
+    for (const auto& mesh : current_lod.meshes)
         mesh.draw(shader);
 }
 

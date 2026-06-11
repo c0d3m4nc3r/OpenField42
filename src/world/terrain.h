@@ -43,5 +43,3 @@ private:
     Geometry* _geometry = nullptr;
     std::vector<float> _heights = {};
 };
-
-extern Terrain g_Terrain;

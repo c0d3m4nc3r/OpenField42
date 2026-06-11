@@ -7,12 +7,12 @@
 
 #include <glm/common.hpp>
 
-Water g_Water;
-
-bool Water::init()
+bool Water::init(const Terrain& terrain)
 {
-    int terrain_size = g_Terrain.getSize();
-    float world_size = (float)g_Terrain.getWorldSize();
+    LOG_INFO("Water::init: Initializing water...");
+
+    int terrain_size = terrain.getSize();
+    float world_size = (float)terrain.getWorldSize();
     int step = 4;
     
     float scale_xz = world_size / (float)terrain_size;
@@ -34,7 +34,7 @@ bool Water::init()
 
             v.position = {
                 (float)tx * scale_xz,
-                (float)g_Terrain.getWaterHeight(),
+                (float)terrain.getWaterHeight(),
                 (float)tz * scale_xz
             };
 
@@ -78,15 +78,19 @@ bool Water::init()
     glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_WaterBlock), nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+    LOG_INFO("Water::init: Water initialized!");
+
     return true;
 }
 
 void Water::shutdown()
 {
     _mesh.unload();
+
+    LOG_INFO("Water::shutdown: Water shutdown");
 }
 
-void Water::draw(Shader* shader)
+void Water::draw(Shader* shader) const
 {
     if (!shader) return;
 

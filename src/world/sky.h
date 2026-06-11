@@ -8,16 +8,13 @@ class Sky
 {
 public:
 
-    glm::vec3 sun_light_dir = glm::vec3(0.0f, -1.0f, 0.0f);
     float rot_angle = 0.0f;
 
     bool init();
-    void draw(Shader* shader);
+    void draw(Shader* shader) const;
 
 private:
 
     Geometry* _geometry = nullptr;
 
 };
-
-extern Sky g_Sky;

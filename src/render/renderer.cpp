@@ -1,7 +1,6 @@
 #include "render/renderer.h"
 #include "render/camera.h"
 #include "core/config.h"
-#include "core/game.h"
 #include "render/shader.h"
 #include "world/sky.h"
 #include "world/water.h"
@@ -11,8 +10,6 @@
 #include <SDL3/SDL_timer.h>
 
 #include <algorithm>
-
-Renderer g_Renderer;
 
 bool Renderer::init()
 {
@@ -137,7 +134,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     if (USE_LODS && geom->type != GeometryType::PatchTerrain)
     {
         // TODO: Load LOD max distance from .con files
-        lod_index = calculateLOD(distance, g_Game.view_distance*0.9f, geom->lods.size() - 1);
+        lod_index = calculateLOD(distance, _camera->getFarPlane()*0.9f, geom->lods.size() - 1);
     }
 
     Geometry::LOD& lod = geom->lods[lod_index];
@@ -185,7 +182,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     }
 }
 
-void Renderer::flush()
+void Renderer::flush(World& world)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -215,8 +212,8 @@ void Renderer::flush()
     }
     
     opaquePass();
-    skyPass();
-    waterPass();
+    skyPass(world.getSky());
+    waterPass(world.getWater());
     transparentPass();
 
     _opaque_queue.clear();
@@ -238,10 +235,10 @@ void Renderer::opaquePass()
     shader->use();
 
     shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-    shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
+    shader->setVec3("uSunLightDir", _lighting.sun_dir);
 
-    shader->setBool("uWireframeMode", wireframe_mode);
-    glPolygonMode(GL_FRONT_AND_BACK, wireframe_mode ? GL_LINE : GL_FILL);
+    shader->setBool("uWireframeEnabled", _wireframe_enabled);
+    glPolygonMode(GL_FRONT_AND_BACK, _wireframe_enabled ? GL_LINE : GL_FILL);
 
     for (auto& item : _opaque_queue)
     {
@@ -274,25 +271,23 @@ void Renderer::transparentPass()
     }
 }
 
-void Renderer::skyPass()
+void Renderer::skyPass(const Sky& sky)
 {
     Shader* shader = _shaders.sky.get();
 
     shader->use();
-    shader->setBool("uWireframeMode", wireframe_mode);
+    shader->setBool("uWireframeEnabled", _wireframe_enabled);
 
-    g_Sky.draw(shader);
+    sky.draw(shader);
 }
 
-void Renderer::waterPass()
+void Renderer::waterPass(const Water& water)
 {
     Shader* shader = _shaders.water.get();
 
     shader->use();
     shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-    shader->setVec3("uSunLightDir", g_Sky.sun_light_dir);
-
-    shader->setBool("uWireframeMode", wireframe_mode);
+    shader->setBool("uWireframeEnabled", _wireframe_enabled);
     
-    g_Water.draw(shader);
+    water.draw(shader);
 }

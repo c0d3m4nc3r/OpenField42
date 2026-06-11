@@ -1,14 +1,8 @@
 #include "object/object.h"
-#include "object/template.h"
-#include "utils/log.h"
-#include "render/renderer.h"
-#include "render/shader.h"
-#include "geometry/template.h"
-#include "geometry/standard_mesh.h"
+
 #include "utils/string_utils.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-
 
 std::string objectTypeToString(ObjectType type)
 {
@@ -126,86 +120,6 @@ Object::Object(
     const glm::vec3& scale
 ) : _position(position), _rotation(rotation), _scale(scale), _model_mat(1.0f) {}
 
-Object* Object::create(const ObjectTemplate* tmpl)
-{
-    if (!tmpl)
-    {
-        LOG_ERROR("Object::create: template is NULL!");
-        return nullptr;
-    }
-    
-    auto obj = std::make_unique<Object>();
-    obj->type = tmpl->type;
-    obj->continous_rot_speed = tmpl->continous_rot_speed;
-
-    Object* raw = obj.get();
-
-    for (const auto& child : tmpl->children)
-    {
-        auto child_tmpl = ObjectTemplate::get(child.tmpl_name);
-        if (!child_tmpl)
-        {
-            LOG_ERROR("Object::create: Failed to create child: Object template with name '%s' not found!", child.tmpl_name.c_str());
-            continue;
-        }
-
-        auto child_ptr = Object::create(child_tmpl);
-        if (!child_ptr)
-        {
-            LOG_ERROR("Object::create: Failed to create child object!");
-            continue;
-        }
-
-        child_ptr->setPosition(child.position);
-        child_ptr->setRotation(child.rotation);
-        child_ptr->parent = raw;
-        obj->_children.push_back(child_ptr);
-    }
-
-    if (tmpl->geometry.empty())
-    {
-        registry.push_back(std::move(obj));
-
-        current = raw;
-        return raw;
-    }
-
-    const GeometryTemplate* geom_tmpl = GeometryTemplate::get(tmpl->geometry);
-    if (!geom_tmpl)
-    {
-        LOG_ERROR("Object::create: Geometry template with name '%s' not found!", tmpl->geometry.c_str());
-        return nullptr;
-    }
-
-    // Added this to prevent spam in logs
-    // Should be removed when the TreeMesh type will be supported
-    if (geom_tmpl->type == GeometryType::TreeMesh)
-    {
-        registry.push_back(std::move(obj));
-
-        current = raw;
-        return raw;
-    }
-
-    obj->_geometry = Geometry::create(geom_tmpl);
-    if (!obj->_geometry)
-    {
-        LOG_ERROR("Object::create: Failed to load geometry!");
-        return nullptr;
-    }
-
-    registry.push_back(std::move(obj));
-
-    current = raw;
-    return raw;
-}
-
-void Object::draw()
-{
-    if (!_geometry) return;
-    g_Renderer.submit(_geometry, getModelMatrix());
-}
-
 void Object::update(float dt)
 {
     rotate(continous_rot_speed * dt);
@@ -221,9 +135,10 @@ void Object::rotate(const glm::vec3& delta_rot)
     setRotation(_rotation + delta_rot);
 }
 
-const glm::vec3& Object::getPosition() const { return _position; }
-const glm::vec3& Object::getRotation() const { return _rotation; }
-const glm::vec3& Object::getScale() const { return _scale; }
+void Object::addChild(Object* object)
+{
+    _children.push_back(object);
+}
 
 const glm::mat4& Object::getModelMatrix()
 {
@@ -245,24 +160,9 @@ const glm::mat4& Object::getModelMatrix()
     return _model_mat;
 }
 
-void Object::setPosition(const glm::vec3& position)
-{
-    this->_position = position; setDirty();
-}
-
-void Object::setRotation(const glm::vec3& rotation)
-{
-    this->_rotation = rotation; setDirty();
-}
-
-void Object::setScale(const glm::vec3& scale)
-{
-    this->_scale = scale; setDirty();
-}
-
 void Object::setDirty(bool dirty)
 {
-    this->_dirty = dirty;
+    _dirty = dirty;
 
     for (auto child : _children)
         if (child) child->setDirty(dirty);

@@ -1,8 +1,6 @@
 #include "platform/input.h"
 #include "platform/window.h"
 
-Input g_Input;
-
 void Input::onEvent(const SDL_Event& event)
 {
     switch (event.type)
@@ -102,7 +100,7 @@ void Input::setMouseCaptured(bool captured)
     //     SDL_WarpMouseInWindow(window.getWindow(), last_mouse_pos.x, last_mouse_pos.y);
     // }
 
-    SDL_SetWindowRelativeMouseMode(g_Window.getHandle(), _mouse_captured);
+    SDL_SetWindowRelativeMouseMode(_window.getHandle(), _mouse_captured);
     SDL_GetRelativeMouseState(nullptr, nullptr);
 }
 

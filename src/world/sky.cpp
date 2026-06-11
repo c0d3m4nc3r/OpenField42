@@ -9,8 +9,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-Sky g_Sky;
-
 bool Sky::init()
 {
     LOG_INFO("Sky::init: Initializing sky...");
@@ -41,7 +39,7 @@ bool Sky::init()
     return true;
 }
 
-void Sky::draw(Shader* shader)
+void Sky::draw(Shader* shader) const
 {
     if (!shader || !_geometry) return;
 

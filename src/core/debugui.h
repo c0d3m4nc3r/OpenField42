@@ -1,14 +1,13 @@
 #pragma once
 
 struct EngineStats;
-class Camera;
+class Window;
+class Renderer;
 class DebugUI
 {
 public:
 
-    void init();
+    void init(const Window& window);
     void onEvent(const SDL_Event& event);
-    void render(const EngineStats& stats, const Camera& camera);
+    void render(const EngineStats& stats, const Renderer& renderer);
 };
-
-extern DebugUI g_DebugUI;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "geometry/geometry.h"
+#include "render/shader.h"
+#include "world/world.h"
 
 class Camera;
 class Renderer
@@ -15,16 +17,18 @@ public:
         size_t polygons_culled = 0;
     };
 
-    bool wireframe_mode = false;
-
     bool init();
     void shutdown();
-    void submit(Geometry* geo, const glm::mat4& model);
-    void flush();
+    void submit(Geometry* geom, const glm::mat4& model);
+    void flush(World& world);
     
     void resetStats();
 
+    Camera* getCamera() const { return _camera; }
+    
     const Stats& getStats() const { return _stats; }
+
+    bool isWireframeEnabled() const { return _wireframe_enabled; }
     
     void setCamera(Camera* camera) { _camera = camera; }
 
@@ -37,6 +41,9 @@ public:
     void setSpecularLight(const Color& color) { _lighting.specular = color; _lighting_dirty = true; }
     void setAmbientLight(const Color& color) { _lighting.ambient = color; _lighting_dirty = true; }
     void setGlobalAmbientLight(const Color& color) { _lighting.global_ambient = color; _lighting_dirty = true; }
+    void setSunDirection(const glm::vec3& dir) { _lighting.sun_dir = glm::vec4(dir, 1.0f); _lighting_dirty = true; }
+
+    void setWireframeEnabled(bool enabled) { _wireframe_enabled = enabled; }
 
 private:
 
@@ -71,6 +78,7 @@ private:
         Color specular;
         Color ambient;
         Color global_ambient;
+        glm::vec4 sun_dir; // xyz - direction, w - padding
     };
 
     struct {
@@ -81,6 +89,8 @@ private:
     
     std::vector<RenderItem> _opaque_queue;
     std::vector<RenderItem> _transparent_queue;
+
+    bool _wireframe_enabled = false;
     
     Camera* _camera = nullptr;
     unsigned int _camera_ubo = 0;
@@ -97,8 +107,6 @@ private:
 
     void opaquePass();
     void transparentPass();
-    void skyPass();
-    void waterPass();
+    void skyPass(const Sky& sky);
+    void waterPass(const Water& water);
 };
-
-extern Renderer g_Renderer;

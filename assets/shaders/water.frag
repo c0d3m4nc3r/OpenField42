@@ -32,13 +32,12 @@ uniform sampler2D uTexLayer1;
 uniform sampler2D uTexLayer2;
 
 uniform float uTime;
-uniform vec3 uSunLightDir;
 
-uniform bool uWireframeMode;
+uniform bool uWireframeEnabled;
 
 void main()
 {
-    if (uWireframeMode)
+    if (uWireframeEnabled)
     {
         FragColor = vec4(0.0, 0.0, 1.0, 1.0);
         return;

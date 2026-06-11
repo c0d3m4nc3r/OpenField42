@@ -8,8 +8,7 @@ public:
 
     bool init();
     void shutdown();
-    void pollEvents();
-    void update();
+    void swapBuffers();
 
     SDL_Window* getHandle() const { return _handle; }
     SDL_GLContext getGLContext() const { return _gl_context; }
@@ -22,5 +21,3 @@ private:
     SDL_Window* _handle = nullptr;
     SDL_GLContext _gl_context = nullptr;
 };
-
-extern Window g_Window;
