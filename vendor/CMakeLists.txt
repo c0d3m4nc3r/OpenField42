@@ -3,7 +3,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/librfa)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SOIL2)
 
 set(GLAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glad)
-add_library(glad "${GLAD_DIR}/src/glad.c")
+add_library(glad "${GLAD_DIR}/src/gl.c")
 target_include_directories(glad PUBLIC "${GLAD_DIR}/include")
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)

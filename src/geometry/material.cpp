@@ -5,7 +5,7 @@
 #include "vfs/vfs.h"
 #include "utils/string_utils.h"
 
-#include "glad/glad.h"
+#include "glad/gl.h"
 
 #include <sstream>
 #include <vector>

@@ -5,7 +5,7 @@
 #include "render/shader.h"
 #include "utils/log.h"
 
-#include "glad/glad.h"
+#include "glad/gl.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

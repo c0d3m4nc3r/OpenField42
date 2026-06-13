@@ -5,7 +5,7 @@
 #include "world/sky.h"
 #include "world/water.h"
 
-#include "glad/glad.h"
+#include "glad/gl.h"
 
 #include <SDL3/SDL_timer.h>
 

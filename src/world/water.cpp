@@ -3,7 +3,7 @@
 #include "render/texture.h"
 #include "world/terrain.h"
 
-#include "glad/glad.h"
+#include "glad/gl.h"
 
 #include <glm/common.hpp>
 

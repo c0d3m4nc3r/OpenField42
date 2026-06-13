@@ -2,7 +2,7 @@
 #include "core/config.h"
 #include "utils/log.h"
 
-#include "glad/glad.h"
+#include "glad/gl.h"
 
 #include <SDL3/SDL_events.h>
 
@@ -44,7 +44,7 @@ bool Window::init()
     }
     SDL_GL_MakeCurrent(_handle, _gl_context);
 
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+    if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress))
     {
         LOG_ERROR("Window::init: Failed to initialize GLAD!");
         return false;
