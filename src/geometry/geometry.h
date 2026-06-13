@@ -79,7 +79,7 @@ public:
     std::unordered_map<std::string, Material> materials;
 
     static inline std::unordered_map<std::string, std::unique_ptr<Geometry>> cache;
-    static Geometry* create(const GeometryTemplate* tmpl, Terrain* terrain = nullptr);
+    static Geometry* create(const GeometryTemplate* tmpl);
     static bool uploadAll();
 
     void draw(Shader* shader, const glm::mat4& model) const;

@@ -8,7 +8,7 @@ layout (std140) uniform CameraBlock
 {
     mat4 uView;
     mat4 uProjection;
-    vec3 uViewPos;
+    vec4 uViewPos;
 };
 
 out vec2 vTexCoords;

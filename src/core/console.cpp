@@ -183,8 +183,13 @@ void Console::init(const Engine& engine)
         auto& world = engine.getWorld();
         if (!(Object::current = world.createObject(tmpl)))
         {
+            // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
+            GeometryTemplate* geom_tmpl = GeometryTemplate::get(tmpl->geometry);
+            if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
+                return true;
+            
             LOG_ERROR("Console: Object.create: Failed to create object!");
-            return true;
+            return false;
         }
 
         return true;

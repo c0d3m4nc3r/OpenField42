@@ -22,8 +22,13 @@ void World::init()
 
 void World::shutdown()
 {
+    _sky->shutdown();
     _sky.reset();
+
+    _terrain->shutdown();
     _terrain.reset();
+    
+    _water->shutdown();
     _water.reset();
 
     _objects.clear();
@@ -93,8 +98,14 @@ Object* World::createObject(const ObjectTemplate* tmpl)
         _objects.push_back(std::move(obj));
         return raw;
     }
+    
+    if (geom_tmpl->type == GeometryType::PatchTerrain)
+    {
+        _terrain->init(geom_tmpl);
+        return nullptr;
+    }
 
-    auto* geometry = Geometry::create(geom_tmpl, _terrain.get());
+    auto* geometry = Geometry::create(geom_tmpl);
     if (!geometry)
     {
         LOG_ERROR("World::createObject: Failed to load geometry!");
@@ -117,4 +128,12 @@ void World::renderObjects(Renderer& renderer) const
 
         renderer.submit(geom, obj->getModelMatrix());
     }
+}
+
+void World::renderTerrain(Renderer& renderer) const
+{
+    auto* geom = _terrain->getGeometry();
+    if (!geom) return;
+    
+    renderer.submit(geom, glm::mat4(1.0f));
 }

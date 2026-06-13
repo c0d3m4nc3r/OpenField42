@@ -2,14 +2,20 @@
 
 #include <algorithm>
 
+struct GeometryTemplate;
+
 class Geometry;
+
 class Terrain
 {
 public:
 
+    bool init(const GeometryTemplate* tmpl);
+    void shutdown();
+
     int getSize() const { return _size; }
     int getWorldSize() const { return _world_size; }
-    Geometry* getGeometry() const { return _geometry; }
+    Geometry* getGeometry() const { return _geometry.get(); }
     int getWaterHeight() const { return _water_height; }
 
     float getHeight(int x, int z) const
@@ -26,7 +32,6 @@ public:
     }
 
     void setWorldSize(int size) { _world_size = size; }
-    void setGeometry(Geometry* geometry) { _geometry = geometry; }
     void setWaterHeight(int height) { _water_height = height; }
     
     void setHeight(int x, int z, float value)
@@ -40,6 +45,6 @@ private:
 
     int _size = 0, _world_size = 0;
     int _water_height = 0;
-    Geometry* _geometry = nullptr;
+    std::unique_ptr<Geometry> _geometry;
     std::vector<float> _heights = {};
 };

@@ -1,13 +1,11 @@
-#include "geometry/patch_terrain.h"
+#include "world/terrain.h"
+
 #include "geometry/template.h"
 #include "render/texture.h"
-#include "utils/log.h"
 #include "vfs/vfs.h"
-#include "world/terrain.h"
-#include "world/water.h"
 
 #define TILE_SIZE 64
-#define VERTS_PER_TILE TILE_SIZE + 1
+#define VERTS_PER_TILE (TILE_SIZE + 1)
 #define MAX_HEIGHT 256
 #define DEBUG_TEX "textures/debug.png"
 
@@ -47,29 +45,28 @@ static std::vector<std::string> genTexturePaths(const std::string& base_path, in
     return texture_paths;
 }
 
-bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
+bool Terrain::init(const GeometryTemplate* tmpl)
 {
-    if (tmpl->type != GeometryType::PatchTerrain)
-    {
-        LOG_ERROR("PatchTerrain::load: Given template type is not PatchTerrain!");
-        return false;
-    }
-
+    LOG_INFO("Terrain::init: Initializing terrain...");
+    
     const float scale_xz = static_cast<float>(tmpl->world_size) / tmpl->material_size;
+    LOG_DEBUG("Terrain::init: Info: Size: %dx%d, Scale XZ: %.2f, Scale Y: %.2f",
+        tmpl->material_size, tmpl->material_size, scale_xz, tmpl->y_scale);
+    
     const int tiles_per_side = std::max(1, tmpl->material_size / TILE_SIZE);
-
+    
     // 1. Load heightmap
     
     auto heightmap_data = VFS::readFileData(tmpl->file);
     if (heightmap_data.empty())
     {
-        LOG_ERROR("PatchTerrain::load: Failed to read heightmap data from '%s'!", tmpl->file.c_str());
+        LOG_ERROR("Terrain::init: Failed to read heightmap data from '%s'!", tmpl->file.c_str());
         return false;
     }
 
-    terrain.setSize(tmpl->material_size);
-    terrain.setWorldSize(tmpl->world_size);
-    terrain.setWaterHeight(tmpl->water_level);
+    setSize(tmpl->material_size);
+    setWorldSize(tmpl->world_size);
+    setWaterHeight(tmpl->water_level);
 
     const uint16_t* data16 = reinterpret_cast<const uint16_t*>(heightmap_data.data());
     size_t num_elements = heightmap_data.size() / sizeof(uint16_t);
@@ -82,13 +79,16 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
         int z = static_cast<int>(i / tmpl->material_size);
         int x = static_cast<int>(i % tmpl->material_size);
 
-        terrain.setHeight(x, z, height_value);
+        setHeight(x, z, height_value);
     }
 
     // 2. Create materials
+
+    _geometry = std::make_unique<Geometry>();
+    _geometry->type = GeometryType::PatchTerrain;
     
-    materials["base"] = Material();
-    auto& base_mat = materials["base"];
+    _geometry->materials["base"] = Material();
+    auto& base_mat = _geometry->materials["base"];
     
     // 3. Load textures
 
@@ -102,7 +102,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
     base_mat.texture = Texture::loadAtlas(texture_paths, 1024, 1024);
     if (!base_mat.texture)
     {
-        LOG_ERROR("PatchTerrain::load: Failed to load textures!");
+        LOG_ERROR("Terrain::init: Failed to load textures!");
         return false;
     }
 
@@ -111,7 +111,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
         base_mat.detail_texture = Texture::load(tmpl->detail_tex_name);
         if (!base_mat.detail_texture)
         {
-            LOG_WARNING("PatchTerrain::load: Failed to load detail texture!");
+            LOG_WARNING("Terrain::init: Failed to load detail texture!");
         }
     }
 
@@ -120,7 +120,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
     glm::vec3 global_min(FLT_MAX);
     glm::vec3 global_max(-FLT_MAX);
 
-    LOD& lod = lods.emplace_back();
+    Geometry::LOD& lod = _geometry->lods.emplace_back();
     lod.meshes.reserve(tiles_per_side * tiles_per_side);
 
     for (int tz = 0; tz < tiles_per_side; ++tz)
@@ -138,7 +138,7 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
     
             if (w <= 0 || h <= 0) continue;
     
-            std::vector<Vertex> vertices;
+            std::vector<Geometry::Vertex> vertices;
             vertices.reserve(w * h);
     
             glm::vec3 chunk_min(FLT_MAX);
@@ -148,10 +148,10 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
             {
                 for (int x = start_x; x < end_x; ++x)
                 {
-                    Vertex v{};
+                    Geometry::Vertex v{};
                     v.position = {
                         (float)x * scale_xz,
-                        terrain.getHeight(x, z),
+                        getHeight(x, z),
                         (float)z * scale_xz
                     };
                     v.normal = { 0.0f, 1.0f, 0.0f };
@@ -190,16 +190,30 @@ bool PatchTerrain::load(const GeometryTemplate* tmpl, Terrain& terrain)
                     indices.push_back(TR);
                 }
             }
-    
+
             auto& mesh = lod.meshes.emplace_back(std::move(vertices), std::move(indices));
             mesh.material = &base_mat;
             mesh.aabb = AABB(chunk_min, chunk_max);
         }
     }
 
-    aabb = AABB(global_min, global_max);
+    _geometry->aabb = AABB(global_min, global_max);
 
-    terrain.setGeometry(this);
+    _geometry->upload();
+
+    LOG_INFO("Terrain::init: Terrain initialized!");
 
     return true;
+}
+
+void Terrain::shutdown()
+{
+    _geometry.reset();
+    _heights.clear();
+
+    _size = 0;
+    _world_size = 0;
+    _water_height = 0;
+
+    LOG_INFO("Terrain::shutdown: Terrain shutdown!");
 }

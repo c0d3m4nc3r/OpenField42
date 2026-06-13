@@ -39,6 +39,14 @@ bool Sky::init()
     return true;
 }
 
+void Sky::shutdown()
+{
+    rot_angle = 0.0f;
+    _geometry = nullptr;
+
+    LOG_INFO("Sky::shutdown: Sky shutdown!");
+}
+
 void Sky::draw(Shader* shader) const
 {
     if (!shader || !_geometry) return;

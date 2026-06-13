@@ -168,7 +168,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
         RenderItem item;
         item.mesh = &mesh;
-        item.model = &model;
+        item.model = model;
         item.geom = geom;
         item.distance_to_camera = distance;
 
@@ -189,7 +189,7 @@ void Renderer::flush(World& world)
     UBO_CameraBlock camera_data;
     camera_data.view = _camera->getViewMat();
     camera_data.projection = _camera->getProjMat();
-    camera_data.view_pos = _camera->getPosition();
+    camera_data.view_pos = glm::vec4(_camera->getPosition(), 1.0f);
 
     glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_CameraBlock), &camera_data);
@@ -235,14 +235,13 @@ void Renderer::opaquePass()
     shader->use();
 
     shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-    shader->setVec3("uSunLightDir", _lighting.sun_dir);
 
     shader->setBool("uWireframeEnabled", _wireframe_enabled);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe_enabled ? GL_LINE : GL_FILL);
 
     for (auto& item : _opaque_queue)
     {
-        _shaders.standard->setMat4("uModel", *item.model);
+        _shaders.standard->setMat4("uModel", item.model);
         if (item.geom->type == GeometryType::StandardMesh)
             _shaders.standard->setVec3("uWireframeColor", glm::vec3(1.0f, 0.0f, 0.0f));
         else if (item.geom->type == GeometryType::PatchTerrain)
@@ -266,7 +265,7 @@ void Renderer::transparentPass()
 
     for (auto& item : _transparent_queue)
     {
-        _shaders.standard->setMat4("uModel", *item.model);
+        _shaders.standard->setMat4("uModel", item.model);
         item.mesh->draw(_shaders.standard.get());
     }
 }

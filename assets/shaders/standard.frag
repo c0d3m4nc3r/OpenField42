@@ -4,15 +4,13 @@ layout (std140) uniform CameraBlock
 {
     mat4 uView;
     mat4 uProjection;
-    vec3 uViewPos;
+    vec4 uViewPos;
 };
 
 layout (std140) uniform FogBlock
 {
     vec4 uFogColor;
-    float uFogStart;
-    float uFogEnd;
-    bool uFogEnabled;
+    vec4 uFogParams; // x - start, y - end, z - enabled, w - padding
 };
 
 layout (std140) uniform LightingBlock
@@ -85,7 +83,7 @@ void main()
         vec3 specular = vec3(0.0);
         if (uMaterial.lightingSpecular)
         {
-            vec3 viewDir = normalize(uViewPos - vFragPos);
+            vec3 viewDir = normalize(uViewPos.xyz - vFragPos);
             vec3 reflectDir = reflect(lightDir, norm);
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.specularPower);
             specular = spec * uSpecularLight.rgb * uMaterial.specularColor;
@@ -98,10 +96,10 @@ void main()
         result = objectColor;
     }
 
-    if (uFogEnabled)
+    if (uFogParams.z == 1.0)
     {
-        float distance = length(uViewPos - vFragPos);
-        float fogFactor = clamp((uFogEnd - distance) / (uFogEnd - uFogStart), 0.0, 1.0);
+        float distance = length(uViewPos.xyz - vFragPos);
+        float fogFactor = clamp((uFogParams.y - distance) / (uFogParams.y - uFogParams.x), 0.0, 1.0);
         result = mix(uFogColor.rgb, result, fogFactor);
     }
 

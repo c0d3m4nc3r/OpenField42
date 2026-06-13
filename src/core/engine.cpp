@@ -64,6 +64,8 @@ bool Engine::init(int argc, char* argv[])
 
 void Engine::shutdown()
 {
+    LOG_INFO("Engine::shutdown: Shutting down engine...");
+
     _world->shutdown();
     _renderer->shutdown();
     _window->shutdown();
@@ -120,6 +122,7 @@ void Engine::update(float dt)
 void Engine::render()
 {
     _renderer->resetStats();
+    _world->renderTerrain(*_renderer);
     _world->renderObjects(*_renderer);
     _renderer->flush(*_world);
     if (_debug_ui_enabled)

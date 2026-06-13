@@ -3,7 +3,6 @@
 #include "geometry/template.h"
 #include "geometry/material.h"
 #include "geometry/standard_mesh.h"
-#include "geometry/patch_terrain.h"
 #include "render/shader.h"
 #include "utils/log.h"
 #include "utils/string_utils.h"
@@ -127,7 +126,7 @@ void Geometry::Mesh::unload()
     uploaded = false;
 }
 
-Geometry* Geometry::create(const GeometryTemplate* tmpl, Terrain* terrain)
+Geometry* Geometry::create(const GeometryTemplate* tmpl)
 {
     if (!tmpl)
     {
@@ -141,33 +140,19 @@ Geometry* Geometry::create(const GeometryTemplate* tmpl, Terrain* terrain)
 
     Geometry* geom = nullptr;
 
-    switch (tmpl->type)
+    if (tmpl->type != GeometryType::StandardMesh)
     {
-    case GeometryType::StandardMesh:
-        {
-            StandardMesh* stdmesh_geom = new StandardMesh();
-            geom = stdmesh_geom;
-            if (!stdmesh_geom->load(tmpl))
-            {
-                LOG_ERROR("Geometry::create: Failed to load StandardMesh geometry from template '%s'!", tmpl->name.c_str());
-                delete stdmesh_geom;
-                return nullptr;
-            }
-        } break;
-    case GeometryType::PatchTerrain:
-        {
-            PatchTerrain* terrain_geom = new PatchTerrain();
-            geom = terrain_geom;
-            if (!terrain_geom->load(tmpl, *terrain))
-            {
-                LOG_ERROR("Geometry::create: Failed to load PatchTerrain geometry from template '%s'!", tmpl->name.c_str());
-                delete terrain_geom;
-                return nullptr;
-            }
-        } break;
-    default:
         LOG_ERROR("Geometry::create: Unsupported geometry type: %s!",
             geometryTypeToString(tmpl->type).c_str());
+        return nullptr;
+    }
+
+    StandardMesh* stdmesh_geom = new StandardMesh();
+    geom = stdmesh_geom;
+    if (!stdmesh_geom->load(tmpl))
+    {
+        LOG_ERROR("Geometry::create: Failed to load StandardMesh geometry from template '%s'!", tmpl->name.c_str());
+        delete stdmesh_geom;
         return nullptr;
     }
 

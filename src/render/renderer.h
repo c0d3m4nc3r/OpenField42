@@ -33,9 +33,9 @@ public:
     void setCamera(Camera* camera) { _camera = camera; }
 
     void setFogColor(const Color& color) { _fog.color = color; _fog_dirty = true; }
-    void setFogStart(float start) { _fog.start = start; _fog_dirty = true; }
-    void setFogEnd(float end) { _fog.end = end; _fog_dirty = true; }
-    void setFogEnabled(bool enabled) { _fog.enabled = enabled; _fog_dirty = true; }
+    void setFogStart(float start) { _fog.params.x = start; _fog_dirty = true; }
+    void setFogEnd(float end) { _fog.params.y = end; _fog_dirty = true; }
+    void setFogEnabled(bool enabled) { _fog.params.z = enabled ? 1.0f : 0.0f; _fog_dirty = true; }
 
     void setDiffuseLight(const Color& color) { _lighting.diffuse = color; _lighting_dirty = true; }
     void setSpecularLight(const Color& color) { _lighting.specular = color; _lighting_dirty = true; }
@@ -51,25 +51,21 @@ private:
     {
         Geometry::Mesh* mesh;
         Geometry* geom;
-        const glm::mat4* model;
+        glm::mat4 model = glm::mat4(1.0f);
         float distance_to_camera = 0.0f;
     };
 
-    struct UBO_CameraBlock
+    struct alignas(16) UBO_CameraBlock
     {
         glm::mat4 view;
         glm::mat4 projection;
-        glm::vec3 view_pos;
-        float padding; // for std140 alignment
+        glm::vec4 view_pos;
     };
 
-    struct UBO_FogBlock
+    struct alignas(16) UBO_FogBlock
     {
         Color color = Color(0.5f, 0.5f, 0.5f, 1.0f);
-        float start = 50.0f;
-        float end = 200.0f;
-        bool enabled = true;
-        float padding; // for std140 alignment
+        glm::vec4 params = {50.0f, 200.0f, 1.0f, 1.0f}; // x - start, y - end, z - enabled, w - padding
     };
 
     struct alignas(16) UBO_LightingBlock

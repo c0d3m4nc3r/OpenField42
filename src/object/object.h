@@ -93,9 +93,9 @@ struct Object
 
     Geometry* getGeometry() { return _geometry; }
 
-    void setPosition(const glm::vec3& position) { _position = position; }
-    void setRotation(const glm::vec3& rotation) { _rotation = rotation; }
-    void setScale(const glm::vec3& scale) { _scale = scale; }
+    void setPosition(const glm::vec3& position) { _position = position; setDirty(); }
+    void setRotation(const glm::vec3& rotation) { _rotation = rotation; setDirty(); }
+    void setScale(const glm::vec3& scale) { _scale = scale; setDirty(); }
 
     void setGeometry(Geometry* geometry) { _geometry = geometry; }
 
