@@ -5,9 +5,12 @@
 #include "glad/gl.h"
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_version.h>
 
 bool Window::init()
 {
+    LOG_INFO("Window::init: Initializing window...");
+
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         LOG_ERROR("Window::init: Failed to initialize SDL! : %s", SDL_GetError());
@@ -24,6 +27,8 @@ bool Window::init()
         window_flags |= SDL_WINDOW_FULLSCREEN;
     if (WINDOW_RESIZABLE)
         window_flags |= SDL_WINDOW_RESIZABLE;
+
+    LOG_DEBUG("Window::init: Title: '%s', Size: %dx%d, Flags: 0x%016llX", WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
 
     // fullscreen + borderless = no quit event from i3wm for some reason
     if (WINDOW_BORDERLESS && !WINDOW_FULLSCREEN)
@@ -52,6 +57,15 @@ bool Window::init()
 
     SDL_GL_SetSwapInterval(WINDOW_VSYNC_ON ? 1 : 0);
 
+    LOG_INFO("Window::init: Window initialized!");
+
+    LOG_DEBUG("Window::init: SUPER USEFUL INFORMATION: ");
+    LOG_DEBUG("\tOpenGL: %s", glGetString(GL_VERSION));
+    LOG_DEBUG("\tGPU: %s", glGetString(GL_RENDERER));
+    LOG_DEBUG("\tVendor: %s", glGetString(GL_VENDOR));
+    LOG_DEBUG("\tGLSL: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    LOG_DEBUG("\tSDL: %d.%d.%d", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
+
     return true;
 }
 
@@ -60,6 +74,8 @@ void Window::shutdown()
     SDL_GL_DestroyContext(_gl_context);
     SDL_DestroyWindow(_handle);
     SDL_Quit();
+
+    LOG_INFO("Window::shutdown: Window shutdown!");
 }
 
 void Window::swapBuffers()
