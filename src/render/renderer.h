@@ -22,6 +22,7 @@ public:
     void submit(Geometry* geom, const glm::mat4& model);
     void flush(World& world);
     
+    void reloadShaders(Water& water);
     void resetStats();
 
     Camera* getCamera() const { return _camera; }

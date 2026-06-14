@@ -220,6 +220,64 @@ void Renderer::flush(World& world)
     _transparent_queue.clear();
 }
 
+void Renderer::reloadShaders(Water& water)
+{
+    LOG_INFO("Renderer::reloadShaders: Reloading all shaders...");
+
+    auto new_standard = std::make_unique<Shader>();
+    auto new_sky = std::make_unique<Shader>();
+    auto new_water = std::make_unique<Shader>();
+
+    bool success = true;
+
+    if (!new_standard->load("shaders/standard.vert", "shaders/standard.frag"))
+    {
+        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW standard shader!");
+        success = false;
+    }
+
+    if (!new_sky->load("shaders/sky.vert", "shaders/sky.frag"))
+    {
+        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW sky shader!");
+        success = false;
+    }
+
+    if (!new_water->load("shaders/water.vert", "shaders/water.frag"))
+    {
+        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW water shader!");
+        success = false;
+    }
+
+    if (!success)
+    {
+        LOG_ERROR("Renderer::reloadShaders: Shader reload failed! Retaining old shaders.");
+        return;
+    }
+
+    _shaders.standard = std::move(new_standard);
+    _shaders.sky = std::move(new_sky);
+    _shaders.water = std::move(new_water);
+
+    auto bindUniformBlocks = [](GLuint program_id) {
+        GLuint index = glGetUniformBlockIndex(program_id, "CameraBlock");
+        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 0);
+
+        index = glGetUniformBlockIndex(program_id, "FogBlock");
+        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 1);
+
+        index = glGetUniformBlockIndex(program_id, "LightingBlock");
+        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 2);
+    };
+
+    bindUniformBlocks(_shaders.standard->getID());
+    bindUniformBlocks(_shaders.sky->getID());
+    bindUniformBlocks(_shaders.water->getID());
+
+    water._ubo_bound = false;
+
+    LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
+}
+
 void Renderer::resetStats()
 {
     _stats.meshes_culled = 0;
@@ -287,6 +345,10 @@ void Renderer::waterPass(const Water& water)
     shader->use();
     shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
     shader->setBool("uWireframeEnabled", _wireframe_enabled);
+
+    glDisable(GL_CULL_FACE);
     
     water.draw(shader);
+
+    glEnable(GL_CULL_FACE);
 }

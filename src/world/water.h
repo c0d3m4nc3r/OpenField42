@@ -64,4 +64,5 @@ private:
 
     Geometry::Mesh _mesh;
 
+    friend class Renderer; // NOTE: Renderer set _ubo_bound to false after reloading shaders
 };
