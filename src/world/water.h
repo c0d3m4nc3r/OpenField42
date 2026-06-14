@@ -22,40 +22,54 @@ public:
         _dirty = true;
     }
 
-    void setScrollDir(int layer, const glm::vec2& scroll_dir)
+    void setScrollDir(int layer, const glm::vec2& dir)
     {
-        _layers[layer].scroll_dir = scroll_dir;
+        _layers[layer].scroll_dir = dir;
         _dirty = true;
     }
 
-    void setScrollSpeed(int layer, float scroll_speed)
+    void setScrollSpeed(int layer, float speed)
     {
-        _layers[layer].scroll_speed = scroll_speed;
+        _layers[layer].scroll_speed = speed;
+        _dirty = true;
+    }
+
+    void setUVScale(int layer, float scale)
+    {
+        _layers[layer].uv_scale = scale;
         _dirty = true;
     }
 
     void setColor(const Color& color) { _color = color; }
     void setDeepColor(const Color& color) { _deep_color = color; }
+    void setColorDepth(float depth) { _color_depth = depth; }
+    void setAlphaDepth(float depth) { _alpha_depth = depth; }
+    void setShallowAlpha(float alpha) { _shallow_alpha = alpha; }
 
 private:
 
     struct UBO_WaterBlock
     {
-        glm::vec4 scroll_1;   // xy = dir, z = speed, w = padding
-        glm::vec4 scroll_2;   // xy = dir, z = speed, w = padding
+        // xy = scroll dir, z = scroll speed, w = uv scale
+        glm::vec4 layer_1;
+        glm::vec4 layer_2;
     };
 
     struct Layer
     {
-        std::shared_ptr<Texture> texture;
-        glm::vec2 scroll_dir;
-        float scroll_speed;
+        std::shared_ptr<Texture> texture = nullptr;
+        glm::vec2 scroll_dir{0.0f};
+        float scroll_speed = 0.0f;
+        float uv_scale = 1.0f;
     };
 
     Layer _layers[2];
 
     Color _color = Color(1.0f, 1.0f, 1.0f, 1.0f);
     Color _deep_color = Color(0.3f, 0.3f, 0.3f, 1.0f);
+    float _color_depth = 5.0f;
+    float _alpha_depth = 1.0f;
+    float _shallow_alpha = 0.5f;
 
     unsigned int _water_ubo = 0;
 

@@ -12,10 +12,10 @@ bool Water::init(const Terrain& terrain)
     LOG_INFO("Water::init: Initializing water...");
 
     int terrain_size = terrain.getSize();
-    float world_size = (float)terrain.getWorldSize();
+    float world_size = static_cast<float>(terrain.getWorldSize());
     int step = 4;
     
-    float scale_xz = world_size / (float)terrain_size;
+    float scale_xz = world_size / static_cast<float>(terrain_size);
     int size = (terrain_size + step - 1) / step + 1;
 
     _mesh.vertices.reserve(size * size);
@@ -33,9 +33,9 @@ bool Water::init(const Terrain& terrain)
             if (tz > terrain_size) tz = terrain_size;
 
             v.position = {
-                (float)tx * scale_xz,
-                (float)terrain.getWaterHeight(),
-                (float)tz * scale_xz
+                static_cast<float>(tx * scale_xz),
+                static_cast<float>(terrain.getWaterHeight()),
+                static_cast<float>(tz * scale_xz)
             };
 
             v.normal = {0.0f, 1.0f, 0.0f};
@@ -43,7 +43,14 @@ bool Water::init(const Terrain& terrain)
             v.uv.x = (v.position.x / world_size) * 64.0f;
             v.uv.y = (v.position.z / world_size) * 64.0f;
 
-            v.color = glm::vec4(_deep_color.toVec3(), 0.8f);
+            float depth = terrain.getWaterHeight() - terrain.getHeight(tx, tz);
+
+            float t = glm::clamp(depth / _color_depth, 0.0f, 1.0f);
+            
+            glm::vec3 color = glm::mix(_color.toVec3(), _deep_color.toVec3(), t);
+            float alpha = glm::mix(_shallow_alpha, 1.0f, t);
+            
+            v.color = glm::vec4(color, alpha);
 
             _mesh.vertices.push_back(v);
         }
@@ -85,6 +92,16 @@ bool Water::init(const Terrain& terrain)
 
 void Water::shutdown()
 {
+    for (auto& layer : _layers)
+    {
+        layer.texture.reset();
+        layer.scroll_dir = glm::vec2(0.0f);
+        layer.scroll_speed = 0.0f;
+        layer.uv_scale = 1.0f;
+    }
+
+    glDeleteBuffers(1, &_water_ubo);
+
     _mesh.unload();
 
     LOG_INFO("Water::shutdown: Water shutdown");
@@ -110,18 +127,18 @@ void Water::draw(Shader* shader) const
     if (_dirty)
     {
         UBO_WaterBlock water_data;
-        water_data.scroll_1 = {
+        water_data.layer_1 = {
             _layers[0].scroll_dir.x,
             _layers[0].scroll_dir.y,
             _layers[0].scroll_speed,
-            0.0f
+            _layers[0].uv_scale
         };
 
-        water_data.scroll_2 = {
+        water_data.layer_2 = {
             _layers[1].scroll_dir.x,
             _layers[1].scroll_dir.y,
             _layers[1].scroll_speed,
-            0.0f
+            _layers[1].uv_scale
         };
 
         glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);

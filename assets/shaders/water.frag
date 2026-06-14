@@ -15,12 +15,12 @@ layout (std140) uniform FogBlock
 
 layout(std140) uniform WaterBlock
 {
-    vec4 uScroll1; // xy = dir, z = speed, w = padding
-    vec4 uScroll2; // xy = dir, z = speed, w = padding
+    // xy = dir, z = speed, w = uv scale
+    vec4 uLayer1;
+    vec4 uLayer2;
 };
 
 in vec2 vTexCoords;
-in vec3 vNormal;
 in vec3 vFragPos;
 in vec4 vColor;
 
@@ -30,7 +30,6 @@ uniform sampler2D uTexLayer1;
 uniform sampler2D uTexLayer2;
 
 uniform float uTime;
-
 uniform bool uWireframeEnabled;
 
 void main()
@@ -41,21 +40,18 @@ void main()
         return;
     }
 
-    vec2 uv1 = vTexCoords + uScroll1.xz * uScroll1.z * uTime;
-    vec2 uv2 = vTexCoords + uScroll2.xz * uScroll2.z * uTime;
+    vec2 uv1 = (vTexCoords * uLayer1.w) + uLayer1.xy * uLayer1.z * uTime;
+    vec2 uv2 = (vTexCoords * uLayer2.w) + uLayer2.xy * uLayer2.z * uTime;
 
     vec4 layerColor1 = texture(uTexLayer1, uv1);
     vec4 layerColor2 = texture(uTexLayer2, uv2);
+
+    vec3 finalColor = (layerColor1 * layerColor2).rgb * vColor.rgb;
     
-    vec4 objectColor = (layerColor1 + layerColor2) * vColor;
-
-    vec3 finalColor = objectColor.rgb;
-
     if (uFogParams.z == 1.0)
     {
         float distance = length(uViewPos.xyz - vFragPos);
         float fogFactor = clamp((uFogParams.y - distance) / (uFogParams.y - uFogParams.x), 0.0, 1.0);
-        
         finalColor = mix(uFogColor.rgb, finalColor, fogFactor);
     }
 

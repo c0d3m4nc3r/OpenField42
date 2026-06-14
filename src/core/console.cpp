@@ -269,28 +269,45 @@ void Console::init(const Engine& engine)
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), texLayer1, [](Water* w, const std::string& value) {
         w->setTexture(0, Texture::load(value));
     });
-    
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), texLayer2, [](Water* w, const std::string& value) {
         w->setTexture(1, Texture::load(value));
     });
-
+    
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollDirection1, [](Water* w, const std::string& value) {
         w->setScrollDir(0, parseVec2(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollDirection2, [](Water* w, const std::string& value) {
         w->setScrollDir(1, parseVec2(value));
     });
+
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollLayer1, [](Water* w, const std::string& value) {
         w->setScrollSpeed(0, parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollLayer2, [](Water* w, const std::string& value) {
         w->setScrollSpeed(1, parseFloat(value));
     });
+
+    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), tileLayer1, [](Water* w, const std::string& value) {
+        w->setUVScale(0, parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), tileLayer2, [](Water* w, const std::string& value) {
+        w->setUVScale(1, parseFloat(value));
+    });
+
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), color, [](Water* w, const std::string& value) {
         w->setColor(parseVec3(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), deepColor, [](Water* w, const std::string& value) {
         w->setDeepColor(parseVec3(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), waterColorDepth, [](Water* w, const std::string& value) {
+        w->setColorDepth(parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), waterAlphaDepth, [](Water* w, const std::string& value) {
+        w->setAlphaDepth(parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), waterShallowAlpha, [](Water* w, const std::string& value) {
+        w->setShallowAlpha(parseFloat(value));
     });
 }
 
