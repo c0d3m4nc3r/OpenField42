@@ -4,8 +4,15 @@
 #include <filesystem>
 #include <fstream>
 
+using namespace VFS;
+
 FolderProvider::FolderProvider(const std::string& path)
     : _base_path(path) {}
+
+FolderProvider::~FolderProvider()
+{
+    LOG_DEBUG("VFS::FolderProvider: Folder '%s' unmounted!", _base_path.c_str());
+}
 
 bool FolderProvider::init()
 {
@@ -14,6 +21,8 @@ bool FolderProvider::init()
         LOG_ERROR("FolderProvider::init: Path '%s' doesn't exist or is not a directory!", _base_path.c_str());
         return false;
     }
+
+    LOG_DEBUG("VFS::FolderProvider: Folder '%s' mounted!", _base_path.c_str());
 
     return true;
 }

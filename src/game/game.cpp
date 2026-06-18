@@ -14,10 +14,10 @@ bool Game::init()
 {
     LOG_INFO("Game::init: Initializing game...");
 
-    VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/standardMesh.rfa"));
-    VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/StandardMesh_001.rfa"));
-    VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture.rfa"));
-    VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture_001.rfa"));
+    VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/standardMesh.rfa"));
+    VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/StandardMesh_001.rfa"));
+    VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture.rfa"));
+    VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture_001.rfa"));
 
     auto& input = _engine.getInput();
 
@@ -154,7 +154,7 @@ bool Game::loadLevel(const std::string& name)
 {
     LOG_INFO("Game::loadLevel: Loading level '%s'...", name.c_str());
 
-    bool success = VFS::mountProvider(std::make_shared<RFAProvider>(
+    bool success = VFS::mountProvider(std::make_shared<VFS::RFAProvider>(
         std::string(GAME_DATA_DIR) + "/bf1942/Archives/bf1942/levels/" + name + ".rfa"
     ));
 
@@ -200,7 +200,7 @@ bool Game::loadGameObjs()
 {
     LOG_INFO("Game::loadGameObjs: Loading game objects...");
 
-    bool success = VFS::mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/Objects.rfa"));
+    bool success = VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/Objects.rfa"));
     if (!success)
     {
         LOG_ERROR("Game::loadGameObjs: Failed to mount 'Objects.rfa' archive!");

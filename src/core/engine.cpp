@@ -25,7 +25,7 @@ bool Engine::init(int argc, char* argv[])
 
     _input = std::make_unique<Input>(*_window);
 
-    VFS::mountProvider(std::make_shared<FolderProvider>("assets"));
+    VFS::mountProvider(std::make_shared<VFS::FolderProvider>("assets"));
 
     _renderer = std::make_unique<Renderer>();
     if (!_renderer->init())
@@ -69,6 +69,7 @@ void Engine::shutdown()
     _world->shutdown();
     _renderer->shutdown();
     _window->shutdown();
+    VFS::unmountAll();
 
     LOG_INFO("Engine::shutdown: Engine shutdown!");
 }

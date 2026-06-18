@@ -9,6 +9,8 @@ namespace VFS
     static std::vector<std::shared_ptr<IFileProvider>> providers;
 
     bool mountProvider(std::shared_ptr<IFileProvider> provider);
+    void unmountAll();
+
     bool exists(const std::string& path);
     std::string findFile(const std::string& name);
     std::vector<char> readFileData(const std::string& path);

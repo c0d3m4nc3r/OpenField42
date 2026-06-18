@@ -16,6 +16,15 @@ namespace VFS
         return true;
     }
 
+    void unmountAll()
+    {
+        LOG_INFO("VFS::unmountAll: Unmounting all providers...");
+
+        providers.clear();
+
+        LOG_INFO("VFS::unmountAll: All providers unmounted successfully!");
+    }
+
     bool exists(const std::string& path)
     {
         std::string normalized_path = normalizePath(path);

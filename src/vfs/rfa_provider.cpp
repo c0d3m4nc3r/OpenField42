@@ -2,6 +2,8 @@
 #include "vfs/vfs.h"
 #include "utils/log.h"
 
+using namespace VFS;
+
 RFAProvider::RFAProvider(const std::string& archive_path)
     : _archive_path(archive_path) {}
 
@@ -9,6 +11,8 @@ RFAProvider::~RFAProvider()
 {
     if (!_archive) return;
     RFA_Close(_archive);
+
+    LOG_DEBUG("VFS::RFAProvider: Archive '%s' unmounted!", _archive_path.c_str());
 }
 
 bool RFAProvider::init()
@@ -25,6 +29,8 @@ bool RFAProvider::init()
         LOG_ERROR("RFAProvider::init: Failed to open archive at '%s'!", _archive_path.c_str());
         return false;
     }
+
+    LOG_DEBUG("VFS::RFAProvider: Archive '%s' mounted!", _archive_path.c_str());
 
     return true;
 }
