@@ -13,6 +13,7 @@ class Renderer;
 class Input;
 class Console;
 class DebugUI;
+class GeometryManager;
 struct World;
 
 class Game;
@@ -34,6 +35,7 @@ public:
     Input& getInput() const { return *_input; }
     Console& getConsole() const { return *_console; }
     World& getWorld() const { return *_world; }
+    GeometryManager& getGeometryMgr() const { return *_geometry_mgr; }
 
     Game& getGame() const { return *_game; }
 
@@ -49,8 +51,10 @@ private:
     std::unique_ptr<Input> _input;
     std::unique_ptr<Console> _console;
     std::unique_ptr<World> _world;
-
     std::unique_ptr<DebugUI> _debug_ui;
+
+    std::unique_ptr<GeometryManager> _geometry_mgr;
+
     std::unique_ptr<Game> _game;
 
     EngineStats _stats;

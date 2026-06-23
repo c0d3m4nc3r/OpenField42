@@ -1,5 +1,7 @@
 #pragma once
 
+class GeometryManager;
+
 struct ObjectTemplate;
 struct Object;
 
@@ -13,11 +15,9 @@ class World
 {
 public:
 
-    World();
+    World(GeometryManager& geometry_mgr);
     ~World();
 
-    void init();
-    void shutdown();
     void update(float dt);
 
     Object* createObject(const ObjectTemplate* tmpl);
@@ -29,6 +29,8 @@ public:
     Water& getWater() { return *_water; }
 
 private:
+
+    GeometryManager& _geometry_mgr;
 
     std::unique_ptr<Sky> _sky;
     std::unique_ptr<Terrain> _terrain;

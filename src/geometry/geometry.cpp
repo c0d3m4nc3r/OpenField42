@@ -1,44 +1,10 @@
 #include "geometry/geometry.h"
 
-#include "geometry/geometry_template.h"
 #include "geometry/material.h"
-#include "geometry/standard_mesh.h"
 #include "render/shader.h"
 #include "utils/log.h"
-#include "utils/string_utils.h"
 
 #include "glad/gl.h"
-
-std::string geometryTypeToString(GeometryType type)
-{
-    switch (type)
-    {
-    case GeometryType::AnimatedMesh: return "AnimatedMesh";
-    case GeometryType::SkeletonCollisionMesh: return "SkeletonCollisionMesh";
-    case GeometryType::StandardMesh: return "StandardMesh";
-    case GeometryType::TreeMesh: return "TreeMesh";
-    case GeometryType::PatchTerrain: return "PatchTerrain";
-    case GeometryType::Unknown:
-    default: return "Unknown";
-    }
-}
-
-GeometryType geometryTypeFromString(const std::string& str)
-{   
-    static const std::unordered_map<std::string, GeometryType> lut = {
-        {"animatedmesh", GeometryType::AnimatedMesh},
-        {"skeletoncollisionmesh", GeometryType::SkeletonCollisionMesh},
-        {"standardmesh", GeometryType::StandardMesh},
-        {"treemesh", GeometryType::TreeMesh},
-        {"patchterrain", GeometryType::PatchTerrain}
-    };
-
-    auto it = lut.find(StringUtils::lowercase(str));
-    if (it != lut.end())
-        return it->second;
-
-    return GeometryType::Unknown;
-}
 
 Geometry::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
     : vertices(vertices), indices(indices), vao(0), vbo(0), ebo(0) {} 
@@ -124,61 +90,6 @@ void Geometry::Mesh::unload()
     index_count = 0;
     poly_count = 0;
     uploaded = false;
-}
-
-Geometry* Geometry::create(const GeometryTemplate* tmpl)
-{
-    if (!tmpl)
-    {
-        LOG_ERROR("Geometry::create: Template is NULL!");
-        return nullptr;
-    }
-
-    auto it = cache.find(tmpl->name);
-    if (it != cache.end())
-        return it->second.get();
-
-    Geometry* geom = nullptr;
-
-    if (tmpl->type != GeometryType::StandardMesh)
-    {
-        LOG_ERROR("Geometry::create: Unsupported geometry type: %s!",
-            geometryTypeToString(tmpl->type).c_str());
-        return nullptr;
-    }
-
-    StandardMesh* stdmesh_geom = new StandardMesh();
-    geom = stdmesh_geom;
-    if (!stdmesh_geom->load(tmpl))
-    {
-        LOG_ERROR("Geometry::create: Failed to load StandardMesh geometry from template '%s'!", tmpl->name.c_str());
-        delete stdmesh_geom;
-        return nullptr;
-    }
-
-    geom->type = tmpl->type;
-
-    cache[tmpl->name] = std::unique_ptr<Geometry>(geom);
-
-    return geom;
-}
-
-bool Geometry::uploadAll()
-{
-    LOG_INFO("Geometry::uploadAll: Uploading %zu geometries to GPU...", cache.size());
-
-    for (auto& [name, geometry] : cache)
-    {
-        if (!geometry->upload())
-        {
-            LOG_ERROR("Geometry::uploadAll: Failed to upload geometry '%s' to GPU!", name.c_str());
-            return false;
-        }
-    }
-
-    LOG_INFO("Geometry::uploadAll: All geometries uploaded to GPU successfully!");
-
-    return true;
 }
 
 void Geometry::draw(Shader* shader, const glm::mat4& model) const

@@ -5,6 +5,7 @@
 
 #include <glm/fwd.hpp>
 
+struct GeometryTemplate;
 class Engine;
 class Console
 {
@@ -31,5 +32,6 @@ public:
 private:
 
     std::unordered_map<std::string, CommandHandler> _commands;
+    GeometryTemplate* _current_geom_tmpl = nullptr;
 
 };

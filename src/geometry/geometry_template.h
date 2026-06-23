@@ -1,9 +1,8 @@
 #pragma once
 
-#include "geometry/geometry.h"
+#include "geometry/geometry_type.h"
 
 #include <string>
-#include <unordered_map>
 
 struct GeometryTemplate
 {
@@ -20,10 +19,4 @@ struct GeometryTemplate
     int tex_offset_y;
     int water_level;
     float y_scale;
-    
-    static inline std::unordered_map<std::string, GeometryTemplate> registry;
-    static inline GeometryTemplate* current = nullptr;
-
-    static GeometryTemplate& create(const std::string& name, GeometryType type);
-    static GeometryTemplate* get(const std::string& name);
 };

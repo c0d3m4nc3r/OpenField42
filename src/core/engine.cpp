@@ -3,6 +3,7 @@
 #include "core/console.h"
 #include "core/debugui.h"
 #include "game/game.h"
+#include "geometry/geometry_manager.h"
 #include "platform/input.h"
 #include "platform/window.h"
 #include "render/renderer.h"
@@ -39,9 +40,10 @@ bool Engine::init(int argc, char* argv[])
 
     _console = std::make_unique<Console>();
     _console->init(*this);
+    
+    _geometry_mgr = std::make_unique<GeometryManager>();
 
-    _world = std::make_unique<World>();
-    _world->init();
+    _world = std::make_unique<World>(*_geometry_mgr.get());
 
     _game = std::make_unique<Game>(*this);
     _game->init();
@@ -66,7 +68,8 @@ void Engine::shutdown()
 {
     LOG_INFO("Engine::shutdown: Shutting down engine...");
 
-    _world->shutdown();
+    _geometry_mgr.reset();
+    _world.reset();
     _renderer->shutdown();
     _window->shutdown();
     VFS::unmountAll();

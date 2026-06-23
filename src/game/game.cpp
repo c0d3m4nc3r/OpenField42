@@ -177,11 +177,11 @@ bool Game::loadLevel(const std::string& name)
     console.execFile("bf1942/levels/" + name + "/Init.con");
     console.execFile("bf1942/levels/" + name + "/StaticObjects.con");
 
-    if (!Geometry::uploadAll())
-    {
-        LOG_ERROR("Game::loadLevel: Failed to upload geometries to GPU!");
-        return false;
-    }
+    // if (!Geometry::uploadAll())
+    // {
+    //     LOG_ERROR("Game::loadLevel: Failed to upload geometries to GPU!");
+    //     return false;
+    // }
 
     auto& world = _engine.getWorld();
     world.getWater().init(world.getTerrain());

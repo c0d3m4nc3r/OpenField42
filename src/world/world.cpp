@@ -1,5 +1,6 @@
 #include "world/world.h"
 
+#include "geometry/geometry_manager.h"
 #include "geometry/geometry_template.h"
 #include "object/object.h"
 #include "object/object_template.h"
@@ -8,33 +9,15 @@
 #include "world/terrain.h"
 #include "world/water.h"
 
-World::World() {}
-World::~World() = default;
-
-void World::init()
+World::World(GeometryManager& geometry_mgr)
+    : _geometry_mgr(geometry_mgr)
 {
-    _sky = std::make_unique<Sky>();
+    _sky = std::make_unique<Sky>(geometry_mgr);
     _terrain = std::make_unique<Terrain>();
     _water = std::make_unique<Water>();
-
-    LOG_INFO("World::init: World initialized!");
 }
 
-void World::shutdown()
-{
-    _sky->shutdown();
-    _sky.reset();
-
-    _terrain->shutdown();
-    _terrain.reset();
-    
-    _water->shutdown();
-    _water.reset();
-
-    _objects.clear();
-
-    LOG_INFO("World::shutdown: World shutdown!");
-}
+World::~World() {}
 
 void World::update(float dt)
 {
@@ -84,7 +67,7 @@ Object* World::createObject(const ObjectTemplate* tmpl)
         return raw;
     }
 
-    const GeometryTemplate* geom_tmpl = GeometryTemplate::get(tmpl->geometry);
+    const GeometryTemplate* geom_tmpl = _geometry_mgr.getTemplate(tmpl->geometry);
     if (!geom_tmpl)
     {
         LOG_ERROR("World::createObject: Geometry template with name '%s' not found!", tmpl->geometry.c_str());
@@ -105,7 +88,7 @@ Object* World::createObject(const ObjectTemplate* tmpl)
         return nullptr;
     }
 
-    auto* geometry = Geometry::create(geom_tmpl);
+    auto* geometry = _geometry_mgr.createGeometry(geom_tmpl);
     if (!geometry)
     {
         LOG_ERROR("World::createObject: Failed to load geometry!");

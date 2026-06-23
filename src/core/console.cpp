@@ -1,6 +1,7 @@
 #include "core/console.h"
 #include "core/engine.h"
 #include "game//game.h"
+#include "geometry/geometry_manager.h"
 #include "render/renderer.h"
 #include "render/texture.h"
 #include "geometry/geometry_template.h"
@@ -15,7 +16,7 @@
 #include <sstream>
 
 #define REGISTER_OBJECT_PROPERTY(ObjectName, ObjectRef, PropertyName, SetterFunction) \
-    registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&engine](const CommandArgs& args) \
+    registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&](const CommandArgs& args) \
     { \
         if (args.empty()) \
         { \
@@ -60,7 +61,7 @@ void Console::init(const Engine& engine)
     registerCmd("rem", [](const CommandArgs& args) { return true; });
     registerCmd("REM", [](const CommandArgs& args) { return true; });
 
-    registerCmd("run", [&engine](const CommandArgs& args)
+    registerCmd("run", [this](const CommandArgs& args)
     {
         if (args.empty()) {
             LOG_ERROR("Console: run: Not enough arguments!");
@@ -69,10 +70,10 @@ void Console::init(const Engine& engine)
         std::string path = args[0];
         if (!path.ends_with(".con")) path += ".con";
 
-        return engine.getConsole().execFile(path);
+        return execFile(path);
     });
 
-    registerCmd("GeometryTemplate.create", [](const CommandArgs& args)
+    registerCmd("GeometryTemplate.create", [&engine, this](const CommandArgs& args)
     {
         if (args.size() < 2)
         {
@@ -88,7 +89,8 @@ void Console::init(const Engine& engine)
             return false;
         }
 
-        GeometryTemplate::create(args[1], type);
+        auto& geometry_mgr = engine.getGeometryMgr();
+        _current_geom_tmpl = geometry_mgr.createTemplate(args[1], type);
 
         return true;
     });
@@ -184,7 +186,8 @@ void Console::init(const Engine& engine)
         if (!(Object::current = world.createObject(tmpl)))
         {
             // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
-            GeometryTemplate* geom_tmpl = GeometryTemplate::get(tmpl->geometry);
+            auto& geometry_mgr = engine.getGeometryMgr();
+            GeometryTemplate* geom_tmpl = geometry_mgr.getTemplate(tmpl->geometry);
             if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
                 return true;
             
@@ -195,22 +198,22 @@ void Console::init(const Engine& engine)
         return true;
     });
 
-    registerCmd("Sky.initSky", [&engine](const CommandArgs& args)
+    registerCmd("Sky.initSky", [&engine, this](const CommandArgs& args)
     {
-        return engine.getWorld().getSky().init();
+        return engine.getWorld().getSky().init(_current_geom_tmpl);
     });
 
     // GeometryTemplate
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, file, GEN_STRING_SETTER(GeometryTemplate, file));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, materialMap, GEN_STRING_SETTER(GeometryTemplate, material_map));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, texBaseName, GEN_STRING_SETTER(GeometryTemplate, tex_base_name));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, detailTexName, GEN_STRING_SETTER(GeometryTemplate, detail_tex_name));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, materialSize, GEN_INT_SETTER(GeometryTemplate, material_size));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, worldSize, GEN_INT_SETTER(GeometryTemplate, world_size));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, texOffsetX, GEN_INT_SETTER(GeometryTemplate, tex_offset_x));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, texOffsetY, GEN_INT_SETTER(GeometryTemplate, tex_offset_y));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, waterLevel, GEN_INT_SETTER(GeometryTemplate, water_level));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, GeometryTemplate::current, yScale, GEN_FLOAT_SETTER(GeometryTemplate, y_scale));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, file, GEN_STRING_SETTER(GeometryTemplate, file));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, materialMap, GEN_STRING_SETTER(GeometryTemplate, material_map));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, texBaseName, GEN_STRING_SETTER(GeometryTemplate, tex_base_name));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, detailTexName, GEN_STRING_SETTER(GeometryTemplate, detail_tex_name));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, materialSize, GEN_INT_SETTER(GeometryTemplate, material_size));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, worldSize, GEN_INT_SETTER(GeometryTemplate, world_size));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, texOffsetX, GEN_INT_SETTER(GeometryTemplate, tex_offset_x));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, texOffsetY, GEN_INT_SETTER(GeometryTemplate, tex_offset_y));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, waterLevel, GEN_INT_SETTER(GeometryTemplate, water_level));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, yScale, GEN_FLOAT_SETTER(GeometryTemplate, y_scale));
 
     // ObjectTemplate
     REGISTER_OBJECT_PROPERTY(ObjectTemplate, ObjectTemplate::current, geometry, GEN_STRING_SETTER(ObjectTemplate, geometry));

@@ -1,7 +1,8 @@
 #include "world/sky.h"
 
-#include "geometry/geometry.h"
+#include "geometry/geometry_manager.h"
 #include "geometry/geometry_template.h"
+#include "geometry/geometry.h"
 #include "render/shader.h"
 #include "utils/log.h"
 
@@ -9,25 +10,23 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-bool Sky::init()
+bool Sky::init(const GeometryTemplate* tmpl)
 {
     LOG_INFO("Sky::init: Initializing sky...");
 
-    const GeometryTemplate* geom_tmpl = GeometryTemplate::current;
-
-    if (!geom_tmpl)
+    if (!tmpl)
     {
-        LOG_ERROR("Sky::init: There is no active geometry template to init sky!");
+        LOG_ERROR("Sky::init: Geometry template is NULL!");
         return false;
     }
 
-    if (geom_tmpl->type != GeometryType::StandardMesh)
+    if (tmpl->type != GeometryType::StandardMesh)
     {
-        LOG_ERROR("Sky::init: Current geometry template type should be StandardMesh!");
+        LOG_ERROR("Sky::init: Geometry template is not StandardMesh!");
         return false;
     }
 
-    _geometry = Geometry::create(geom_tmpl);
+    _geometry = _geometry_mgr.createGeometry(tmpl);
     if (!_geometry)
     {
         LOG_ERROR("Sky::init: Failed to create sky geometry!");
@@ -37,14 +36,6 @@ bool Sky::init()
     LOG_INFO("Sky::init: Sky initialized!");
     
     return true;
-}
-
-void Sky::shutdown()
-{
-    rot_angle = 0.0f;
-    _geometry = nullptr;
-
-    LOG_INFO("Sky::shutdown: Sky shutdown!");
 }
 
 void Sky::draw(Shader* shader) const

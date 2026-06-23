@@ -1,24 +1,13 @@
 #pragma once
 
+#include "geometry/geometry_type.h"
 #include "geometry/material.h"
+
 #include "math/aabb.h"
 
 #include <vector>
 #include <unordered_map>
 #include <string>
-
-enum class GeometryType : unsigned char
-{
-    Unknown,
-    AnimatedMesh,
-    SkeletonCollisionMesh,
-    StandardMesh,
-    TreeMesh,
-    PatchTerrain
-};
-
-std::string geometryTypeToString(GeometryType type);
-GeometryType geometryTypeFromString(const std::string& str);
 
 struct GeometryTemplate;
 
@@ -77,10 +66,6 @@ public:
 
     std::vector<LOD> lods;
     std::unordered_map<std::string, Material> materials;
-
-    static inline std::unordered_map<std::string, std::unique_ptr<Geometry>> cache;
-    static Geometry* create(const GeometryTemplate* tmpl);
-    static bool uploadAll();
 
     void draw(Shader* shader, const glm::mat4& model) const;
 
