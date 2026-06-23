@@ -1,6 +1,6 @@
 #include "geometry/geometry.h"
 
-#include "geometry/template.h"
+#include "geometry/geometry_template.h"
 #include "geometry/material.h"
 #include "geometry/standard_mesh.h"
 #include "render/shader.h"

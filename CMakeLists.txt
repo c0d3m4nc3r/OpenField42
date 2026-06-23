@@ -55,12 +55,12 @@ set(SOURCES
     ${SRC_DIR}/geometry/geometry.cpp
     ${SRC_DIR}/geometry/material.cpp
     ${SRC_DIR}/geometry/standard_mesh.cpp
-    ${SRC_DIR}/geometry/template.cpp
+    ${SRC_DIR}/geometry/geometry_template.cpp
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/math/aabb.cpp
     ${SRC_DIR}/math/frustum.cpp
     ${SRC_DIR}/object/object.cpp
-    ${SRC_DIR}/object/template.cpp
+    ${SRC_DIR}/object/object_template.cpp
     ${SRC_DIR}/platform/input.cpp
     ${SRC_DIR}/platform/window.cpp
     ${SRC_DIR}/render/camera.cpp

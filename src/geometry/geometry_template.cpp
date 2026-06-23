@@ -1,7 +1,7 @@
-#include "object/template.h"
+#include "geometry/geometry_template.h"
 #include "utils/string_utils.h"
 
-ObjectTemplate& ObjectTemplate::create(const std::string& name, ObjectType type)
+GeometryTemplate& GeometryTemplate::create(const std::string& name, GeometryType type)
 {
     std::string lc_name = StringUtils::lowercase(name);
     auto& tmpl = registry[lc_name];
@@ -11,7 +11,7 @@ ObjectTemplate& ObjectTemplate::create(const std::string& name, ObjectType type)
     return tmpl;
 }
 
-ObjectTemplate* ObjectTemplate::get(const std::string& name)
+GeometryTemplate* GeometryTemplate::get(const std::string& name)
 {
     auto it = registry.find(StringUtils::lowercase(name));
     return it != registry.end() ? &it->second : nullptr;

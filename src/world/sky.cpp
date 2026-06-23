@@ -1,7 +1,7 @@
 #include "world/sky.h"
 
 #include "geometry/geometry.h"
-#include "geometry/template.h"
+#include "geometry/geometry_template.h"
 #include "render/shader.h"
 #include "utils/log.h"
 

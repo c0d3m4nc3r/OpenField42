@@ -1,6 +1,6 @@
 #include "world/terrain.h"
 
-#include "geometry/template.h"
+#include "geometry/geometry_template.h"
 #include "render/texture.h"
 #include "vfs/vfs.h"
 

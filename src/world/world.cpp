@@ -1,8 +1,8 @@
 #include "world/world.h"
 
-#include "geometry/template.h"
+#include "geometry/geometry_template.h"
 #include "object/object.h"
-#include "object/template.h"
+#include "object/object_template.h"
 #include "render/renderer.h"
 #include "world/sky.h"
 #include "world/terrain.h"
