@@ -1,64 +1,11 @@
 #pragma once
 
+#include "object/object_type.h"
+
 #include <vector>
-#include <string>
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
-
-enum class ObjectType : unsigned char
-{
-    Unknown,
-    ANDCompositeObjective,
-    ActiveKitPart,
-    AnimatedBundle,
-    AreaObject,
-    BFSoldier,
-    Bundle,
-    Camera,
-    ClusterProjectile,
-    ControlPoint,
-    DestroyTargetObjective,
-    EffectBundle,
-    Emitter,
-    Engine,
-    EntryPoint,
-    FireArms,
-    FireArmsBundle,
-    Flag,
-    FlagBase,
-    FloatingBundle,
-    FreeCamera,
-    HandFireArms,
-    Hook,
-    Kit,
-    KitPart,
-    LandingGear,
-    LensFlare,
-    LodObject,
-    MusicPlayer,
-    ObjectSpawner,
-    Obstacle,
-    Particle,
-    PlayerControlObject,
-    Projectile,
-    RotationalBundle,
-    SeatObject,
-    SonarObject,
-    SpawnPoint,
-    Spring,
-    SpriteParticle,
-    SupplyDepot,
-    TimerObjective,
-    Turbulence,
-    Winch,
-    Wing,
-    WireLink,
-    SimpleObject
-};
-
-std::string objectTypeToString(ObjectType type);
-ObjectType objectTypeFromString(const std::string& str);
 
 class Geometry;
 class Shader;
