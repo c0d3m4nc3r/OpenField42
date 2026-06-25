@@ -4,10 +4,6 @@
 ![License](https://img.shields.io/badge/License-GPLv3-green.svg)
 ![Status](https://img.shields.io/badge/Status-Pre%20Alpha-orange.svg)
 
-~~*The project is currently on hold because I’m focusing on smaller projects right now. I will definitely return to OpenField42 later — it’s my passion project. In the meantime, contributions and stars are highly appreciated ❤*~~
-
-*I'm back =)*
-
 ## 🚀 Overview
 
 **OpenField42** is an ambitious, open-source re-implementation of the classic **Battlefield 1942** game engine, primarily developed by a single contributor in modern C++.
@@ -29,52 +25,6 @@ Here are a few screenshots showcasing the current rendering progress across diff
 
 ---
 
-## ✨ Current Status & Features
-
-## 📊 Detailed Progress Tracker
-
-| Category                  | Feature                                      | Status     | Notes |
-|:--------------------------|:---------------------------------------------|:----------:|:------|
-| **Asset Loading**         | .rfa archives (librfa)                       | [x]       | Full read support |
-|                           | .con scripts                                 | [x]       | Parsed and loaded |
-|                           | Textures (.dds)                              | [x]       | All formats supported |
-|                           | StandardMesh (.sm)                           | [x]       | Static objects |
-|                           | TreeMesh (old vegetation format)             | [ ]       | Top priority right now |
-|                           | .ske & .skn (model skeleton?)                | [ ]       | |
-|                           | .baf (primary animation files?)              | [ ]       | |
-| **World Rendering**       | Heightmap terrain + detail textures          | [x]       | |
-|                           | Skybox                                       | [x]       | |
-|                           | All static objects                           | [x]       | |
-|                           | Alpha sorting & transparency                 | [x]       | |
-|                           | Level of Detail (LOD) system                 | [x]       | |
-|                           | Frustum culling                              | [x]       | |
-|                           | Vegetation (trees, bushes, grass)            | [~]       | Loads positions, missing meshes |
-|                           | Water planes                                 | [~]       | Visible but very flat + simple animation |
-|                           | Water reflection / refraction                | [ ]       | |
-|                           | Lighting                                     | [~]       | Objects too bright right now |
-| **Core Systems**          | Free-fly debug camera                        | [x]       | WASD + mouse look |
-|                           | Input system (SDL3)                          | [x]       | |
-|                           | Physics                                      | [ ]       | |
-|                           | Player / soldier controller                  | [ ]       | |
-|                           | Vehicles                                     | [ ]       | |
-|                           | Weapons & projectiles                        | [ ]       | |
-| **AI**                    | Bots                                         | [ ]       | |
-| **Networking**            | Multiplayer (Refractor 1 protocol)           | [ ]       | Long-term goal |
-| **Audio**                 | Sound loading & playback                     | [ ]       | Not started |
-| **Tools & Debug**         | Dear ImGui overlay                           | [x]       | |
-|                           | Profiler (F3)                                | [x]       | |
-|                           | Wireframe mode (F1)                          | [x]       | |
-|                           | Fullscreen toggle (F11)                      | [x]       | |
-| **Platform**              | Linux                                        | [x]       | Primary |
-|                           | Windows                                      | [x]       | Tested |
-|                           | macOS                                        | [ ]       | Should work, untested |
-
-**Legend**  
-[x] = Done  [~] = Partially working / WIP  [ ] = Not started
-
-**What you can do right now**  
-Launch any original BF1942 map and freely fly around it. You’ll see terrain, sky, all buildings and static objects with proper LODs and frustum culling.
-
 ## 🤝 Contribution
 
 While I am the primary developer, this is an open-source project, and **help is highly encouraged and needed!** If you are passionate about BF1942 and C++ development, please consider contributing. Any help with implementation, bug fixing, or documentation would be greatly appreciated to accelerate the project's progress.
@@ -85,7 +35,7 @@ The project is built on modern, cross-platform technologies:
 
 * **Language:** C++
 * **Windowing/Input:** [SDL3 (Simple DirectMedia Layer)](https://www.libsdl.org/)
-* **Graphics:** [GLAD (OpenGL Loading Library)](https://github.com/Dav1dde/glad)
+* **Graphics:** [GLAD (OpenGL 3.3)](https://github.com/Dav1dde/glad)
 * **Debugging/Tools:** [Dear ImGui](https://github.com/ocornut/imgui)
 * **Archiving:** [librfa](https://github.com/c0d3m4nc3r/librfa) (My custom library for RFA file handling)
 
@@ -166,6 +116,7 @@ Since the core gameplay is not yet implemented, the engine currently utilizes de
 | **ESC** | Toggle cursor capture/lock. |
 | **F1** | Toggle Wireframe mode. |
 | **F3** | Toggle Profiler display (shows simple performance metrics). |
+| **F5** | Reload shaders. |
 | **F11** | Toggle Fullscreen mode. |
 
 ## ⚖️ License
