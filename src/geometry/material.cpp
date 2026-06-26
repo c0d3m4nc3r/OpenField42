@@ -10,7 +10,7 @@
 #include <sstream>
 #include <vector>
 
-void Material::apply(Shader* shader)
+void Material::apply(Shader* shader) const
 {
     if (!shader) return;
 

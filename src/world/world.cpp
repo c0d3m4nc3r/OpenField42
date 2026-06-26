@@ -10,14 +10,38 @@
 #include "world/water.h"
 
 World::World(GeometryManager& geometry_mgr)
-    : _geometry_mgr(geometry_mgr)
-{
-    _sky = std::make_unique<Sky>(geometry_mgr);
-    _terrain = std::make_unique<Terrain>();
-    _water = std::make_unique<Water>();
-}
+    : _geometry_mgr(geometry_mgr) {}
 
 World::~World() {}
+
+void World::init()
+{
+    LOG_INFO("World::init: Initializing world...");
+
+    _sky = std::make_unique<Sky>(_geometry_mgr);
+    _terrain = std::make_unique<Terrain>();
+    _water = std::make_unique<Water>();
+
+    LOG_INFO("World::init: World initialized!");
+}
+
+void World::shutdown()
+{
+    LOG_INFO("World::shutdown: Shutting down World...");
+
+    // _sky->shutdown();
+    _sky.reset();
+    
+    _terrain->shutdown();
+    _terrain.reset();
+
+    _water->shutdown();
+    _water.reset();
+
+    _objects.clear();
+
+    LOG_INFO("World::shutdown: World shutdown!");
+}
 
 void World::update(float dt)
 {

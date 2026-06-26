@@ -3,10 +3,10 @@
 #include "utils/log.h"
 
 #include <SDL3/SDL_timer.h>
-#include <iostream>
-#include <string>
 
 #include <filesystem>
+#include <iostream>
+#include <string>
 
 namespace fs = std::filesystem;
 

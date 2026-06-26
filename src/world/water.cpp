@@ -18,7 +18,13 @@ bool Water::init(const Terrain& terrain)
     float scale_xz = world_size / static_cast<float>(terrain_size);
     int size = (terrain_size + step - 1) / step + 1;
 
-    _mesh.vertices.reserve(size * size);
+    auto& lod = _geometry.lods.emplace_back();
+    auto& mesh = lod.meshes.emplace_back();
+    mesh.index_count = (size - 1) * (size - 1) * 6;
+    mesh.index_start = 0;
+    mesh.base_vertex = 0;
+    
+    lod.vertices.reserve(size * size);
 
     for (int z = 0; z < size; z++)
     {
@@ -52,33 +58,32 @@ bool Water::init(const Terrain& terrain)
             
             v.color = glm::vec4(color, alpha);
 
-            _mesh.vertices.push_back(v);
+            lod.vertices.push_back(v);
         }
     }
 
-    int i_size = (int)size;
-    _mesh.indices.reserve((i_size - 1) * (i_size - 1) * 6);
+    lod.indices.reserve((size - 1) * (size - 1) * 6);
 
-    for (int z = 0; z < i_size - 1; z++)
+    for (int z = 0; z < size - 1; z++)
     {
-        for (int x = 0; x < i_size - 1; x++)
+        for (int x = 0; x < size - 1; x++)
         {
-            unsigned int v0 = z * i_size + x;
-            unsigned int v1 = (z + 1) * i_size + x;
-            unsigned int v2 = z * i_size + (x + 1);
-            unsigned int v3 = (z + 1) * i_size + (x + 1);
+            unsigned int v0 = z * size + x;
+            unsigned int v1 = (z + 1) * size + x;
+            unsigned int v2 = z * size + (x + 1);
+            unsigned int v3 = (z + 1) * size + (x + 1);
     
-            _mesh.indices.push_back(v0);
-            _mesh.indices.push_back(v1);
-            _mesh.indices.push_back(v2);
+            lod.indices.push_back(v0);
+            lod.indices.push_back(v1);
+            lod.indices.push_back(v2);
     
-            _mesh.indices.push_back(v2);
-            _mesh.indices.push_back(v1);
-            _mesh.indices.push_back(v3);
+            lod.indices.push_back(v2);
+            lod.indices.push_back(v1);
+            lod.indices.push_back(v3);
         }
     }
 
-    _mesh.upload();
+    _geometry.upload();
 
     glGenBuffers(1, &_water_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
@@ -102,7 +107,7 @@ void Water::shutdown()
 
     glDeleteBuffers(1, &_water_ubo);
 
-    _mesh.unload();
+    _geometry.unload();
 
     LOG_INFO("Water::shutdown: Water shutdown");
 }
@@ -161,7 +166,5 @@ void Water::draw(Shader* shader) const
         shader->setInt("uTexLayer2", 1);
     }
 
-    shader->setMat4("uModel", glm::mat4(1.0f));
-
-    _mesh.draw(shader);
+    _geometry.draw(shader, glm::mat4(1.0f));
 }

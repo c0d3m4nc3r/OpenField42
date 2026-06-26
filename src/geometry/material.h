@@ -42,5 +42,5 @@ struct Material
 
     static std::vector<Material> load(const std::string& path);
 
-    void apply(Shader* shader);
+    void apply(Shader* shader) const;
 };

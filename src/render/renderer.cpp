@@ -146,39 +146,44 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         {
             _stats.meshes_culled += lod.meshes.size();
             for (auto& mesh : lod.meshes)
-                _stats.polygons_culled += mesh.poly_count;
+                _stats.polygons_culled += mesh.index_count / 3;
             return;
         }
     }
+
+    _transforms.push_back(model);
 
     for (auto& mesh : lod.meshes)
     {
         if (!mesh.material) continue;
 
-        if (USE_FRUSTUM_CULLING && !mesh.use_geom_aabb)
+        if (USE_FRUSTUM_CULLING && geom->type == GeometryType::PatchTerrain)
         {
             AABB world_aabb = mesh.aabb.transform(model);
             if (!frustum.intersects(world_aabb))
             {
                 _stats.meshes_culled++;
-                _stats.polygons_culled += mesh.poly_count;
+                _stats.polygons_culled += mesh.index_count / 3;
                 continue;
             }
         }
 
-        RenderItem item;
-        item.mesh = &mesh;
-        item.model = model;
-        item.geom = geom;
-        item.distance_to_camera = distance;
+        RenderCommand cmd;
+        cmd.vao = lod.vao;
+        cmd.index_count = mesh.index_count;
+        cmd.index_offset = (void*)(mesh.index_start * sizeof(unsigned int));
+        cmd.base_vertex = mesh.base_vertex;
+        cmd.material = mesh.material;
+        cmd.transform_id = (uint32_t)_transforms.size() - 1;
+        cmd.distance_to_camera = distance;
 
         if (mesh.material->transparent)
-            _transparent_queue.push_back(item);
+            _transparent_queue.push_back(cmd);
         else
-            _opaque_queue.push_back(item);
+            _opaque_queue.push_back(cmd);
 
         _stats.meshes_rendered++;
-        _stats.polygons_rendered += mesh.poly_count;
+        _stats.polygons_rendered += mesh.index_count / 3;
     }
 }
 
@@ -218,6 +223,7 @@ void Renderer::flush(World& world)
 
     _opaque_queue.clear();
     _transparent_queue.clear();
+    _transforms.clear();
 }
 
 void Renderer::reloadShaders(Water& water)
@@ -286,6 +292,11 @@ void Renderer::resetStats()
     _stats.polygons_rendered = 0;
 }
 
+void Renderer::setViewport(int x, int y, int w, int h) const
+{
+    glViewport(x, y, w, h);
+}
+
 void Renderer::opaquePass()
 {
     Shader* shader = _shaders.standard.get();
@@ -297,14 +308,33 @@ void Renderer::opaquePass()
     shader->setBool("uWireframeEnabled", _wireframe_enabled);
     glPolygonMode(GL_FRONT_AND_BACK, _wireframe_enabled ? GL_LINE : GL_FILL);
 
-    for (auto& item : _opaque_queue)
-    {
-        _shaders.standard->setMat4("uModel", item.model);
-        if (item.geom->type == GeometryType::StandardMesh)
-            _shaders.standard->setVec3("uWireframeColor", glm::vec3(1.0f, 0.0f, 0.0f));
-        else if (item.geom->type == GeometryType::PatchTerrain)
-            _shaders.standard->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
-        item.mesh->draw(_shaders.standard.get());
+    shader->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
+
+    uint32_t last_vao = 0;
+    uint32_t last_transform_id = -1;
+    
+    for (auto& cmd : _opaque_queue)
+    {   
+        if (cmd.material)
+            cmd.material->apply(shader);
+        
+        if (last_vao != cmd.vao) {
+            glBindVertexArray(cmd.vao);
+            last_vao = cmd.vao;
+        }
+
+        if (last_transform_id != cmd.transform_id) {
+            shader->setMat4("uModel", _transforms[cmd.transform_id]);
+            last_transform_id = cmd.transform_id;
+        }
+
+        glDrawElementsBaseVertex(
+            GL_TRIANGLES,
+            cmd.index_count,
+            GL_UNSIGNED_INT,
+            cmd.index_offset,
+            cmd.base_vertex
+        );
     }
 }
 
@@ -315,16 +345,37 @@ void Renderer::transparentPass()
     shader->use();
 
     std::sort(_transparent_queue.begin(), _transparent_queue.end(), 
-        [](const RenderItem& a, const RenderItem& b) {
+        [](const RenderCommand& a, const RenderCommand& b) {
             return a.distance_to_camera > b.distance_to_camera;
         });
 
-    _shaders.standard->setVec3("uWireframeColor", glm::vec3(1.0f, 0.0f, 0.0f));
+    shader->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
 
-    for (auto& item : _transparent_queue)
-    {
-        _shaders.standard->setMat4("uModel", item.model);
-        item.mesh->draw(_shaders.standard.get());
+    uint32_t last_vao = 0;
+    uint32_t last_transform_id = -1;
+    
+    for (auto& cmd : _transparent_queue)
+    {   
+        if (cmd.material)
+            cmd.material->apply(shader);
+        
+        if (last_vao != cmd.vao) {
+            glBindVertexArray(cmd.vao);
+            last_vao = cmd.vao;
+        }
+
+        if (last_transform_id != cmd.transform_id) {
+            shader->setMat4("uModel", _transforms[cmd.transform_id]);
+            last_transform_id = cmd.transform_id;
+        }
+
+        glDrawElementsBaseVertex(
+            GL_TRIANGLES,
+            cmd.index_count,
+            GL_UNSIGNED_INT,
+            cmd.index_offset,
+            cmd.base_vertex
+        );
     }
 }
 

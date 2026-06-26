@@ -146,6 +146,11 @@ void Game::onEvent(const SDL_Event& event)
                 _camera_speed = 0.1f;
         }
     } break;
+    case SDL_EVENT_WINDOW_RESIZED:
+    {
+        auto& renderer = _engine.getRenderer();
+        renderer.setViewport(0, 0, (int)event.window.data1, (int)event.window.data2);
+    } break;
     default: break;
     }
 }

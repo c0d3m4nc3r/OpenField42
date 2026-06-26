@@ -31,6 +31,7 @@ public:
 
     bool isWireframeEnabled() const { return _wireframe_enabled; }
     
+    void setViewport(int x, int y, int w, int h) const;
     void setCamera(Camera* camera) { _camera = camera; }
 
     void setFogColor(const Color& color) { _fog.color = color; _fog_dirty = true; }
@@ -48,11 +49,15 @@ public:
 
 private:
 
-    struct RenderItem
+    struct RenderCommand
     {
-        Geometry::Mesh* mesh;
-        Geometry* geom;
-        glm::mat4 model = glm::mat4(1.0f);
+        uint32_t vao = 0;
+        uint32_t index_count = 0;
+        void* index_offset = 0;
+        int base_vertex = 0;
+
+        const Material* material = nullptr;
+        uint32_t transform_id = 0;
         float distance_to_camera = 0.0f;
     };
 
@@ -84,8 +89,9 @@ private:
         std::unique_ptr<Shader> water;
     } _shaders;
     
-    std::vector<RenderItem> _opaque_queue;
-    std::vector<RenderItem> _transparent_queue;
+    std::vector<RenderCommand> _opaque_queue;
+    std::vector<RenderCommand> _transparent_queue;
+    std::vector<glm::mat4> _transforms; // temporary (i hope)
 
     bool _wireframe_enabled = false;
     

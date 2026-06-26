@@ -6,38 +6,18 @@
 
 #include "glad/gl.h"
 
-Geometry::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
-    : vertices(vertices), indices(indices), vao(0), vbo(0), ebo(0) {} 
-
-Geometry::Mesh::~Mesh()
-{
-    unload();
-}
-
-void Geometry::Mesh::draw(Shader* shader) const
-{
-    if (!vao || !shader || !uploaded) return;
-
-    if (material)
-        material->apply(shader);
-
-    glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-}
-
-bool Geometry::Mesh::upload()
+bool Geometry::LOD::upload()
 {
     if (uploaded)
     {
-        LOG_WARNING("Geometry::Mesh::upload: Mesh is already uploaded!");
+        LOG_WARNING("Geometry::LOD::upload: Mesh is already uploaded!");
         return true;
     }
 
     if (vertices.empty() || indices.empty())
     {
-        LOG_ERROR("Geometry::Mesh::upload: Vertices or indices are empty!");
-        return false;
+        // LOG_ERROR("Geometry::LOD::upload: Vertices or indices are empty!");
+        return true;
     }
 
     glGenVertexArrays(1, &vao);
@@ -66,8 +46,6 @@ bool Geometry::Mesh::upload()
 
     glBindVertexArray(0);
 
-    index_count = indices.size();
-    poly_count = index_count / 3;
     vertices.clear();
     indices.clear();
 
@@ -76,7 +54,7 @@ bool Geometry::Mesh::upload()
     return true;
 }
 
-void Geometry::Mesh::unload()
+void Geometry::LOD::unload()
 {
     if (!uploaded) return;
     
@@ -87,20 +65,44 @@ void Geometry::Mesh::unload()
     vao = 0;
     vbo = 0;
     ebo = 0;
-    index_count = 0;
-    poly_count = 0;
+    
     uploaded = false;
 }
 
-void Geometry::draw(Shader* shader, const glm::mat4& model) const
+void Geometry::LOD::draw(Shader* shader) const
+{
+    if (!shader || !vao || !uploaded || meshes.empty()) return;
+
+    glBindVertexArray(vao);
+
+    for (auto& mesh : meshes)
+    {
+        if (mesh.material)
+            mesh.material->apply(shader);
+
+        glDrawElementsBaseVertex(
+            GL_TRIANGLES,
+            mesh.index_count,
+            GL_UNSIGNED_INT,
+            (void*)(mesh.index_start * sizeof(unsigned int)),
+            mesh.base_vertex
+        );
+    }
+}
+
+Geometry::~Geometry()
+{
+    unload();
+}
+
+void Geometry::draw(Shader* shader, const glm::mat4& model, int lod_level) const
 {
     if (lods.empty() || !shader) return;
 
     shader->setMat4("uModel", model);
 
-    const LOD& current_lod = lods[0];
-    for (const auto& mesh : current_lod.meshes)
-        mesh.draw(shader);
+    const LOD& lod = lods[lod_level];
+    lod.draw(shader);
 }
 
 bool Geometry::upload()
@@ -108,18 +110,24 @@ bool Geometry::upload()
     for (size_t i = 0; i < lods.size(); i++)
     {
         LOD& lod = lods[i];
-        for (size_t j = 0; j < lod.meshes.size(); j++)
-        {
-            Mesh& mesh = lod.meshes[j];
-            if (mesh.uploaded) continue;
+        if (lod.uploaded) continue;
 
-            if (!mesh.upload())
-            {
-                LOG_ERROR("Geometry::upload: Failed to upload mesh %d of lod %d!", j, i);
-                return false;
-            }
+        if (!lod.upload())
+        {
+            LOG_ERROR("Geometry::upload: Failed to upload lod %zu!", i);
+            return false;
         }
     }
 
     return true;
 }
+
+void Geometry::unload()
+{
+    for (auto& lod : lods)
+    {
+        if (!lod.uploaded) continue;
+        lod.unload();
+    }
+}
+

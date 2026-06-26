@@ -49,7 +49,7 @@ static std::vector<std::string> genTexturePaths(const std::string& base_path, in
 bool Terrain::init(const GeometryTemplate* tmpl)
 {
     LOG_INFO("Terrain::init: Initializing terrain...");
-    
+
     const float scale_xz = static_cast<float>(tmpl->world_size) / tmpl->material_size;
     LOG_DEBUG("Terrain::init: Info: Size: %dx%d, Scale XZ: %.2f, Scale Y: %.2f",
         tmpl->material_size, tmpl->material_size, scale_xz, tmpl->y_scale);
@@ -138,12 +138,17 @@ bool Terrain::init(const GeometryTemplate* tmpl)
             const int h = (end_z - start_z);
     
             if (w <= 0 || h <= 0) continue;
-    
-            std::vector<Geometry::Vertex> vertices;
-            vertices.reserve(w * h);
-    
+
+            auto& mesh = lod.meshes.emplace_back();
+            mesh.index_count = static_cast<uint32_t>((w - 1) * (h - 1) * 6);
+            mesh.index_start = static_cast<uint32_t>(lod.indices.size());
+            mesh.base_vertex = static_cast<uint32_t>(lod.vertices.size());
+            mesh.material = &base_mat;
+
             glm::vec3 chunk_min(FLT_MAX);
             glm::vec3 chunk_max(-FLT_MAX);
+
+            lod.vertices.reserve(w * h);    
     
             for (int z = start_z; z < end_z; ++z)
             {
@@ -161,18 +166,17 @@ bool Terrain::init(const GeometryTemplate* tmpl)
                         (float)z / (float)tmpl->material_size
                     };
                     v.color = {1.0f, 1.0f, 1.0f, 1.0f};
-        
-                    chunk_min = glm::min(chunk_min, v.position);
-                    chunk_max = glm::max(chunk_max, v.position);
+                    
                     global_min = glm::min(global_min, v.position);
                     global_max = glm::max(global_max, v.position);
-        
-                    vertices.push_back(v);
+                    chunk_min = glm::min(chunk_min, v.position);
+                    chunk_max = glm::max(chunk_max, v.position);
+
+                    lod.vertices.push_back(v);
                 }
             }
     
-            std::vector<unsigned int> indices;
-            indices.reserve((w - 1) * (h - 1) * 6);
+            lod.indices.reserve((w - 1) * (h - 1) * 6);
             for (int z = 0; z < h - 1; ++z)
             {
                 for (int x = 0; x < w - 1; ++x)
@@ -182,18 +186,16 @@ bool Terrain::init(const GeometryTemplate* tmpl)
                     unsigned int TL = (z + 1) * w + x;
                     unsigned int TR = (z + 1) * w + (x + 1);
         
-                    indices.push_back(BL);
-                    indices.push_back(TL);
-                    indices.push_back(BR);
+                    lod.indices.push_back(BL);
+                    lod.indices.push_back(TL);
+                    lod.indices.push_back(BR);
         
-                    indices.push_back(BR);
-                    indices.push_back(TL);
-                    indices.push_back(TR);
+                    lod.indices.push_back(BR);
+                    lod.indices.push_back(TL);
+                    lod.indices.push_back(TR);
                 }
             }
 
-            auto& mesh = lod.meshes.emplace_back(std::move(vertices), std::move(indices));
-            mesh.material = &base_mat;
             mesh.aabb = AABB(chunk_min, chunk_max);
         }
     }

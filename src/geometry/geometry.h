@@ -27,38 +27,31 @@ public:
 
     struct Mesh
     {
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
-        Material* material = nullptr;
+        uint32_t index_count = 0;
+        uint32_t index_start = 0;
+        int base_vertex = 0;
+
         AABB aabb;
-        int index_count = 0;
-        int poly_count = 0;
-        bool use_geom_aabb = false;
-        bool uploaded = false;
-
-        unsigned int vao, vbo, ebo;
- 
-        uint32_t source_stride = sizeof(Vertex);
-
-        Mesh(
-            const std::vector<Vertex>& vertices = {},
-            const std::vector<unsigned int>& indices = {}
-        );
-
-        ~Mesh();
-
-        bool upload();
-        void unload();
-        
-        void draw(Shader* shader) const;
+        Material* material = nullptr;
     };
 
     struct LOD
     {
         std::vector<Mesh> meshes;
+        
+        uint32_t vao = 0, vbo = 0, ebo = 0;
+        bool uploaded = false;
+
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+
+        bool upload();
+        void unload();
+
+        void draw(Shader* shader) const;
     };
 
-    virtual ~Geometry() = default;
+    virtual ~Geometry();
 
     GeometryType type = GeometryType::Unknown;
 
@@ -67,8 +60,8 @@ public:
     std::vector<LOD> lods;
     std::unordered_map<std::string, Material> materials;
 
-    void draw(Shader* shader, const glm::mat4& model) const;
+    void draw(Shader* shader, const glm::mat4& model, int lod_level = 0) const;
 
     bool upload();
- 
+    void unload();
 };

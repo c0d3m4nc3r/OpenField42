@@ -44,6 +44,7 @@ bool Engine::init(int argc, char* argv[])
     _geometry_mgr = std::make_unique<GeometryManager>();
 
     _world = std::make_unique<World>(*_geometry_mgr.get());
+    _world->init();
 
     _game = std::make_unique<Game>(*this);
     _game->init();
@@ -69,7 +70,7 @@ void Engine::shutdown()
     LOG_INFO("Engine::shutdown: Shutting down engine...");
 
     _geometry_mgr.reset();
-    _world.reset();
+    _world->shutdown();
     _renderer->shutdown();
     _window->shutdown();
     VFS::unmountAll();

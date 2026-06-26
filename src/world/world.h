@@ -18,6 +18,8 @@ public:
     World(GeometryManager& geometry_mgr);
     ~World();
 
+    void init();
+    void shutdown();
     void update(float dt);
 
     Object* createObject(const ObjectTemplate* tmpl);

@@ -76,7 +76,7 @@ private:
     mutable bool _ubo_bound = false;
     mutable bool _dirty = true;
 
-    Geometry::Mesh _mesh;
+    Geometry _geometry;
 
     friend class Renderer; // NOTE: Renderer set _ubo_bound to false after reloading shaders
 };

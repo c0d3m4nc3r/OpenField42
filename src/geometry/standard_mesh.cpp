@@ -95,14 +95,28 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
 
     for (uint32_t i = 0; i < lod_num; i++)
     {
+        auto& lod = lods[i];
+
         uint32_t mesh_num;
         READ_DATA(mesh_num, uint32_t);
-        lods[i].meshes.resize(mesh_num);
+        lod.meshes.resize(mesh_num);
+
+        struct MeshInfo
+        {
+            uint32_t vertex_count;
+            uint32_t index_count;
+            uint32_t vertex_stride;
+        };
+
+        std::vector<MeshInfo> mesh_infos;
+        mesh_infos.reserve(mesh_num);
+
+        uint32_t total_vertices = 0;
+        uint32_t total_indices = 0;
 
         for (uint32_t j = 0; j < mesh_num; j++)
         {
             Mesh& mesh = lods[i].meshes[j];
-            mesh.use_geom_aabb = true;
 
             uint32_t mat_name_len;
             READ_DATA(mat_name_len, uint32_t);
@@ -127,44 +141,53 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
 
             ptr += sizeof(uint32_t); // skip unknown
 
-            uint32_t vert_stride, vert_num, index_num;
-            READ_DATA(vert_stride, uint32_t);
-            READ_DATA(vert_num, uint32_t);
-            READ_DATA(index_num, uint32_t);
+            auto& info = mesh_infos.emplace_back();
+
+            READ_DATA(info.vertex_stride, uint32_t);
+            READ_DATA(info.vertex_count, uint32_t);
+            READ_DATA(info.index_count, uint32_t);
+
+            total_vertices += info.vertex_count;
+            total_indices += info.index_count;
 
             ptr += sizeof(uint32_t); // skip unknown
-
-            mesh.vertices.resize(vert_num);
-            mesh.indices.resize(index_num);
-
-            mesh.source_stride = vert_stride;
         }
+
+        lod.vertices.reserve(total_vertices);
+        lod.indices.reserve(total_indices);
 
         for (uint32_t j = 0; j < mesh_num; j++)
         {
-            auto& mesh = lods[i].meshes[j];
+            auto& mesh = lod.meshes[j];
+            auto& info = mesh_infos[j];
 
-            for (uint32_t v = 0; v < mesh.vertices.size(); v++)
+            mesh.index_count = info.index_count;
+            mesh.index_start = (uint32_t)lod.indices.size();
+            mesh.base_vertex = (uint32_t)lod.vertices.size();
+
+            for (uint32_t v = 0; v < info.vertex_count; v++)
             {
-                auto& vertex = mesh.vertices[v];
+                Vertex vertex;
     
                 READ_DATA(vertex.position, glm::vec3);
                 READ_DATA(vertex.normal, glm::vec3);
                 READ_DATA(vertex.uv, glm::vec2);
                 vertex.color = {1.0f, 1.0f, 1.0f, 1.0f};
+
+                lod.vertices.push_back(vertex);
                 
-                size_t extra = mesh.source_stride - (sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
+                size_t extra = info.vertex_stride - (sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
                 ptr += extra;
             }
 
-            for (uint32_t idx = 0; idx < mesh.indices.size(); idx++)
+            for (uint32_t idx = 0; idx < info.index_count; idx++)
             {
-                int16_t raw;
-                READ_DATA(raw, int16_t);
-                mesh.indices[idx] = static_cast<unsigned int>(raw);
+                uint16_t raw;
+                READ_DATA(raw, uint16_t);
+                lod.indices.push_back(raw);
             }
         }
     }
-
+    
     return true;
 }
