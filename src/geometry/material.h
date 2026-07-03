@@ -37,8 +37,10 @@ struct Material
     float specular_power = 0.0f;
     bool lighting = false;
     bool lighting_specular = false;
+    bool billboard = false;
     bool twosided = false;
     bool transparent = false;
+    bool no_depth_write = false;
 
     static std::vector<Material> load(const std::string& path);
 

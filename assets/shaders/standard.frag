@@ -42,6 +42,8 @@ struct Material
     
     bool lighting;
     bool lightingSpecular;
+    
+    bool billboard;
 };
 
 uniform Material uMaterial;
@@ -63,6 +65,11 @@ void main()
     vec4 texColor = uMaterial.hasTexture ? texture(uMaterial.texture, vTexCoords) : uMaterial.diffuseColor;
     objectColor = texColor.rgb;
     alpha = texColor.a;
+    
+    if (uMaterial.billboard)
+    {
+        objectColor.rgb *= 2.0;
+    }
     
     if (uMaterial.hasDetailTexture)
     {

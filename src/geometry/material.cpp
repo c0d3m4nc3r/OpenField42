@@ -39,6 +39,8 @@ void Material::apply(Shader* shader) const
         shader->setBool("uMaterial.hasDetailTexture", false);
     }
 
+    shader->setBool("uMaterial.billboard", billboard);
+
     if (twosided) {
         glDisable(GL_CULL_FACE);
     } else {

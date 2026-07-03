@@ -56,6 +56,7 @@ set(SOURCES
     ${SRC_DIR}/geometry/geometry.cpp
     ${SRC_DIR}/geometry/material.cpp
     ${SRC_DIR}/geometry/standard_mesh.cpp
+    ${SRC_DIR}/geometry/tree_mesh.cpp
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/math/aabb.cpp
     ${SRC_DIR}/math/frustum.cpp

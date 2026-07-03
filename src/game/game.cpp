@@ -16,6 +16,7 @@ bool Game::init()
 
     VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/standardMesh.rfa"));
     VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/StandardMesh_001.rfa"));
+    VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/treeMesh.rfa"));
     VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture.rfa"));
     VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture_001.rfa"));
 

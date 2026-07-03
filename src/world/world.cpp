@@ -100,11 +100,11 @@ Object* World::createObject(const ObjectTemplate* tmpl)
 
     // Added this to prevent spam in logs
     // Should be removed when the TreeMesh type will be supported
-    if (geom_tmpl->type == GeometryType::TreeMesh)
-    {
-        _objects.push_back(std::move(obj));
-        return raw;
-    }
+    // if (geom_tmpl->type == GeometryType::TreeMesh)
+    // {
+    //     _objects.push_back(std::move(obj));
+    //     return raw;
+    // }
     
     if (geom_tmpl->type == GeometryType::PatchTerrain)
     {

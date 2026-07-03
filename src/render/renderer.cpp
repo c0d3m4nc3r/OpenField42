@@ -357,7 +357,11 @@ void Renderer::transparentPass()
     for (auto& cmd : _transparent_queue)
     {   
         if (cmd.material)
+        {
             cmd.material->apply(shader);
+            if (cmd.material->no_depth_write)
+                glDepthMask(GL_FALSE);
+        }
         
         if (last_vao != cmd.vao) {
             glBindVertexArray(cmd.vao);
@@ -376,6 +380,8 @@ void Renderer::transparentPass()
             cmd.index_offset,
             cmd.base_vertex
         );
+
+        glDepthMask(GL_TRUE);
     }
 }
 
