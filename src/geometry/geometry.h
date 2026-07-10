@@ -48,8 +48,6 @@ public:
 
         bool upload();
         void unload();
-
-        void draw(Shader* shader) const;
     };
 
     virtual ~Geometry();
@@ -60,8 +58,6 @@ public:
 
     std::vector<LOD> lods;
     std::unordered_map<std::string, Material> materials;
-
-    void draw(Shader* shader, const glm::mat4& model, int lod_level = 0) const;
 
     bool upload();
     void unload();

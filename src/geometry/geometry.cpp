@@ -1,7 +1,5 @@
 #include "geometry/geometry.h"
 
-#include "geometry/material.h"
-#include "render/shader.h"
 #include "utils/log.h"
 
 #include "glad/gl.h"
@@ -72,40 +70,9 @@ void Geometry::LOD::unload()
     uploaded = false;
 }
 
-void Geometry::LOD::draw(Shader* shader) const
-{
-    if (!shader || !vao || !uploaded || meshes.empty()) return;
-
-    glBindVertexArray(vao);
-
-    for (auto& mesh : meshes)
-    {
-        if (mesh.material)
-            mesh.material->apply(shader);
-
-        glDrawElementsBaseVertex(
-            GL_TRIANGLES,
-            mesh.index_count,
-            GL_UNSIGNED_INT,
-            (void*)(mesh.index_start * sizeof(unsigned int)),
-            mesh.base_vertex
-        );
-    }
-}
-
 Geometry::~Geometry()
 {
     unload();
-}
-
-void Geometry::draw(Shader* shader, const glm::mat4& model, int lod_level) const
-{
-    if (lods.empty() || !shader) return;
-
-    shader->setMat4("u_Model", model);
-
-    const LOD& lod = lods[lod_level];
-    lod.draw(shader);
 }
 
 bool Geometry::upload()
