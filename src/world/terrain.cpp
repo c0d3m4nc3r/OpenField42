@@ -83,7 +83,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         setHeight(x, z, height_value);
     }
 
-    // 2. Create materials
+    // 2. Create geometry
 
     _geometry = std::make_unique<Geometry>();
     _geometry->type = GeometryType::PatchTerrain;
@@ -144,7 +144,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
             glm::vec3 chunk_min(FLT_MAX);
             glm::vec3 chunk_max(-FLT_MAX);
 
-            lod.vertices.reserve(w * h);    
+            lod.vertices.reserve(w * h);
     
             for (int z = start_z; z < end_z; ++z)
             {

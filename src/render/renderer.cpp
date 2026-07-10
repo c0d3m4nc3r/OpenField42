@@ -167,7 +167,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     size_t lod_index = 0;
     
-    if (USE_LODS && geom->type != GeometryType::PatchTerrain && geom->type != GeometryType::SkyMesh && geom->type != GeometryType::WaterMesh)
+    if (USE_LODS && geom->type != GeometryType::SkyMesh)
     {
         // TODO: Load LOD max distance from .con files
         lod_index = calculateLOD(distance, _camera->getFarPlane()*0.9f, geom->lods.size() - 1);
@@ -175,7 +175,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     Geometry::LOD& lod = geom->lods[lod_index];
 
-    if (USE_FRUSTUM_CULLING && geom->type != GeometryType::SkyMesh && geom->type != GeometryType::WaterMesh)
+    if (USE_FRUSTUM_CULLING && geom->type != GeometryType::SkyMesh)
     {
         AABB world_aabb = geom->aabb.transform(model);
         if (!frustum.intersects(world_aabb))
@@ -191,14 +191,17 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     for (auto& mesh : lod.meshes)
     {
-        if (USE_FRUSTUM_CULLING && geom->type == GeometryType::PatchTerrain)
+        if (USE_FRUSTUM_CULLING)
         {
-            AABB world_aabb = mesh.aabb.transform(model);
-            if (!frustum.intersects(world_aabb))
+            if (geom->type == GeometryType::PatchTerrain || geom->type == GeometryType::WaterMesh)
             {
-                _stats.meshes_culled++;
-                _stats.polygons_culled += mesh.index_count / 3;
-                continue;
+                AABB world_aabb = mesh.aabb.transform(model);
+                if (!frustum.intersects(world_aabb))
+                {
+                    _stats.meshes_culled++;
+                    _stats.polygons_culled += mesh.index_count / 3;
+                    continue;
+                }
             }
         }
 
