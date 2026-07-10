@@ -66,6 +66,7 @@ set(SOURCES
     ${SRC_DIR}/platform/window.cpp
     ${SRC_DIR}/render/passes/opaque_pass.cpp
     ${SRC_DIR}/render/passes/sky_pass.cpp
+    ${SRC_DIR}/render/passes/terrain_pass.cpp
     ${SRC_DIR}/render/passes/transparent_pass.cpp
     ${SRC_DIR}/render/passes/water_pass.cpp
     ${SRC_DIR}/render/camera.cpp

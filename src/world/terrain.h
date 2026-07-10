@@ -1,5 +1,6 @@
 #pragma once
 
+#include "render/texture.h"
 #include <algorithm>
 
 struct GeometryTemplate;
@@ -13,9 +14,12 @@ public:
     bool init(const GeometryTemplate* tmpl);
     void shutdown();
 
+    Geometry* getGeometry() const { return _geometry.get(); }
+    Texture* getBaseTexture() const { return _base_tex.get(); }
+    Texture* getDetailTexture() const { return _detail_tex.get(); }
+    
     int getSize() const { return _size; }
     int getWorldSize() const { return _world_size; }
-    Geometry* getGeometry() const { return _geometry.get(); }
     int getWaterHeight() const { return _water_height; }
 
     float getHeight(int x, int z) const
@@ -42,9 +46,13 @@ public:
     }
 
 private:
+  
+    std::unique_ptr<Geometry> _geometry;
+    std::shared_ptr<Texture> _base_tex;
+    std::shared_ptr<Texture> _detail_tex;
+    std::vector<float> _heights = {};
 
     int _size = 0, _world_size = 0;
     int _water_height = 0;
-    std::unique_ptr<Geometry> _geometry;
-    std::vector<float> _heights = {};
+
 };

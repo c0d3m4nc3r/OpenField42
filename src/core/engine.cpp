@@ -8,6 +8,7 @@
 #include "platform/window.h"
 #include "render/renderer.h"
 #include "vfs/vfs.h"
+#include "world/terrain.h"
 #include "world/water.h"
 #include "world/world.h"
 
@@ -139,6 +140,13 @@ void Engine::update(float dt)
         _renderer->setWaterParams(water_params);
         water.clearDirty();
     }
+
+    auto& terrain = _world->getTerrain();
+
+    _renderer->setTerrainTextures(
+        terrain.getBaseTexture(),
+        terrain.getDetailTexture()
+    );
 }
 
 void Engine::render()

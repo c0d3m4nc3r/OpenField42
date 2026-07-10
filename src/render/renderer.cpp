@@ -37,6 +37,14 @@ bool Renderer::init()
         return false;
     }
 
+    // Load terrain shader
+    _shaders.terrain = std::make_unique<Shader>();
+    if (!_shaders.terrain->load("shaders/terrain.vert", "shaders/terrain.frag"))
+    {
+        LOG_ERROR("Renderer::init: Failed to load terrain shader!");
+        return false;
+    }
+
     // Setup Camera UBO
     glGenBuffers(1, &_camera_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
@@ -65,6 +73,9 @@ bool Renderer::init()
 
     fog_block_index = glGetUniformBlockIndex(_shaders.water->getID(), "FogBlock");
     glUniformBlockBinding(_shaders.water->getID(), fog_block_index, 1);
+
+    fog_block_index = glGetUniformBlockIndex(_shaders.terrain->getID(), "FogBlock");
+    glUniformBlockBinding(_shaders.terrain->getID(), fog_block_index, 1);
     
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, _fog_ubo);
 
@@ -76,6 +87,9 @@ bool Renderer::init()
 
     GLuint lighting_block_index = glGetUniformBlockIndex(_shaders.standard->getID(), "LightingBlock");
     glUniformBlockBinding(_shaders.standard->getID(), lighting_block_index, 2);
+
+    lighting_block_index = glGetUniformBlockIndex(_shaders.terrain->getID(), "LightingBlock");
+    glUniformBlockBinding(_shaders.terrain->getID(), lighting_block_index, 2);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, _lighting_ubo);
 
@@ -92,10 +106,11 @@ bool Renderer::init()
 
     // Create passes
 
-    _passes[static_cast<size_t>(RenderPass::Type::Opaque)] = std::make_unique<OpaquePass>(*_shaders.standard.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Transparent)] = std::make_unique<TransparentPass>(*_shaders.standard.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Water)] = std::make_unique<WaterPass>(*_shaders.water.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Sky)] = std::make_unique<SkyPass>(*_shaders.sky.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Terrain)] = std::make_unique<TerrainPass>(_shaders.terrain.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Opaque)] = std::make_unique<OpaquePass>(_shaders.standard.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Transparent)] = std::make_unique<TransparentPass>(_shaders.standard.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Water)] = std::make_unique<WaterPass>(_shaders.water.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Sky)] = std::make_unique<SkyPass>(_shaders.sky.get());
 
     // Setup OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -121,6 +136,7 @@ void Renderer::shutdown()
     if (_lighting_ubo) glDeleteBuffers(1, &_lighting_ubo);
     if (_water_ubo) glDeleteBuffers(1, &_water_ubo);
 
+    _shaders.terrain.reset();
     _shaders.standard.reset();
     _shaders.sky.reset();
     _shaders.water.reset();
@@ -199,6 +215,10 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
             cmd.textures[0] = _water_textures[0];
             cmd.textures[1] = _water_textures[1];
             getPass(RenderPass::Type::Water)->add(cmd);
+        } else if (geom->type == GeometryType::PatchTerrain) {
+            cmd.textures[0] = _terrain_textures[0];
+            cmd.textures[1] = _terrain_textures[1];
+            getPass(RenderPass::Type::Terrain)->add(cmd);
         } else if (geom->type == GeometryType::SkyMesh) {
             getPass(RenderPass::Type::Sky)->add(cmd);
         } else if (mesh.material && mesh.material->transparent) {
@@ -267,6 +287,7 @@ void Renderer::reloadShaders()
     auto new_standard = std::make_unique<Shader>();
     auto new_sky = std::make_unique<Shader>();
     auto new_water = std::make_unique<Shader>();
+    auto new_terrain = std::make_unique<Shader>();
 
     bool success = true;
 
@@ -288,6 +309,12 @@ void Renderer::reloadShaders()
         success = false;
     }
 
+    if (!new_terrain->load("shaders/terrain.vert", "shaders/terrain.frag"))
+    {
+        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW terrain shader!");
+        success = false;
+    }
+
     if (!success)
     {
         LOG_ERROR("Renderer::reloadShaders: Shader reload failed! Retaining old shaders.");
@@ -297,6 +324,7 @@ void Renderer::reloadShaders()
     _shaders.standard = std::move(new_standard);
     _shaders.sky = std::move(new_sky);
     _shaders.water = std::move(new_water);
+    _shaders.terrain = std::move(new_terrain);
 
     auto bindUniformBlocks = [](GLuint program_id) {
         GLuint index = glGetUniformBlockIndex(program_id, "CameraBlock");
@@ -315,6 +343,13 @@ void Renderer::reloadShaders()
     bindUniformBlocks(_shaders.standard->getID());
     bindUniformBlocks(_shaders.sky->getID());
     bindUniformBlocks(_shaders.water->getID());
+    bindUniformBlocks(_shaders.terrain->getID());
+
+    _passes[static_cast<size_t>(RenderPass::Type::Terrain)]->setShader(_shaders.terrain.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Opaque)]->setShader(_shaders.standard.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Transparent)]->setShader(_shaders.standard.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Water)]->setShader(_shaders.water.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Sky)]->setShader(_shaders.sky.get());
 
     LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
 }

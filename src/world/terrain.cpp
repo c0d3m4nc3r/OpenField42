@@ -88,9 +88,6 @@ bool Terrain::init(const GeometryTemplate* tmpl)
     _geometry = std::make_unique<Geometry>();
     _geometry->type = GeometryType::PatchTerrain;
     
-    _geometry->materials["base"] = Material();
-    auto& base_mat = _geometry->materials["base"];
-    
     // 3. Load textures
 
     auto texture_paths = genTexturePaths(
@@ -100,8 +97,8 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         tiles_per_side
     );
 
-    base_mat.texture = Texture::loadAtlas(texture_paths, 1024, 1024);
-    if (!base_mat.texture)
+    _base_tex = Texture::loadAtlas(texture_paths, 1024, 1024);
+    if (!_base_tex)
     {
         LOG_ERROR("Terrain::init: Failed to load textures!");
         return false;
@@ -109,8 +106,8 @@ bool Terrain::init(const GeometryTemplate* tmpl)
 
     if (!tmpl->detail_tex_name.empty())
     {
-        base_mat.detail_texture = Texture::load(tmpl->detail_tex_name);
-        if (!base_mat.detail_texture)
+        _detail_tex = Texture::load(tmpl->detail_tex_name);
+        if (!_detail_tex)
         {
             LOG_WARNING("Terrain::init: Failed to load detail texture!");
         }
@@ -143,7 +140,6 @@ bool Terrain::init(const GeometryTemplate* tmpl)
             mesh.index_count = static_cast<uint32_t>((w - 1) * (h - 1) * 6);
             mesh.index_start = static_cast<uint32_t>(lod.indices.size());
             mesh.base_vertex = static_cast<uint32_t>(lod.vertices.size());
-            mesh.material = &base_mat;
 
             glm::vec3 chunk_min(FLT_MAX);
             glm::vec3 chunk_max(-FLT_MAX);
@@ -211,6 +207,8 @@ bool Terrain::init(const GeometryTemplate* tmpl)
 
 void Terrain::shutdown()
 {
+    _base_tex.reset();
+    _detail_tex.reset();
     _geometry.reset();
     _heights.clear();
 

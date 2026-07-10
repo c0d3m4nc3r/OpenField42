@@ -63,6 +63,12 @@ public:
         _water_dirty = true;
     }
 
+    void setTerrainTextures(Texture* base, Texture* detail)
+    {
+        _terrain_textures[0] = base;
+        _terrain_textures[1] = detail;
+    }
+
     void setWireframeEnabled(bool enabled) { _context.wireframe_enabled = enabled; }
 
 private:
@@ -100,10 +106,12 @@ private:
         std::unique_ptr<Shader> standard;
         std::unique_ptr<Shader> sky;
         std::unique_ptr<Shader> water;
+        std::unique_ptr<Shader> terrain;
     } _shaders;
     
     std::array<std::unique_ptr<RenderPass>, static_cast<size_t>(RenderPass::Type::Count)> _passes;
     const RenderPass::Type _execution_order[static_cast<size_t>(RenderPass::Type::Count)] = {
+        RenderPass::Type::Terrain,
         RenderPass::Type::Opaque,
         RenderPass::Type::Sky,
         RenderPass::Type::Water,
@@ -128,6 +136,7 @@ private:
     bool _water_dirty = true;
 
     Texture* _water_textures[2] = { nullptr, nullptr };
+    Texture* _terrain_textures[2] = { nullptr, nullptr };
     
     Stats _stats;
 

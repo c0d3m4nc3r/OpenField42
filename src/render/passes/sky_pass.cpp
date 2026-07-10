@@ -8,12 +8,11 @@
 
 void SkyPass::execute(RenderContext& ctx)
 {   
-    if (queue.empty()) return;
+    if (queue.empty() || !shader) return;
 
-    shader.use();
+    shader->use();
 
-    shader.setBool("u_WireframeEnabled", ctx.wireframe_enabled);
-    shader.setVec3("u_WireframeColor", {0.51f, 0.78f, 0.90f});
+    shader->setBool("u_WireframeEnabled", ctx.wireframe_enabled);
 
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_FALSE);
@@ -24,7 +23,7 @@ void SkyPass::execute(RenderContext& ctx)
     for (auto& cmd : queue)
     {
         if (cmd.material)
-            cmd.material->apply(&shader);
+            cmd.material->apply(shader);
     
         if (last_vao != cmd.vao) {
             glBindVertexArray(cmd.vao);
@@ -32,7 +31,7 @@ void SkyPass::execute(RenderContext& ctx)
         }
 
         if (last_transform_id != cmd.transform_id) {
-            shader.setMat4("u_Model", ctx.transforms[cmd.transform_id]);
+            shader->setMat4("u_Model", ctx.transforms[cmd.transform_id]);
             last_transform_id = cmd.transform_id;
         }
 

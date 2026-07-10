@@ -11,10 +11,10 @@ public:
 
     enum class Type : unsigned char
     {
-        Opaque, Transparent, Sky, Water, Count
+        Opaque, Transparent, Sky, Water, Terrain, Count
     };
 
-    RenderPass(Shader& shader) : shader(shader) {}
+    RenderPass(Shader* shader) : shader(shader) {}
     virtual ~RenderPass() = default;
     
     void add(const RenderCommand& cmd);
@@ -23,9 +23,11 @@ public:
 
     virtual Type getType() = 0;
 
+    void setShader(Shader* new_shader) { shader = new_shader; }
+
 protected:
     
-    Shader& shader;
+    Shader* shader = nullptr;
     std::vector<RenderCommand> queue;
 
 };

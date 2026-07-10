@@ -18,7 +18,7 @@ void main()
 {
     if (u_WireframeEnabled)
     {
-        f_Color = vec4(0.5, 0.7, 1.0, 1.0);
+        f_Color = vec4(0.51, 0.78, 0.90, 1.0);
         return;
     }
 

@@ -8,15 +8,11 @@
 
 void OpaquePass::execute(RenderContext& ctx)
 {
-    if (queue.empty()) return;
+    if (queue.empty() || !shader) return;
     
-    shader.use();
+    shader->use();
 
-    shader.setFloat("u_Time", (float)SDL_GetTicks() / 1000.0f);
-
-    shader.setBool("u_WireframeEnabled", ctx.wireframe_enabled);
-
-    shader.setVec3("u_WireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    shader->setBool("u_WireframeEnabled", ctx.wireframe_enabled);
 
     uint32_t last_vao = 0;
     uint32_t last_transform_id = -1;
@@ -24,7 +20,7 @@ void OpaquePass::execute(RenderContext& ctx)
     for (auto& cmd : queue)
     {
         if (cmd.material)
-            cmd.material->apply(&shader);
+            cmd.material->apply(shader);
         
         if (last_vao != cmd.vao) {
             glBindVertexArray(cmd.vao);
@@ -32,7 +28,7 @@ void OpaquePass::execute(RenderContext& ctx)
         }
 
         if (last_transform_id != cmd.transform_id) {
-            shader.setMat4("u_Model", ctx.transforms[cmd.transform_id]);
+            shader->setMat4("u_Model", ctx.transforms[cmd.transform_id]);
             last_transform_id = cmd.transform_id;
         }
 

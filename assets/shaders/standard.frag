@@ -49,23 +49,25 @@ struct Material
 uniform Material u_Material;
 
 uniform bool u_WireframeEnabled;
-uniform vec3 u_WireframeColor;
 
 void main()
 {
     if (u_WireframeEnabled)
     {
-        f_Color = vec4(u_WireframeColor, 1.0);
+        f_Color = vec4(1.0, 0.0, 0.0, 1.0);
         return;
     }
 
-    vec3 objectColor = vec3(1.0, 1.0, 1.0);
-    float alpha = 1.0;
+    vec3 objectColor = u_Material.diffuseColor.rgb;
+    float alpha = u_Material.diffuseColor.a;
 
-    vec4 texColor = u_Material.hasTexture ? texture(u_Material.texture, v_TexCoords) : u_Material.diffuseColor;
-    objectColor = texColor.rgb;
-    alpha = texColor.a;
-    
+    if (u_Material.hasTexture)
+    {
+        vec4 texColor = texture(u_Material.texture, v_TexCoords);
+        objectColor = texColor.rgb;
+        alpha = texColor.a;
+    }
+
     if (u_Material.billboard)
     {
         objectColor.rgb *= 2.0;
