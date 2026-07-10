@@ -126,7 +126,7 @@ Object* World::createObject(const ObjectTemplate* tmpl)
     return raw;
 }
 
-void World::renderObjects(Renderer& renderer) const
+void World::render(Renderer& renderer)
 {
     for (auto& obj : _objects)
     {
@@ -135,12 +135,18 @@ void World::renderObjects(Renderer& renderer) const
 
         renderer.submit(geom, obj->getModelMatrix());
     }
-}
 
-void World::renderTerrain(Renderer& renderer) const
-{
-    auto* geom = _terrain->getGeometry();
-    if (!geom) return;
-    
-    renderer.submit(geom, glm::mat4(1.0f));
+    auto* terrain_geom = _terrain->getGeometry();
+    if (terrain_geom) renderer.submit(terrain_geom, glm::mat4(1.0f));
+
+    auto* sky_geom = _sky->getGeometry();
+    if (sky_geom)
+    {
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::rotate(transform, glm::radians(_sky->rot_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        renderer.submit(sky_geom, transform);
+    }
+
+    auto* water_geom = _water->getGeometry();
+    if (water_geom) renderer.submit(water_geom, glm::mat4(1.0f));
 }

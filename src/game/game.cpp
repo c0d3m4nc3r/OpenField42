@@ -121,7 +121,7 @@ void Game::onEvent(const SDL_Event& event)
         else if (event.key.scancode == SDL_SCANCODE_F5)
         {
             auto& renderer = _engine.getRenderer();
-            renderer.reloadShaders(_engine.getWorld().getWater());
+            renderer.reloadShaders();
         }
         else if (event.key.scancode == SDL_SCANCODE_F11)
         {

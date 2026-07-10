@@ -12,9 +12,23 @@ class Water
 {
 public:
 
+    struct Layer
+    {
+        std::shared_ptr<Texture> texture = nullptr;
+        glm::vec2 scroll_dir{0.0f};
+        float scroll_speed = 0.0f;
+        float uv_scale = 1.0f;
+    };
+
     bool init(const Terrain& terrain);
     void shutdown();
-    void draw(Shader* shader) const;
+
+    Geometry* getGeometry() { return &_geometry; }
+
+    Layer& getLayer(int index) { return _layers[index]; }
+
+    bool isDirty() const { return _dirty; }
+    void clearDirty() { _dirty = false; }
 
     void setTexture(int layer, std::shared_ptr<Texture> texture)
     {
@@ -48,21 +62,6 @@ public:
 
 private:
 
-    struct UBO_WaterBlock
-    {
-        // xy = scroll dir, z = scroll speed, w = uv scale
-        glm::vec4 layer_1;
-        glm::vec4 layer_2;
-    };
-
-    struct Layer
-    {
-        std::shared_ptr<Texture> texture = nullptr;
-        glm::vec2 scroll_dir{0.0f};
-        float scroll_speed = 0.0f;
-        float uv_scale = 1.0f;
-    };
-
     Layer _layers[2];
 
     Color _color = Color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -71,12 +70,7 @@ private:
     float _alpha_depth = 1.0f;
     float _shallow_alpha = 0.5f;
 
-    unsigned int _water_ubo = 0;
-
-    mutable bool _ubo_bound = false;
-    mutable bool _dirty = true;
+    bool _dirty = true;
 
     Geometry _geometry;
-
-    friend class Renderer; // NOTE: Renderer set _ubo_bound to false after reloading shaders
 };

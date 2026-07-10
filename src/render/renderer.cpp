@@ -1,15 +1,13 @@
 #include "render/renderer.h"
 #include "render/camera.h"
 #include "core/config.h"
+#include "render/render_passes.h"
 #include "render/shader.h"
 #include "world/sky.h"
-#include "world/water.h"
 
 #include "glad/gl.h"
 
 #include <SDL3/SDL_timer.h>
-
-#include <algorithm>
 
 bool Renderer::init()
 {
@@ -81,6 +79,24 @@ bool Renderer::init()
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, _lighting_ubo);
 
+    // Setup Water UBO
+    glGenBuffers(1, &_water_ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_WaterBlock), &_water, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    GLuint water_block_index = glGetUniformBlockIndex(_shaders.water->getID(), "WaterBlock");
+    glUniformBlockBinding(_shaders.water->getID(), water_block_index, 3);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 3, _water_ubo);
+
+    // Create passes
+
+    _passes[static_cast<size_t>(RenderPass::Type::Opaque)] = std::make_unique<OpaquePass>(*_shaders.standard.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Transparent)] = std::make_unique<TransparentPass>(*_shaders.standard.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Water)] = std::make_unique<WaterPass>(*_shaders.water.get());
+    _passes[static_cast<size_t>(RenderPass::Type::Sky)] = std::make_unique<SkyPass>(*_shaders.sky.get());
+
     // Setup OpenGL state
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -97,9 +113,13 @@ void Renderer::shutdown()
 {
     LOG_INFO("Renderer::shutdown: Shutting down renderer...");
 
+    for (auto& pass : _passes)
+        pass.reset();
+
     if (_camera_ubo) glDeleteBuffers(1, &_camera_ubo);
     if (_fog_ubo) glDeleteBuffers(1, &_fog_ubo);
     if (_lighting_ubo) glDeleteBuffers(1, &_lighting_ubo);
+    if (_water_ubo) glDeleteBuffers(1, &_water_ubo);
 
     _shaders.standard.reset();
     _shaders.sky.reset();
@@ -131,7 +151,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     size_t lod_index = 0;
     
-    if (USE_LODS && geom->type != GeometryType::PatchTerrain)
+    if (USE_LODS && geom->type != GeometryType::PatchTerrain && geom->type != GeometryType::SkyMesh && geom->type != GeometryType::WaterMesh)
     {
         // TODO: Load LOD max distance from .con files
         lod_index = calculateLOD(distance, _camera->getFarPlane()*0.9f, geom->lods.size() - 1);
@@ -139,7 +159,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     Geometry::LOD& lod = geom->lods[lod_index];
 
-    if (USE_FRUSTUM_CULLING)
+    if (USE_FRUSTUM_CULLING && geom->type != GeometryType::SkyMesh && geom->type != GeometryType::WaterMesh)
     {
         AABB world_aabb = geom->aabb.transform(model);
         if (!frustum.intersects(world_aabb))
@@ -151,12 +171,10 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         }
     }
 
-    _transforms.push_back(model);
+    _context.transforms.push_back(model);
 
     for (auto& mesh : lod.meshes)
     {
-        if (!mesh.material) continue;
-
         if (USE_FRUSTUM_CULLING && geom->type == GeometryType::PatchTerrain)
         {
             AABB world_aabb = mesh.aabb.transform(model);
@@ -174,20 +192,27 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         cmd.index_offset = (void*)(mesh.index_start * sizeof(unsigned int));
         cmd.base_vertex = mesh.base_vertex;
         cmd.material = mesh.material;
-        cmd.transform_id = (uint32_t)_transforms.size() - 1;
+        cmd.transform_id = (uint32_t)_context.transforms.size() - 1;
         cmd.distance_to_camera = distance;
 
-        if (mesh.material->transparent)
-            _transparent_queue.push_back(cmd);
-        else
-            _opaque_queue.push_back(cmd);
+        if (geom->type == GeometryType::WaterMesh) {
+            cmd.textures[0] = _water_textures[0];
+            cmd.textures[1] = _water_textures[1];
+            getPass(RenderPass::Type::Water)->add(cmd);
+        } else if (geom->type == GeometryType::SkyMesh) {
+            getPass(RenderPass::Type::Sky)->add(cmd);
+        } else if (mesh.material && mesh.material->transparent) {
+            getPass(RenderPass::Type::Transparent)->add(cmd);    
+        } else {
+            getPass(RenderPass::Type::Opaque)->add(cmd);
+        }
 
         _stats.meshes_rendered++;
         _stats.polygons_rendered += mesh.index_count / 3;
     }
 }
 
-void Renderer::flush(World& world)
+void Renderer::flush()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -215,18 +240,27 @@ void Renderer::flush(World& world)
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
         _lighting_dirty = false;
     }
-    
-    opaquePass();
-    skyPass(world.getSky());
-    waterPass(world.getWater());
-    transparentPass();
 
-    _opaque_queue.clear();
-    _transparent_queue.clear();
-    _transforms.clear();
+    if (_water_dirty)
+    {
+        glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_WaterBlock), &_water);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        _water_dirty = false;
+    }
+
+    glPolygonMode(GL_FRONT_AND_BACK, _context.wireframe_enabled ? GL_LINE : GL_FILL);
+
+    for (auto& pass_type : _execution_order)
+    {
+        auto* pass = getPass(pass_type);
+        if (!pass) continue;
+
+        pass->execute(_context);
+    }
 }
 
-void Renderer::reloadShaders(Water& water)
+void Renderer::reloadShaders()
 {
     LOG_INFO("Renderer::reloadShaders: Reloading all shaders...");
 
@@ -273,13 +307,14 @@ void Renderer::reloadShaders(Water& water)
 
         index = glGetUniformBlockIndex(program_id, "LightingBlock");
         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 2);
+
+        index = glGetUniformBlockIndex(program_id, "WaterBlock");
+        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 3);
     };
 
     bindUniformBlocks(_shaders.standard->getID());
     bindUniformBlocks(_shaders.sky->getID());
     bindUniformBlocks(_shaders.water->getID());
-
-    water._ubo_bound = false;
 
     LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
 }
@@ -297,115 +332,7 @@ void Renderer::setViewport(int x, int y, int w, int h) const
     glViewport(x, y, w, h);
 }
 
-void Renderer::opaquePass()
+RenderPass* Renderer::getPass(RenderPass::Type type)
 {
-    Shader* shader = _shaders.standard.get();
-
-    shader->use();
-
-    shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-
-    shader->setBool("uWireframeEnabled", _wireframe_enabled);
-    glPolygonMode(GL_FRONT_AND_BACK, _wireframe_enabled ? GL_LINE : GL_FILL);
-
-    shader->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
-
-    uint32_t last_vao = 0;
-    uint32_t last_transform_id = -1;
-    
-    for (auto& cmd : _opaque_queue)
-    {   
-        if (cmd.material)
-            cmd.material->apply(shader);
-        
-        if (last_vao != cmd.vao) {
-            glBindVertexArray(cmd.vao);
-            last_vao = cmd.vao;
-        }
-
-        if (last_transform_id != cmd.transform_id) {
-            shader->setMat4("uModel", _transforms[cmd.transform_id]);
-            last_transform_id = cmd.transform_id;
-        }
-
-        glDrawElementsBaseVertex(
-            GL_TRIANGLES,
-            cmd.index_count,
-            GL_UNSIGNED_INT,
-            cmd.index_offset,
-            cmd.base_vertex
-        );
-    }
-}
-
-void Renderer::transparentPass()
-{
-    Shader* shader = _shaders.standard.get();
-
-    shader->use();
-
-    std::sort(_transparent_queue.begin(), _transparent_queue.end(), 
-        [](const RenderCommand& a, const RenderCommand& b) {
-            return a.distance_to_camera > b.distance_to_camera;
-        });
-
-    shader->setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
-
-    uint32_t last_vao = 0;
-    uint32_t last_transform_id = -1;
-    
-    for (auto& cmd : _transparent_queue)
-    {   
-        if (cmd.material)
-        {
-            cmd.material->apply(shader);
-            if (cmd.material->no_depth_write)
-                glDepthMask(GL_FALSE);
-        }
-        
-        if (last_vao != cmd.vao) {
-            glBindVertexArray(cmd.vao);
-            last_vao = cmd.vao;
-        }
-
-        if (last_transform_id != cmd.transform_id) {
-            shader->setMat4("uModel", _transforms[cmd.transform_id]);
-            last_transform_id = cmd.transform_id;
-        }
-
-        glDrawElementsBaseVertex(
-            GL_TRIANGLES,
-            cmd.index_count,
-            GL_UNSIGNED_INT,
-            cmd.index_offset,
-            cmd.base_vertex
-        );
-
-        glDepthMask(GL_TRUE);
-    }
-}
-
-void Renderer::skyPass(const Sky& sky)
-{
-    Shader* shader = _shaders.sky.get();
-
-    shader->use();
-    shader->setBool("uWireframeEnabled", _wireframe_enabled);
-
-    sky.draw(shader);
-}
-
-void Renderer::waterPass(const Water& water)
-{
-    Shader* shader = _shaders.water.get();
-
-    shader->use();
-    shader->setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-    shader->setBool("uWireframeEnabled", _wireframe_enabled);
-
-    glDisable(GL_CULL_FACE);
-    
-    water.draw(shader);
-
-    glEnable(GL_CULL_FACE);
+    return _passes[static_cast<size_t>(type)].get();
 }

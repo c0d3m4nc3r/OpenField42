@@ -9,7 +9,11 @@ enum class GeometryType : unsigned char
     SkeletonCollisionMesh,
     StandardMesh,
     TreeMesh,
-    PatchTerrain
+    PatchTerrain,
+
+    // Custom
+    SkyMesh,
+    WaterMesh
 };
 
 inline std::string geometryTypeToString(GeometryType type)

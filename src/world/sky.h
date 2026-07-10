@@ -14,7 +14,8 @@ public:
     float rot_angle = 0.0f;
 
     bool init(const GeometryTemplate* tmpl);
-    void draw(Shader* shader) const;
+    
+    Geometry* getGeometry() const { return _geometry; }
 
 private:
 

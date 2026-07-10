@@ -1,6 +1,4 @@
 #include "world/water.h"
-#include "render/shader.h"
-#include "render/texture.h"
 #include "world/terrain.h"
 
 #include "glad/gl.h"
@@ -84,11 +82,8 @@ bool Water::init(const Terrain& terrain)
     }
 
     _geometry.upload();
-
-    glGenBuffers(1, &_water_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_WaterBlock), nullptr, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    
+    _geometry.type = GeometryType::WaterMesh;
 
     LOG_INFO("Water::init: Water initialized!");
 
@@ -105,66 +100,7 @@ void Water::shutdown()
         layer.uv_scale = 1.0f;
     }
 
-    glDeleteBuffers(1, &_water_ubo);
-
     _geometry.unload();
 
     LOG_INFO("Water::shutdown: Water shutdown");
-}
-
-void Water::draw(Shader* shader) const
-{
-    if (!shader) return;
-
-    if (!_ubo_bound)
-    {
-        GLuint block_index = glGetUniformBlockIndex(shader->getID(), "WaterBlock");
-        if (block_index != GL_INVALID_INDEX)
-        {
-            glUniformBlockBinding(shader->getID(), block_index, 3);
-        }
-        
-        glBindBufferBase(GL_UNIFORM_BUFFER, 3, _water_ubo);
-        
-        _ubo_bound = true;
-    }
-
-    if (_dirty)
-    {
-        UBO_WaterBlock water_data;
-        water_data.layer_1 = {
-            _layers[0].scroll_dir.x,
-            _layers[0].scroll_dir.y,
-            _layers[0].scroll_speed,
-            _layers[0].uv_scale
-        };
-
-        water_data.layer_2 = {
-            _layers[1].scroll_dir.x,
-            _layers[1].scroll_dir.y,
-            _layers[1].scroll_speed,
-            _layers[1].uv_scale
-        };
-
-        glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_WaterBlock), &water_data);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        _dirty = false;
-    }
-
-    shader->use();
-
-    if (_layers[0].texture)
-    {
-        _layers[0].texture->bind(0);
-        shader->setInt("uTexLayer1", 0);
-    }
-
-    if (_layers[1].texture)
-    {
-        _layers[1].texture->bind(1);
-        shader->setInt("uTexLayer2", 1);
-    }
-
-    _geometry.draw(shader, glm::mat4(1.0f));
 }

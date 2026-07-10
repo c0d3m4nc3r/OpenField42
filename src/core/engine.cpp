@@ -8,6 +8,7 @@
 #include "platform/window.h"
 #include "render/renderer.h"
 #include "vfs/vfs.h"
+#include "world/water.h"
 #include "world/world.h"
 
 Engine::Engine() {}
@@ -122,14 +123,29 @@ void Engine::update(float dt)
 
     _world->update(dt);
     _game->update(dt);
+
+    auto& water = _world->getWater();
+
+    if (water.isDirty())
+    {
+        auto& layer1 = water.getLayer(0);
+        auto& layer2 = water.getLayer(1);
+
+        Renderer::WaterParams water_params;
+        water_params.layer_1 = glm::vec4(layer1.scroll_dir, layer1.scroll_speed, layer1.uv_scale);
+        water_params.layer_2 = glm::vec4(layer2.scroll_dir, layer2.scroll_speed, layer2.uv_scale);
+        water_params.tex_layer1 = layer1.texture.get();
+        water_params.tex_layer2 = layer2.texture.get();
+        _renderer->setWaterParams(water_params);
+        water.clearDirty();
+    }
 }
 
 void Engine::render()
 {
     _renderer->resetStats();
-    _world->renderTerrain(*_renderer);
-    _world->renderObjects(*_renderer);
-    _renderer->flush(*_world);
+    _world->render(*_renderer);
+    _renderer->flush();
     if (_debug_ui_enabled)
         _debug_ui->render(_stats, *_renderer);
     _window->swapBuffers();

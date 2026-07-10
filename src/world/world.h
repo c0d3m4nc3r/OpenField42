@@ -21,10 +21,9 @@ public:
     void init();
     void shutdown();
     void update(float dt);
+    void render(Renderer& renderer);
 
     Object* createObject(const ObjectTemplate* tmpl);
-    void renderObjects(Renderer& renderer) const;
-    void renderTerrain(Renderer& renderer) const;
 
     Sky& getSky() { return *_sky; }
     Terrain& getTerrain() { return *_terrain; }

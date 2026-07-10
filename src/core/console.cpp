@@ -12,6 +12,7 @@
 #include "utils/log.h"
 #include "world/sky.h"
 #include "world/water.h"
+#include "world/world.h"
 
 #include <sstream>
 
