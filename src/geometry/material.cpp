@@ -14,32 +14,32 @@ void Material::apply(Shader* shader) const
 {
     if (!shader) return;
 
-    shader->setVec4("uMaterial.diffuseColor", diffuse_color.toVec4());
-    shader->setVec3("uMaterial.specularColor", specular_color.toVec3());
-    shader->setFloat("uMaterial.specularPower", specular_power);
+    shader->setVec4("u_Material.diffuseColor", diffuse_color.toVec4());
+    shader->setVec3("u_Material.specularColor", specular_color.toVec3());
+    shader->setFloat("u_Material.specularPower", specular_power);
 
-    shader->setBool("uMaterial.lighting", lighting);
-    shader->setBool("uMaterial.lightingSpecular", lighting_specular);
+    shader->setBool("u_Material.lighting", lighting);
+    shader->setBool("u_Material.lightingSpecular", lighting_specular);
 
     if (texture)
     {
         texture->bind(0);
-        shader->setInt("uMaterial.texture", 0);
-        shader->setBool("uMaterial.hasTexture", true);
+        shader->setInt("u_Material.texture", 0);
+        shader->setBool("u_Material.hasTexture", true);
     } else {
-        shader->setBool("uMaterial.hasTexture", false);
+        shader->setBool("u_Material.hasTexture", false);
     }
 
     if (detail_texture)
     {
         detail_texture->bind(1);
-        shader->setInt("uMaterial.detailTexture", 1);
-        shader->setBool("uMaterial.hasDetailTexture", true);
+        shader->setInt("u_Material.detailTexture", 1);
+        shader->setBool("u_Material.hasDetailTexture", true);
     } else {
-        shader->setBool("uMaterial.hasDetailTexture", false);
+        shader->setBool("u_Material.hasDetailTexture", false);
     }
 
-    shader->setBool("uMaterial.billboard", billboard);
+    shader->setBool("u_Material.billboard", billboard);
 
     if (twosided) {
         glDisable(GL_CULL_FACE);

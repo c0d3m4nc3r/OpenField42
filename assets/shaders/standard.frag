@@ -2,31 +2,31 @@
 
 layout (std140) uniform CameraBlock
 {
-    mat4 uView;
-    mat4 uProjection;
-    vec4 uViewPos;
+    mat4 u_View;
+    mat4 u_Projection;
+    vec4 u_ViewPos;
 };
 
 layout (std140) uniform FogBlock
 {
-    vec4 uFogColor;
-    vec4 uFogParams; // x - start, y - end, z - enabled, w - padding
+    vec4 u_FogColor;
+    vec4 u_FogParams; // x - start, y - end, z - enabled, w - padding
 };
 
 layout (std140) uniform LightingBlock
 {
-    vec4 uDiffuseLight;
-    vec4 uSpecularLight;
-    vec4 uAmbientLight;
-    vec4 uGlobalAmbientLight;
-    vec4 uSunDirection;
+    vec4 u_DiffuseLight;
+    vec4 u_SpecularLight;
+    vec4 u_AmbientLight;
+    vec4 u_GlobalAmbientLight;
+    vec4 u_SunDirection;
 };
 
-in vec2 vTexCoords;
-in vec3 vNormal;
-in vec3 vFragPos;
+in vec2 v_TexCoords;
+in vec3 v_Normal;
+in vec3 v_FragPos;
 
-out vec4 FragColor;
+out vec4 f_Color;
 
 struct Material
 {
@@ -46,54 +46,54 @@ struct Material
     bool billboard;
 };
 
-uniform Material uMaterial;
+uniform Material u_Material;
 
-uniform bool uWireframeEnabled;
-uniform vec3 uWireframeColor;
+uniform bool u_WireframeEnabled;
+uniform vec3 u_WireframeColor;
 
 void main()
 {
-    if (uWireframeEnabled)
+    if (u_WireframeEnabled)
     {
-        FragColor = vec4(uWireframeColor, 1.0);
+        f_Color = vec4(u_WireframeColor, 1.0);
         return;
     }
 
     vec3 objectColor = vec3(1.0, 1.0, 1.0);
     float alpha = 1.0;
 
-    vec4 texColor = uMaterial.hasTexture ? texture(uMaterial.texture, vTexCoords) : uMaterial.diffuseColor;
+    vec4 texColor = u_Material.hasTexture ? texture(u_Material.texture, v_TexCoords) : u_Material.diffuseColor;
     objectColor = texColor.rgb;
     alpha = texColor.a;
     
-    if (uMaterial.billboard)
+    if (u_Material.billboard)
     {
         objectColor.rgb *= 2.0;
     }
     
-    if (uMaterial.hasDetailTexture)
+    if (u_Material.hasDetailTexture)
     {
-        vec3 detailColor = texture(uMaterial.detailTexture, vTexCoords * 128.0).rgb;
+        vec3 detailColor = texture(u_Material.detailTexture, v_TexCoords * 128.0).rgb;
         objectColor *= detailColor * 2.0;
     }
 
     vec3 result;
-    if (uMaterial.lighting)
+    if (u_Material.lighting)
     {
-        vec3 ambient = ((uAmbientLight.rgb + uGlobalAmbientLight.rgb) * 2.0) * objectColor;
+        vec3 ambient = ((u_AmbientLight.rgb + u_GlobalAmbientLight.rgb) * 2.0) * objectColor;
 
-        vec3 norm = normalize(vNormal);
-        vec3 lightDir = normalize(uSunDirection.rgb);
+        vec3 norm = normalize(v_Normal);
+        vec3 lightDir = normalize(u_SunDirection.rgb);
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * uDiffuseLight.rgb * objectColor;
+        vec3 diffuse = diff * u_DiffuseLight.rgb * objectColor;
 
         vec3 specular = vec3(0.0);
-        if (uMaterial.lightingSpecular)
+        if (u_Material.lightingSpecular)
         {
-            vec3 viewDir = normalize(uViewPos.xyz - vFragPos);
+            vec3 viewDir = normalize(u_ViewPos.xyz - v_FragPos);
             vec3 reflectDir = reflect(lightDir, norm);
-            float spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.specularPower);
-            specular = spec * uSpecularLight.rgb * uMaterial.specularColor;
+            float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_Material.specularPower);
+            specular = spec * u_SpecularLight.rgb * u_Material.specularColor;
         }
 
         result = ambient + diffuse + specular;
@@ -103,12 +103,12 @@ void main()
         result = objectColor;
     }
 
-    if (uFogParams.z == 1.0)
+    if (u_FogParams.z == 1.0)
     {
-        float distance = length(uViewPos.xyz - vFragPos);
-        float fogFactor = clamp((uFogParams.y - distance) / (uFogParams.y - uFogParams.x), 0.0, 1.0);
-        result = mix(uFogColor.rgb, result, fogFactor);
+        float distance = length(u_ViewPos.xyz - v_FragPos);
+        float fogFactor = clamp((u_FogParams.y - distance) / (u_FogParams.y - u_FogParams.x), 0.0, 1.0);
+        result = mix(u_FogColor.rgb, result, fogFactor);
     }
 
-    FragColor = vec4(result, alpha);
+    f_Color = vec4(result, alpha);
 }

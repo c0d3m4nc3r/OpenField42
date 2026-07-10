@@ -12,11 +12,11 @@ void OpaquePass::execute(RenderContext& ctx)
     
     shader.use();
 
-    shader.setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
+    shader.setFloat("u_Time", (float)SDL_GetTicks() / 1000.0f);
 
-    shader.setBool("uWireframeEnabled", ctx.wireframe_enabled);
+    shader.setBool("u_WireframeEnabled", ctx.wireframe_enabled);
 
-    shader.setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    shader.setVec3("u_WireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
 
     uint32_t last_vao = 0;
     uint32_t last_transform_id = -1;
@@ -32,7 +32,7 @@ void OpaquePass::execute(RenderContext& ctx)
         }
 
         if (last_transform_id != cmd.transform_id) {
-            shader.setMat4("uModel", ctx.transforms[cmd.transform_id]);
+            shader.setMat4("u_Model", ctx.transforms[cmd.transform_id]);
             last_transform_id = cmd.transform_id;
         }
 

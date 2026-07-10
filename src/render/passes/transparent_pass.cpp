@@ -19,7 +19,7 @@ void TransparentPass::execute(RenderContext& ctx)
             return a.distance_to_camera > b.distance_to_camera;
         });
 
-    shader.setVec3("uWireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    shader.setVec3("u_WireframeColor", glm::vec3(0.0f, 1.0f, 0.0f));
 
     uint32_t last_vao = 0;
     uint32_t last_transform_id = -1;
@@ -39,7 +39,7 @@ void TransparentPass::execute(RenderContext& ctx)
         }
 
         if (last_transform_id != cmd.transform_id) {
-            shader.setMat4("uModel", ctx.transforms[cmd.transform_id]);
+            shader.setMat4("u_Model", ctx.transforms[cmd.transform_id]);
             last_transform_id = cmd.transform_id;
         }
 

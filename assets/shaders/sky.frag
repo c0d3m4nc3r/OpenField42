@@ -1,7 +1,7 @@
 #version 330 core
 
-in vec2 vTexCoords;
-out vec4 FragColor;
+in vec2 v_TexCoords;
+out vec4 f_Color;
 
 struct Material
 {
@@ -10,18 +10,18 @@ struct Material
     vec4 diffuseColor;
 };
 
-uniform Material uMaterial;
+uniform Material u_Material;
 
-uniform bool uWireframeEnabled;
+uniform bool u_WireframeEnabled;
 
 void main()
 {
-    if (uWireframeEnabled)
+    if (u_WireframeEnabled)
     {
-        FragColor = vec4(0.5, 0.7, 1.0, 1.0);
+        f_Color = vec4(0.5, 0.7, 1.0, 1.0);
         return;
     }
 
-    vec4 texColor = uMaterial.hasTexture ? texture(uMaterial.texture, vTexCoords) : uMaterial.diffuseColor;
-    FragColor = vec4(texColor.rgb, texColor.a);
+    vec4 texColor = u_Material.hasTexture ? texture(u_Material.texture, v_TexCoords) : u_Material.diffuseColor;
+    f_Color = vec4(texColor.rgb, texColor.a);
 }

@@ -2,58 +2,58 @@
 
 layout (std140) uniform CameraBlock
 {
-    mat4 uView;
-    mat4 uProjection;
-    vec4 uViewPos;
+    mat4 u_View;
+    mat4 u_Projection;
+    vec4 u_ViewPos;
 };
 
 layout (std140) uniform FogBlock
 {
-    vec4 uFogColor;
-    vec4 uFogParams; // x - start, y - end, z - enabled, w - padding
+    vec4 u_FogColor;
+    vec4 u_FogParams; // x - start, y - end, z - enabled, w - padding
 };
 
 layout(std140) uniform WaterBlock
 {
     // xy = dir, z = speed, w = uv scale
-    vec4 uLayer1;
-    vec4 uLayer2;
+    vec4 u_Layer1;
+    vec4 u_Layer2;
 };
 
-in vec2 vTexCoords;
-in vec3 vFragPos;
-in vec4 vColor;
+in vec2 v_TexCoords;
+in vec3 v_FragPos;
+in vec4 v_Color;
 
-out vec4 FragColor;
+out vec4 f_Color;
 
-uniform sampler2D uTexLayer1;
-uniform sampler2D uTexLayer2;
+uniform sampler2D u_TexLayer1;
+uniform sampler2D u_TexLayer2;
 
-uniform float uTime;
-uniform bool uWireframeEnabled;
+uniform float u_Time;
+uniform bool u_WireframeEnabled;
 
 void main()
 {
-    if (uWireframeEnabled)
+    if (u_WireframeEnabled)
     {
-        FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+        f_Color = vec4(0.0, 0.0, 1.0, 1.0);
         return;
     }
 
-    vec2 uv1 = (vTexCoords * uLayer1.w) + uLayer1.xy * uLayer1.z * uTime;
-    vec2 uv2 = (vTexCoords * uLayer2.w) + uLayer2.xy * uLayer2.z * uTime;
+    vec2 uv1 = (v_TexCoords * u_Layer1.w) + u_Layer1.xy * u_Layer1.z * u_Time;
+    vec2 uv2 = (v_TexCoords * u_Layer2.w) + u_Layer2.xy * u_Layer2.z * u_Time;
 
-    vec4 layerColor1 = texture(uTexLayer1, uv1);
-    vec4 layerColor2 = texture(uTexLayer2, uv2);
+    vec4 layerColor1 = texture(u_TexLayer1, uv1);
+    vec4 layerColor2 = texture(u_TexLayer2, uv2);
 
-    vec3 finalColor = (layerColor1 * layerColor2).rgb * vColor.rgb;
+    vec3 finalColor = (layerColor1 * layerColor2).rgb * v_Color.rgb;
     
-    if (uFogParams.z == 1.0)
+    if (u_FogParams.z == 1.0)
     {
-        float distance = length(uViewPos.xyz - vFragPos);
-        float fogFactor = clamp((uFogParams.y - distance) / (uFogParams.y - uFogParams.x), 0.0, 1.0);
-        finalColor = mix(uFogColor.rgb, finalColor, fogFactor);
+        float distance = length(u_ViewPos.xyz - v_FragPos);
+        float fogFactor = clamp((u_FogParams.y - distance) / (u_FogParams.y - u_FogParams.x), 0.0, 1.0);
+        finalColor = mix(u_FogColor.rgb, finalColor, fogFactor);
     }
 
-    FragColor = vec4(finalColor, vColor.a);
+    f_Color = vec4(finalColor, v_Color.a);
 }

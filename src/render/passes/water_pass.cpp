@@ -12,8 +12,8 @@ void WaterPass::execute(RenderContext& ctx)
 
     shader.use();
     
-    shader.setFloat("uTime", (float)SDL_GetTicks() / 1000.0f);
-    shader.setBool("uWireframeEnabled", ctx.wireframe_enabled);
+    shader.setFloat("u_Time", (float)SDL_GetTicks() / 1000.0f);
+    shader.setBool("u_WireframeEnabled", ctx.wireframe_enabled);
 
     glDisable(GL_CULL_FACE);
 
@@ -27,20 +27,20 @@ void WaterPass::execute(RenderContext& ctx)
         if (cmd.textures[0] != last_tex1 && cmd.textures[0] != nullptr)
         {
             cmd.textures[0]->bind(0);
-            shader.setInt("uTexLayer1", 0);
+            shader.setInt("u_TexLayer1", 0);
             last_tex1 = cmd.textures[0];
         }
 
         if (cmd.textures[1] != last_tex2 && cmd.textures[1] != nullptr)
         {
             cmd.textures[1]->bind(1);
-            shader.setInt("uTexLayer2", 1);
+            shader.setInt("u_TexLayer2", 1);
             last_tex2 = cmd.textures[1];
         }
 
         if (cmd.transform_id != last_transform_id)
         {
-            shader.setMat4("uModel", ctx.transforms[cmd.transform_id]);
+            shader.setMat4("u_Model", ctx.transforms[cmd.transform_id]);
             last_transform_id = cmd.transform_id;
         }
 

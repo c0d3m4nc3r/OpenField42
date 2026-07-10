@@ -102,7 +102,7 @@ void Geometry::draw(Shader* shader, const glm::mat4& model, int lod_level) const
 {
     if (lods.empty() || !shader) return;
 
-    shader->setMat4("uModel", model);
+    shader->setMat4("u_Model", model);
 
     const LOD& lod = lods[lod_level];
     lod.draw(shader);
