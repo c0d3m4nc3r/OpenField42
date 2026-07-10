@@ -106,11 +106,13 @@ bool Renderer::init()
 
     // Create passes
 
-    _passes[static_cast<size_t>(RenderPass::Type::Terrain)] = std::make_unique<TerrainPass>(_shaders.terrain.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Opaque)] = std::make_unique<OpaquePass>(_shaders.standard.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Transparent)] = std::make_unique<TransparentPass>(_shaders.standard.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Water)] = std::make_unique<WaterPass>(_shaders.water.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Sky)] = std::make_unique<SkyPass>(_shaders.sky.get());
+    createPass<StandardOpaquePass>(RenderPass::Type::Standard_Opaque, _shaders.standard.get());
+    createPass<StandardTransparentPass>(RenderPass::Type::Standard_Transparent, _shaders.standard.get());
+    createPass<TreeOpaquePass>(RenderPass::Type::Tree_Opaque, _shaders.standard.get());
+    createPass<TreeTransparentPass>(RenderPass::Type::Tree_Transparent, _shaders.standard.get());
+    createPass<TerrainPass>(RenderPass::Type::Terrain, _shaders.terrain.get());
+    createPass<SkyPass>(RenderPass::Type::Sky, _shaders.sky.get());
+    createPass<WaterPass>(RenderPass::Type::Water, _shaders.water.get());
 
     // Setup OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -160,10 +162,13 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     if (geom->lods.empty()) return;
 
     glm::vec3 cam_pos = _camera->getPosition();
-    const Frustum& frustum = _camera->getFrustum();
+    glm::vec3 cam_forward = _camera->getForward(); 
 
     glm::vec3 world_center = glm::vec3(model * glm::vec4(geom->aabb.center(), 1.0f));
-    float distance = glm::length(world_center - cam_pos);
+
+    glm::vec3 to_object = world_center - cam_pos;
+
+    float distance = glm::dot(to_object, cam_forward);
 
     size_t lod_index = 0;
     
@@ -174,6 +179,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     }
 
     Geometry::LOD& lod = geom->lods[lod_index];
+
+    const Frustum& frustum = _camera->getFrustum();
 
     if (USE_FRUSTUM_CULLING && geom->type != GeometryType::SkyMesh)
     {
@@ -214,20 +221,37 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         cmd.transform_id = (uint32_t)_context.transforms.size() - 1;
         cmd.distance_to_camera = distance;
 
-        if (geom->type == GeometryType::WaterMesh) {
-            cmd.textures[0] = _water_textures[0];
-            cmd.textures[1] = _water_textures[1];
-            getPass(RenderPass::Type::Water)->add(cmd);
-        } else if (geom->type == GeometryType::PatchTerrain) {
+        switch (geom->type)
+        {
+        case GeometryType::StandardMesh:
+            if (mesh.material && mesh.material->transparent) {
+                getPass(RenderPass::Type::Standard_Transparent)->add(cmd);
+            } else {
+                getPass(RenderPass::Type::Standard_Opaque)->add(cmd);
+            }
+            break;
+        case GeometryType::TreeMesh:
+            if (mesh.material && mesh.material->transparent) {
+                getPass(RenderPass::Type::Tree_Transparent)->add(cmd);
+            } else {
+                getPass(RenderPass::Type::Tree_Opaque)->add(cmd);
+            }
+            break;
+        case GeometryType::PatchTerrain:
             cmd.textures[0] = _terrain_textures[0];
             cmd.textures[1] = _terrain_textures[1];
             getPass(RenderPass::Type::Terrain)->add(cmd);
-        } else if (geom->type == GeometryType::SkyMesh) {
+            break;
+        case GeometryType::WaterMesh:
+            cmd.textures[0] = _water_textures[0];
+            cmd.textures[1] = _water_textures[1];
+            getPass(RenderPass::Type::Water)->add(cmd);
+            break;
+        case GeometryType::SkyMesh:
             getPass(RenderPass::Type::Sky)->add(cmd);
-        } else if (mesh.material && mesh.material->transparent) {
-            getPass(RenderPass::Type::Transparent)->add(cmd);    
-        } else {
-            getPass(RenderPass::Type::Opaque)->add(cmd);
+            break;
+        default:
+            continue;
         }
 
         _stats.meshes_rendered++;
@@ -348,11 +372,13 @@ void Renderer::reloadShaders()
     bindUniformBlocks(_shaders.water->getID());
     bindUniformBlocks(_shaders.terrain->getID());
 
-    _passes[static_cast<size_t>(RenderPass::Type::Terrain)]->setShader(_shaders.terrain.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Opaque)]->setShader(_shaders.standard.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Transparent)]->setShader(_shaders.standard.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Water)]->setShader(_shaders.water.get());
-    _passes[static_cast<size_t>(RenderPass::Type::Sky)]->setShader(_shaders.sky.get());
+    getPass(RenderPass::Type::Terrain)->setShader(_shaders.terrain.get());
+    getPass(RenderPass::Type::Standard_Opaque)->setShader(_shaders.standard.get());
+    getPass(RenderPass::Type::Standard_Transparent)->setShader(_shaders.standard.get());
+    getPass(RenderPass::Type::Tree_Opaque)->setShader(_shaders.standard.get());
+    getPass(RenderPass::Type::Tree_Transparent)->setShader(_shaders.standard.get());
+    getPass(RenderPass::Type::Water)->setShader(_shaders.water.get());
+    getPass(RenderPass::Type::Sky)->setShader(_shaders.sky.get());
 
     LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
 }

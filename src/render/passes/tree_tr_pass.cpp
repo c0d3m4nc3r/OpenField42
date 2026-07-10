@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-void TransparentPass::execute(RenderContext& ctx)
+void TreeTransparentPass::execute(RenderContext& ctx)
 {
     if (queue.empty() || !shader) return;
 
@@ -21,14 +21,14 @@ void TransparentPass::execute(RenderContext& ctx)
 
     uint32_t last_vao = 0;
     uint32_t last_transform_id = -1;
+
+    glDepthMask(GL_FALSE);
     
     for (auto& cmd : queue)
     {   
         if (cmd.material)
         {
             cmd.material->apply(shader);
-            if (cmd.material->no_depth_write)
-                glDepthMask(GL_FALSE);
         }
         
         if (last_vao != cmd.vao) {
@@ -48,9 +48,9 @@ void TransparentPass::execute(RenderContext& ctx)
             cmd.index_offset,
             cmd.base_vertex
         );
-
-        glDepthMask(GL_TRUE);
     }
+    
+    glDepthMask(GL_TRUE);
 
     glBindVertexArray(0);
 

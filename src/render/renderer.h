@@ -112,10 +112,12 @@ private:
     std::array<std::unique_ptr<RenderPass>, static_cast<size_t>(RenderPass::Type::Count)> _passes;
     const RenderPass::Type _execution_order[static_cast<size_t>(RenderPass::Type::Count)] = {
         RenderPass::Type::Terrain,
-        RenderPass::Type::Opaque,
+        RenderPass::Type::Standard_Opaque,
+        RenderPass::Type::Tree_Opaque,
         RenderPass::Type::Sky,
         RenderPass::Type::Water,
-        RenderPass::Type::Transparent
+        RenderPass::Type::Standard_Transparent,
+        RenderPass::Type::Tree_Transparent
     };
 
     RenderContext _context;
@@ -139,6 +141,13 @@ private:
     Texture* _terrain_textures[2] = { nullptr, nullptr };
     
     Stats _stats;
+
+    template <typename T>
+    void createPass(RenderPass::Type type, Shader* shader)
+    {
+        static_assert(std::is_base_of<RenderPass, T>::value, "T must be derived from RenderPass");
+        _passes[static_cast<size_t>(type)] = std::make_unique<T>(shader);
+    }
 
     RenderPass* getPass(RenderPass::Type type);
 };

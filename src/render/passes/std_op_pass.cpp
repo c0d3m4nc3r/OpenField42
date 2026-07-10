@@ -6,7 +6,7 @@
 
 #include "glad/gl.h"
 
-void OpaquePass::execute(RenderContext& ctx)
+void StandardOpaquePass::execute(RenderContext& ctx)
 {
     if (queue.empty() || !shader) return;
     

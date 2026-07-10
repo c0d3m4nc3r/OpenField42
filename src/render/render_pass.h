@@ -11,7 +11,10 @@ public:
 
     enum class Type : unsigned char
     {
-        Opaque, Transparent, Sky, Water, Terrain, Count
+        Standard_Opaque, Standard_Transparent,
+        Tree_Opaque, Tree_Transparent,
+        Sky, Terrain, Water,
+        Count
     };
 
     RenderPass(Shader* shader) : shader(shader) {}
