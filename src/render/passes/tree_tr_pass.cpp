@@ -14,7 +14,12 @@ void TreeTransparentPass::execute(RenderContext& ctx)
 
     shader->use();
 
-    std::sort(queue.begin(), queue.end(), 
+    // std::sort(queue.begin(), queue.end(), 
+    //     [](const RenderCommand& a, const RenderCommand& b) {
+    //         return a.distance_to_camera > b.distance_to_camera;
+    //     });
+
+    std::stable_sort(queue.begin(), queue.end(), 
         [](const RenderCommand& a, const RenderCommand& b) {
             return a.distance_to_camera > b.distance_to_camera;
         });
@@ -27,9 +32,7 @@ void TreeTransparentPass::execute(RenderContext& ctx)
     for (auto& cmd : queue)
     {   
         if (cmd.material)
-        {
             cmd.material->apply(shader);
-        }
         
         if (last_vao != cmd.vao) {
             glBindVertexArray(cmd.vao);
