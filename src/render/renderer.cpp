@@ -305,6 +305,8 @@ void Renderer::flush()
 
         pass->execute(_context);
     }
+
+    _context.transforms.clear();
 }
 
 void Renderer::reloadShaders()
