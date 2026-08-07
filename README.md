@@ -25,9 +25,23 @@ Here are a few screenshots showcasing the current rendering progress across diff
 
 ---
 
-## 🤝 Contribution
+## 🤝 Contribution & Roadmap
 
-While I am the primary developer, this is an open-source project, and **help is highly encouraged and needed!** If you are passionate about BF1942 and C++ development, please consider contributing. Any help with implementation, bug fixing, or documentation would be greatly appreciated to accelerate the project's progress.
+While I am the primary developer, this is an open-source project, and **help is highly encouraged and needed!** If you are passionate about BF1942 and C++ development, please consider contributing.
+
+Here are some planned tasks and features open for contribution:
+
+- [ ] Implement resource managers (`ShaderManager` and `TextureManager`)
+- [ ] Implement asynchronous/multithreaded texture loading
+- [ ] Implement accurate specular lighting for water rendering
+- [ ] Transition material system from individual uniforms to UBOs
+- [ ] Add per-pass rendering statistics to `DebugUI`
+- [ ] Implement `#include` preprocessor directive support in the shader loader
+- [ ] Implement a dedicated shader for tree pass rendering
+- [ ] Add a command-line argument to list all available maps
+- [ ] Upgrade OpenGL from 3.3 to 4.5 and start using DSA (Direct State Access)
+
+If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!
 
 ## 🛠️ Technology Stack
 
