@@ -14,6 +14,7 @@ class Input;
 class Console;
 class DebugUI;
 class GeometryManager;
+class ShaderManager;
 struct World;
 
 class Game;
@@ -36,6 +37,7 @@ public:
     Console& getConsole() const { return *_console; }
     World& getWorld() const { return *_world; }
     GeometryManager& getGeometryMgr() const { return *_geometry_mgr; }
+    ShaderManager& getShaderMgr() const { return *_shader_mgr; }
 
     Game& getGame() const { return *_game; }
 
@@ -54,6 +56,7 @@ private:
     std::unique_ptr<DebugUI> _debug_ui;
 
     std::unique_ptr<GeometryManager> _geometry_mgr;
+    std::unique_ptr<ShaderManager> _shader_mgr;
 
     std::unique_ptr<Game> _game;
 

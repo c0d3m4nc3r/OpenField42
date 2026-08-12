@@ -74,8 +74,10 @@ set(SOURCES
     ${SRC_DIR}/render/camera.cpp
     ${SRC_DIR}/render/renderer.cpp
     ${SRC_DIR}/render/render_pass.cpp
+    ${SRC_DIR}/render/shader_manager.cpp
     ${SRC_DIR}/render/shader.cpp
     ${SRC_DIR}/render/texture.cpp
+    ${SRC_DIR}/utils/gl_utils.cpp
     ${SRC_DIR}/utils/log.cpp
     ${SRC_DIR}/utils/string_utils.cpp
     ${SRC_DIR}/utils/texture_utils.cpp

@@ -3,6 +3,7 @@
 #include "core/config.h"
 #include "render/render_passes.h"
 #include "render/shader.h"
+#include "render/shader_manager.h"
 #include "world/sky.h"
 
 #include "glad/gl.h"
@@ -13,52 +14,16 @@ bool Renderer::init()
 {
     LOG_INFO("Renderer::init: Initializing renderer...");
 
-    // Load standard shader
-    _shaders.standard = std::make_unique<Shader>();
-    if (!_shaders.standard->load("shaders/standard.vert", "shaders/standard.frag"))
-    {
-        LOG_ERROR("Renderer::init: Failed to load standard shader!");
-        return false;
-    }
-
-    // Load sky shader
-    _shaders.sky = std::make_unique<Shader>();
-    if (!_shaders.sky->load("shaders/sky.vert", "shaders/sky.frag"))
-    {
-        LOG_ERROR("Renderer::init: Failed to load sky shader!");
-        return false;
-    }
-
-    // Load water shader
-    _shaders.water = std::make_unique<Shader>();
-    if (!_shaders.water->load("shaders/water.vert", "shaders/water.frag"))
-    {
-        LOG_ERROR("Renderer::init: Failed to load water shader!");
-        return false;
-    }
-
-    // Load terrain shader
-    _shaders.terrain = std::make_unique<Shader>();
-    if (!_shaders.terrain->load("shaders/terrain.vert", "shaders/terrain.frag"))
-    {
-        LOG_ERROR("Renderer::init: Failed to load terrain shader!");
-        return false;
-    }
+    Shader* sky_shader = _shader_mgr.get("sky");
+    Shader* standard_shader = _shader_mgr.get("standard");
+    Shader* terrain_shader = _shader_mgr.get("terrain");
+    Shader* water_shader = _shader_mgr.get("water");
 
     // Setup Camera UBO
     glGenBuffers(1, &_camera_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_CameraBlock), nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    GLuint camera_block_index = glGetUniformBlockIndex(_shaders.standard->getID(), "CameraBlock");
-    glUniformBlockBinding(_shaders.standard->getID(), camera_block_index, 0);
-    
-    camera_block_index = glGetUniformBlockIndex(_shaders.sky->getID(), "CameraBlock");
-    glUniformBlockBinding(_shaders.sky->getID(), camera_block_index, 0);
-
-    camera_block_index = glGetUniformBlockIndex(_shaders.water->getID(), "CameraBlock");
-    glUniformBlockBinding(_shaders.water->getID(), camera_block_index, 0);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, _camera_ubo);
 
@@ -67,16 +32,6 @@ bool Renderer::init()
     glBindBuffer(GL_UNIFORM_BUFFER, _fog_ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_FogBlock), &_fog, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    GLuint fog_block_index = glGetUniformBlockIndex(_shaders.standard->getID(), "FogBlock");
-    glUniformBlockBinding(_shaders.standard->getID(), fog_block_index, 1);
-
-    fog_block_index = glGetUniformBlockIndex(_shaders.water->getID(), "FogBlock");
-    glUniformBlockBinding(_shaders.water->getID(), fog_block_index, 1);
-
-    fog_block_index = glGetUniformBlockIndex(_shaders.terrain->getID(), "FogBlock");
-    glUniformBlockBinding(_shaders.terrain->getID(), fog_block_index, 1);
-    
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, _fog_ubo);
 
     // Setup Lighting UBO
@@ -84,13 +39,6 @@ bool Renderer::init()
     glBindBuffer(GL_UNIFORM_BUFFER, _lighting_ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_LightingBlock), &_lighting, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    GLuint lighting_block_index = glGetUniformBlockIndex(_shaders.standard->getID(), "LightingBlock");
-    glUniformBlockBinding(_shaders.standard->getID(), lighting_block_index, 2);
-
-    lighting_block_index = glGetUniformBlockIndex(_shaders.terrain->getID(), "LightingBlock");
-    glUniformBlockBinding(_shaders.terrain->getID(), lighting_block_index, 2);
-
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, _lighting_ubo);
 
     // Setup Water UBO
@@ -98,21 +46,33 @@ bool Renderer::init()
     glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_WaterBlock), &_water, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    GLuint water_block_index = glGetUniformBlockIndex(_shaders.water->getID(), "WaterBlock");
-    glUniformBlockBinding(_shaders.water->getID(), water_block_index, 3);
-
     glBindBufferBase(GL_UNIFORM_BUFFER, 3, _water_ubo);
+
+    // Bind UBOs
+
+    sky_shader->setUniformBlockBinding("CameraBlock", 0);
+
+    standard_shader->setUniformBlockBinding("CameraBlock", 0);
+    standard_shader->setUniformBlockBinding("FogBlock", 1);
+    standard_shader->setUniformBlockBinding("LightingBlock", 2);
+
+    terrain_shader->setUniformBlockBinding("CameraBlock", 0);
+    terrain_shader->setUniformBlockBinding("FogBlock", 1);
+    terrain_shader->setUniformBlockBinding("LightingBlock", 2);
+    
+    water_shader->setUniformBlockBinding("CameraBlock", 0);
+    water_shader->setUniformBlockBinding("FogBlock", 1);
+    water_shader->setUniformBlockBinding("WaterBlock", 3);
 
     // Create passes
 
-    createPass<StandardOpaquePass>(RenderPass::Type::Standard_Opaque, _shaders.standard.get());
-    createPass<StandardTransparentPass>(RenderPass::Type::Standard_Transparent, _shaders.standard.get());
-    createPass<TreeOpaquePass>(RenderPass::Type::Tree_Opaque, _shaders.standard.get());
-    createPass<TreeTransparentPass>(RenderPass::Type::Tree_Transparent, _shaders.standard.get());
-    createPass<TerrainPass>(RenderPass::Type::Terrain, _shaders.terrain.get());
-    createPass<SkyPass>(RenderPass::Type::Sky, _shaders.sky.get());
-    createPass<WaterPass>(RenderPass::Type::Water, _shaders.water.get());
+    createPass<StandardOpaquePass>(RenderPass::Type::Standard_Opaque, standard_shader);
+    createPass<StandardTransparentPass>(RenderPass::Type::Standard_Transparent, standard_shader);
+    createPass<TreeOpaquePass>(RenderPass::Type::Tree_Opaque, standard_shader);
+    createPass<TreeTransparentPass>(RenderPass::Type::Tree_Transparent, standard_shader);
+    createPass<TerrainPass>(RenderPass::Type::Terrain, terrain_shader);
+    createPass<SkyPass>(RenderPass::Type::Sky, sky_shader);
+    createPass<WaterPass>(RenderPass::Type::Water, water_shader);
 
     // Setup OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -137,11 +97,6 @@ void Renderer::shutdown()
     if (_fog_ubo) glDeleteBuffers(1, &_fog_ubo);
     if (_lighting_ubo) glDeleteBuffers(1, &_lighting_ubo);
     if (_water_ubo) glDeleteBuffers(1, &_water_ubo);
-
-    _shaders.terrain.reset();
-    _shaders.standard.reset();
-    _shaders.sky.reset();
-    _shaders.water.reset();
 
     LOG_INFO("Renderer::shutdown: Renderer shutdown!");
 }
@@ -309,81 +264,81 @@ void Renderer::flush()
     _context.transforms.clear();
 }
 
-void Renderer::reloadShaders()
-{
-    LOG_INFO("Renderer::reloadShaders: Reloading all shaders...");
+// void Renderer::reloadShaders()
+// {
+//     LOG_INFO("Renderer::reloadShaders: Reloading all shaders...");
 
-    auto new_standard = std::make_unique<Shader>();
-    auto new_sky = std::make_unique<Shader>();
-    auto new_water = std::make_unique<Shader>();
-    auto new_terrain = std::make_unique<Shader>();
+//     auto new_standard = std::make_unique<Shader>();
+//     auto new_sky = std::make_unique<Shader>();
+//     auto new_water = std::make_unique<Shader>();
+//     auto new_terrain = std::make_unique<Shader>();
 
-    bool success = true;
+//     bool success = true;
 
-    if (!new_standard->load("shaders/standard.vert", "shaders/standard.frag"))
-    {
-        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW standard shader!");
-        success = false;
-    }
+//     if (!new_standard->load("shaders/standard.vert", "shaders/standard.frag"))
+//     {
+//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW standard shader!");
+//         success = false;
+//     }
 
-    if (!new_sky->load("shaders/sky.vert", "shaders/sky.frag"))
-    {
-        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW sky shader!");
-        success = false;
-    }
+//     if (!new_sky->load("shaders/sky.vert", "shaders/sky.frag"))
+//     {
+//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW sky shader!");
+//         success = false;
+//     }
 
-    if (!new_water->load("shaders/water.vert", "shaders/water.frag"))
-    {
-        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW water shader!");
-        success = false;
-    }
+//     if (!new_water->load("shaders/water.vert", "shaders/water.frag"))
+//     {
+//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW water shader!");
+//         success = false;
+//     }
 
-    if (!new_terrain->load("shaders/terrain.vert", "shaders/terrain.frag"))
-    {
-        LOG_ERROR("Renderer::reloadShaders: Failed to load NEW terrain shader!");
-        success = false;
-    }
+//     if (!new_terrain->load("shaders/terrain.vert", "shaders/terrain.frag"))
+//     {
+//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW terrain shader!");
+//         success = false;
+//     }
 
-    if (!success)
-    {
-        LOG_ERROR("Renderer::reloadShaders: Shader reload failed! Retaining old shaders.");
-        return;
-    }
+//     if (!success)
+//     {
+//         LOG_ERROR("Renderer::reloadShaders: Shader reload failed! Retaining old shaders.");
+//         return;
+//     }
 
-    _shaders.standard = std::move(new_standard);
-    _shaders.sky = std::move(new_sky);
-    _shaders.water = std::move(new_water);
-    _shaders.terrain = std::move(new_terrain);
+//     _shaders.standard = std::move(new_standard);
+//     _shaders.sky = std::move(new_sky);
+//     _shaders.water = std::move(new_water);
+//     _shaders.terrain = std::move(new_terrain);
 
-    auto bindUniformBlocks = [](GLuint program_id) {
-        GLuint index = glGetUniformBlockIndex(program_id, "CameraBlock");
-        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 0);
+//     auto bindUniformBlocks = [](GLuint program_id) {
+//         GLuint index = glGetUniformBlockIndex(program_id, "CameraBlock");
+//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 0);
 
-        index = glGetUniformBlockIndex(program_id, "FogBlock");
-        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 1);
+//         index = glGetUniformBlockIndex(program_id, "FogBlock");
+//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 1);
 
-        index = glGetUniformBlockIndex(program_id, "LightingBlock");
-        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 2);
+//         index = glGetUniformBlockIndex(program_id, "LightingBlock");
+//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 2);
 
-        index = glGetUniformBlockIndex(program_id, "WaterBlock");
-        if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 3);
-    };
+//         index = glGetUniformBlockIndex(program_id, "WaterBlock");
+//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 3);
+//     };
 
-    bindUniformBlocks(_shaders.standard->getID());
-    bindUniformBlocks(_shaders.sky->getID());
-    bindUniformBlocks(_shaders.water->getID());
-    bindUniformBlocks(_shaders.terrain->getID());
+//     bindUniformBlocks(standard_shader->getID());
+//     bindUniformBlocks(sky_shader->getID());
+//     bindUniformBlocks(water_shader->getID());
+//     bindUniformBlocks(terrain_shader->getID());
 
-    getPass(RenderPass::Type::Terrain)->setShader(_shaders.terrain.get());
-    getPass(RenderPass::Type::Standard_Opaque)->setShader(_shaders.standard.get());
-    getPass(RenderPass::Type::Standard_Transparent)->setShader(_shaders.standard.get());
-    getPass(RenderPass::Type::Tree_Opaque)->setShader(_shaders.standard.get());
-    getPass(RenderPass::Type::Tree_Transparent)->setShader(_shaders.standard.get());
-    getPass(RenderPass::Type::Water)->setShader(_shaders.water.get());
-    getPass(RenderPass::Type::Sky)->setShader(_shaders.sky.get());
+//     getPass(RenderPass::Type::Terrain)->setShader(_shaders.terrain.get());
+//     getPass(RenderPass::Type::Standard_Opaque)->setShader(standard_shader);
+//     getPass(RenderPass::Type::Standard_Transparent)->setShader(standard_shader);
+//     getPass(RenderPass::Type::Tree_Opaque)->setShader(standard_shader);
+//     getPass(RenderPass::Type::Tree_Transparent)->setShader(standard_shader);
+//     getPass(RenderPass::Type::Water)->setShader(_shaders.water.get());
+//     getPass(RenderPass::Type::Sky)->setShader(_shaders.sky.get());
 
-    LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
-}
+//     LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
+// }
 
 void Renderer::resetStats()
 {

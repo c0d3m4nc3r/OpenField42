@@ -2,24 +2,20 @@
 
 #include <glm/fwd.hpp>
 
-#include <string>
-
 class Shader
 {
 public:
 
-    Shader() = default;
+    Shader(unsigned int id) : _id(id) {}
     ~Shader();
 
-    bool load(
-        const std::string& vert_path,
-        const std::string& frag_path
-    );
-
-    void unload();
     void use();
-
+    
+    void setID(unsigned int id) { _id = id; }
     unsigned int getID() const { return _id; }
+
+    void rebindUniformBlocks();
+    void setUniformBlockBinding(const char* name, uint32_t binding);
 
     void setInt(const char* name, int value);
     void setFloat(const char* name, float value);
@@ -32,5 +28,7 @@ public:
 
 private:
 
-    unsigned int _id = 0;
+    unsigned int _id;
+
+    std::unordered_map<std::string, uint32_t> _ubo_bindings;
 };

@@ -1,6 +1,7 @@
 #include "game/game.h"
 
 #include "core/console.h"
+#include "render/shader_manager.h"
 #include "utils/log.h"
 #include "platform/input.h"
 #include "platform/window.h"
@@ -111,20 +112,24 @@ void Game::onEvent(const SDL_Event& event)
         }
         else if (event.key.scancode == SDL_SCANCODE_F1)
         {
+            if (event.key.repeat) break;
             auto& renderer = _engine.getRenderer();
             renderer.setWireframeEnabled(!renderer.isWireframeEnabled());
         }
         else if (event.key.scancode == SDL_SCANCODE_F3)
         {
+            if (event.key.repeat) break;
             _engine.toggleDebugUI();
         }
         else if (event.key.scancode == SDL_SCANCODE_F5)
         {
-            auto& renderer = _engine.getRenderer();
-            renderer.reloadShaders();
+            if (event.key.repeat) break;
+            auto& shader_mgr = _engine.getShaderMgr();
+            shader_mgr.reloadAll();
         }
         else if (event.key.scancode == SDL_SCANCODE_F11)
         {
+            if (event.key.repeat) break;
             _fullscreen = !_fullscreen;
             
             auto& window = _engine.getWindow();

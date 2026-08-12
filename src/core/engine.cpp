@@ -7,6 +7,7 @@
 #include "platform/input.h"
 #include "platform/window.h"
 #include "render/renderer.h"
+#include "render/shader_manager.h"
 #include "vfs/vfs.h"
 #include "world/terrain.h"
 #include "world/water.h"
@@ -14,6 +15,8 @@
 
 Engine::Engine() {}
 Engine::~Engine() = default;
+
+std::string SHADERS_TO_LOAD[] = {"sky", "standard", "terrain", "water"};
 
 bool Engine::init(int argc, char* argv[])
 {
@@ -30,7 +33,18 @@ bool Engine::init(int argc, char* argv[])
 
     VFS::mountProvider(std::make_shared<VFS::FolderProvider>("assets"));
 
-    _renderer = std::make_unique<Renderer>();
+    _shader_mgr = std::make_unique<ShaderManager>();
+
+    for (const auto& name : SHADERS_TO_LOAD)
+    {
+        if (!_shader_mgr->load(name, "shaders/" + name + ".vert", "shaders/" + name + ".frag"))
+        {
+            LOG_ERROR("Engine::init: Failed to load shaders!");
+            return false;
+        }
+    }
+
+    _renderer = std::make_unique<Renderer>(*_shader_mgr.get());
     if (!_renderer->init())
     {
         LOG_ERROR("Engine::init: Failed to initialize renderer!");
@@ -71,6 +85,8 @@ void Engine::shutdown()
 {
     LOG_INFO("Engine::shutdown: Shutting down engine...");
 
+    _shader_mgr->unloadAll();
+    
     _geometry_mgr.reset();
     _world->shutdown();
     _renderer->shutdown();

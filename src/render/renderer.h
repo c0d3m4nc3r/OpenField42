@@ -6,6 +6,7 @@
 #include "render/shader.h"
 
 class Camera;
+class ShaderManager;
 class Renderer
 {
 public:
@@ -25,6 +26,9 @@ public:
         size_t polygons_rendered = 0;
         size_t polygons_culled = 0;
     };
+
+    Renderer(ShaderManager& shader_mgr)
+        : _shader_mgr(shader_mgr) {}
 
     bool init();
     void shutdown();
@@ -102,12 +106,7 @@ private:
         glm::vec4 layer_2 = glm::vec4(glm::vec3(0.0f), 1.0f);
     };
 
-    struct {
-        std::unique_ptr<Shader> standard;
-        std::unique_ptr<Shader> sky;
-        std::unique_ptr<Shader> water;
-        std::unique_ptr<Shader> terrain;
-    } _shaders;
+    ShaderManager& _shader_mgr;
     
     std::array<std::unique_ptr<RenderPass>, static_cast<size_t>(RenderPass::Type::Count)> _passes;
     const RenderPass::Type _execution_order[static_cast<size_t>(RenderPass::Type::Count)] = {
