@@ -27,5 +27,8 @@ private:
 
     unsigned int _id;
 
-    std::unordered_map<std::string, uint32_t> _ubo_bindings;
+    std::unordered_map<std::string, int> _uniform_locations;
+
+    int getUniformLocation(const char* name);
+
 };
