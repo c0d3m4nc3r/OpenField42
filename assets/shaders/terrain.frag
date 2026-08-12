@@ -1,13 +1,13 @@
-#version 330 core
+#version 450 core
 
-layout (std140) uniform CameraBlock
+layout (std140, binding = 0) uniform CameraBlock
 {
     mat4 u_View;
     mat4 u_Projection;
     vec4 u_ViewPos;
 };
 
-layout (std140) uniform FogBlock
+layout (std140, binding = 1) uniform FogBlock
 {
     vec4 u_FogColor;
     vec4 u_FogParams; // x - start, y - end, z - enabled, w - padding

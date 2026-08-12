@@ -19,50 +19,23 @@ bool Renderer::init()
     Shader* terrain_shader = _shader_mgr.get("terrain");
     Shader* water_shader = _shader_mgr.get("water");
 
-    // Setup Camera UBO
-    glGenBuffers(1, &_camera_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_CameraBlock), nullptr, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // Create and bind UBOs
 
+    glCreateBuffers(1, &_camera_ubo);
+    glNamedBufferStorage(_camera_ubo, sizeof(UBO_CameraBlock), nullptr, GL_DYNAMIC_STORAGE_BIT);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, _camera_ubo);
-
-    // Setup Fog UBO
-    glGenBuffers(1, &_fog_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, _fog_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_FogBlock), &_fog, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    
+    glCreateBuffers(1, &_fog_ubo);
+    glNamedBufferStorage(_fog_ubo, sizeof(UBO_FogBlock), nullptr, GL_DYNAMIC_STORAGE_BIT);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, _fog_ubo);
 
-    // Setup Lighting UBO
-    glGenBuffers(1, &_lighting_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, _lighting_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_LightingBlock), &_lighting, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glCreateBuffers(1, &_lighting_ubo);
+    glNamedBufferStorage(_lighting_ubo, sizeof(UBO_LightingBlock), nullptr, GL_DYNAMIC_STORAGE_BIT);
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, _lighting_ubo);
-
-    // Setup Water UBO
-    glGenBuffers(1, &_water_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(UBO_WaterBlock), &_water, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 3, _water_ubo);
-
-    // Bind UBOs
-
-    sky_shader->setUniformBlockBinding("CameraBlock", 0);
-
-    standard_shader->setUniformBlockBinding("CameraBlock", 0);
-    standard_shader->setUniformBlockBinding("FogBlock", 1);
-    standard_shader->setUniformBlockBinding("LightingBlock", 2);
-
-    terrain_shader->setUniformBlockBinding("CameraBlock", 0);
-    terrain_shader->setUniformBlockBinding("FogBlock", 1);
-    terrain_shader->setUniformBlockBinding("LightingBlock", 2);
     
-    water_shader->setUniformBlockBinding("CameraBlock", 0);
-    water_shader->setUniformBlockBinding("FogBlock", 1);
-    water_shader->setUniformBlockBinding("WaterBlock", 3);
+    glCreateBuffers(1, &_water_ubo);
+    glNamedBufferStorage(_water_ubo, sizeof(UBO_WaterBlock), nullptr, GL_DYNAMIC_STORAGE_BIT);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 3, _water_ubo);
 
     // Create passes
 
@@ -223,31 +196,23 @@ void Renderer::flush()
     camera_data.projection = _camera->getProjMat();
     camera_data.view_pos = glm::vec4(_camera->getPosition(), 1.0f);
 
-    glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_CameraBlock), &camera_data);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glNamedBufferSubData(_camera_ubo, 0, sizeof(UBO_CameraBlock), &camera_data);
 
     if (_fog_dirty)
     {
-        glBindBuffer(GL_UNIFORM_BUFFER, _fog_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_FogBlock), &_fog);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glNamedBufferSubData(_fog_ubo, 0, sizeof(UBO_FogBlock), &_fog);
         _fog_dirty = false;
     }
 
     if (_lighting_dirty)
     {
-        glBindBuffer(GL_UNIFORM_BUFFER, _lighting_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_LightingBlock), &_lighting);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glNamedBufferSubData(_lighting_ubo, 0, sizeof(UBO_LightingBlock), &_lighting);
         _lighting_dirty = false;
     }
 
     if (_water_dirty)
     {
-        glBindBuffer(GL_UNIFORM_BUFFER, _water_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(UBO_WaterBlock), &_water);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glNamedBufferSubData(_water_ubo, 0, sizeof(UBO_WaterBlock), &_water);
         _water_dirty = false;
     }
 
@@ -263,82 +228,6 @@ void Renderer::flush()
 
     _context.transforms.clear();
 }
-
-// void Renderer::reloadShaders()
-// {
-//     LOG_INFO("Renderer::reloadShaders: Reloading all shaders...");
-
-//     auto new_standard = std::make_unique<Shader>();
-//     auto new_sky = std::make_unique<Shader>();
-//     auto new_water = std::make_unique<Shader>();
-//     auto new_terrain = std::make_unique<Shader>();
-
-//     bool success = true;
-
-//     if (!new_standard->load("shaders/standard.vert", "shaders/standard.frag"))
-//     {
-//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW standard shader!");
-//         success = false;
-//     }
-
-//     if (!new_sky->load("shaders/sky.vert", "shaders/sky.frag"))
-//     {
-//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW sky shader!");
-//         success = false;
-//     }
-
-//     if (!new_water->load("shaders/water.vert", "shaders/water.frag"))
-//     {
-//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW water shader!");
-//         success = false;
-//     }
-
-//     if (!new_terrain->load("shaders/terrain.vert", "shaders/terrain.frag"))
-//     {
-//         LOG_ERROR("Renderer::reloadShaders: Failed to load NEW terrain shader!");
-//         success = false;
-//     }
-
-//     if (!success)
-//     {
-//         LOG_ERROR("Renderer::reloadShaders: Shader reload failed! Retaining old shaders.");
-//         return;
-//     }
-
-//     _shaders.standard = std::move(new_standard);
-//     _shaders.sky = std::move(new_sky);
-//     _shaders.water = std::move(new_water);
-//     _shaders.terrain = std::move(new_terrain);
-
-//     auto bindUniformBlocks = [](GLuint program_id) {
-//         GLuint index = glGetUniformBlockIndex(program_id, "CameraBlock");
-//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 0);
-
-//         index = glGetUniformBlockIndex(program_id, "FogBlock");
-//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 1);
-
-//         index = glGetUniformBlockIndex(program_id, "LightingBlock");
-//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 2);
-
-//         index = glGetUniformBlockIndex(program_id, "WaterBlock");
-//         if (index != GL_INVALID_INDEX) glUniformBlockBinding(program_id, index, 3);
-//     };
-
-//     bindUniformBlocks(standard_shader->getID());
-//     bindUniformBlocks(sky_shader->getID());
-//     bindUniformBlocks(water_shader->getID());
-//     bindUniformBlocks(terrain_shader->getID());
-
-//     getPass(RenderPass::Type::Terrain)->setShader(_shaders.terrain.get());
-//     getPass(RenderPass::Type::Standard_Opaque)->setShader(standard_shader);
-//     getPass(RenderPass::Type::Standard_Transparent)->setShader(standard_shader);
-//     getPass(RenderPass::Type::Tree_Opaque)->setShader(standard_shader);
-//     getPass(RenderPass::Type::Tree_Transparent)->setShader(standard_shader);
-//     getPass(RenderPass::Type::Water)->setShader(_shaders.water.get());
-//     getPass(RenderPass::Type::Sky)->setShader(_shaders.sky.get());
-
-//     LOG_INFO("Renderer::reloadShaders: All shaders reloaded and re-bound successfully!");
-// }
 
 void Renderer::resetStats()
 {

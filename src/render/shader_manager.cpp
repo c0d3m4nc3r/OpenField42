@@ -130,8 +130,6 @@ void ShaderManager::reloadAll()
 
         record.shader->setID(new_program_id);
 
-        record.shader->rebindUniformBlocks();
-
         LOG_INFO("ShaderManager::reloadAll: Successfully reloaded '%s' (New ID: %u)", 
             name.c_str(), new_program_id);
             

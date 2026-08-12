@@ -18,31 +18,6 @@ void Shader::use()
     current_bound_id = _id;
 }
 
-void Shader::rebindUniformBlocks()
-{
-    for (const auto& [name, binding] : _ubo_bindings) 
-    {
-        GLuint index = glGetUniformBlockIndex(_id, name.c_str());
-        if (index != GL_INVALID_INDEX) {
-            glUniformBlockBinding(_id, index, binding);
-        }
-    }
-}
-
-void Shader::setUniformBlockBinding(const char* name, uint32_t binding)
-{
-    GLuint block_index = glGetUniformBlockIndex(_id, name);
-    if (block_index == GL_INVALID_INDEX)
-    {
-        LOG_ERROR("Shader::bindUBO: Uniform block '%s' not found in shader %u!", name, _id);
-        return;
-    }
-
-    glUniformBlockBinding(_id, block_index, binding);
-
-    _ubo_bindings[name] = binding;
-}
-
 void Shader::setInt(const char* name, int value)
 {
     glUniform1i(glGetUniformLocation(_id, name), value);

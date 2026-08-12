@@ -14,9 +14,6 @@ public:
     void setID(unsigned int id) { _id = id; }
     unsigned int getID() const { return _id; }
 
-    void rebindUniformBlocks();
-    void setUniformBlockBinding(const char* name, uint32_t binding);
-
     void setInt(const char* name, int value);
     void setFloat(const char* name, float value);
     void setBool(const char* name, bool value);
