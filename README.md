@@ -39,7 +39,7 @@ Here are some planned tasks and features open for contribution:
 - [ ] Implement `#include` preprocessor directive support in the shader loader
 - [ ] Implement a dedicated shader for tree pass rendering
 - [ ] Add a command-line argument to list all available maps
-- [ ] Upgrade OpenGL from 3.3 to 4.5 and start using DSA (Direct State Access)
+- [x] ~~Upgrade OpenGL from 3.3 to 4.5 and start using DSA (Direct State Access)~~
 
 If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!
 
