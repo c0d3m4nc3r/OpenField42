@@ -59,15 +59,12 @@ std::vector<Material> Material::load(const std::string& path)
 
     std::istringstream stream(data);
     std::string line;
-    int i = 0;
 
     std::vector<Material> materials;
     Material current;
 
     while (std::getline(stream, line))
     {
-        i++;
-
         if (line.empty()) continue;
 
         std::erase_if(line, [](char c) {
@@ -97,7 +94,7 @@ std::vector<Material> Material::load(const std::string& path)
         {
             if (tokens.size() >= 2)
             {
-                auto texture = Texture::load(tokens[1]);
+                auto texture = Texture::load(tokens[1], true);
                 if (!texture)
                 {
                     LOG_WARNING("Material::load: Failed to load texture from '%s' for material '%s'!",

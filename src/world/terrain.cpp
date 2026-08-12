@@ -97,7 +97,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         tiles_per_side
     );
 
-    _base_tex = Texture::loadAtlas(texture_paths, 1024, 1024);
+    _base_tex = Texture::loadAtlas(texture_paths, 1024, 1024, 3, true);
     if (!_base_tex)
     {
         LOG_ERROR("Terrain::init: Failed to load textures!");
@@ -106,7 +106,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
 
     if (!tmpl->detail_tex_name.empty())
     {
-        _detail_tex = Texture::load(tmpl->detail_tex_name);
+        _detail_tex = Texture::load(tmpl->detail_tex_name, true);
         if (!_detail_tex)
         {
             LOG_WARNING("Terrain::init: Failed to load detail texture!");

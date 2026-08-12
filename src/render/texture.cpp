@@ -1,4 +1,5 @@
 #include "render/texture.h"
+#include "utils/gl_utils.h"
 #include "utils/log.h"
 
 #include "utils/texture_utils.h"
@@ -12,22 +13,23 @@ Texture::~Texture()
     if (_id != 0) glDeleteTextures(1, &_id);
 }
 
-std::shared_ptr<Texture> Texture::load(const std::string& path)
+std::shared_ptr<Texture> Texture::load(const std::string& path, bool generate_mipmaps)
 {
     int width, height, channels;
     auto texture_data = TextureUtils::loadData(path, &width, &height, &channels);
     if (texture_data.empty())
     {
-        LOG_ERROR("Texture::load: Failed to load texture from '%s'", path.c_str());
+        LOG_ERROR("Texture::load: Failed to load texture from '%s'!", path.c_str());
         return nullptr;
     }
 
-    GLuint texture = TextureUtils::createGLTexture(
+    GLuint texture = GLUtils::createTexture2D(
         width, height,
         TextureUtils::getInternalFormat(channels),
         TextureUtils::getFormat(channels),
         GL_UNSIGNED_BYTE,
-        texture_data.data()
+        texture_data.data(),
+        generate_mipmaps
     );
     
     auto result = std::make_shared<Texture>(texture);
@@ -35,7 +37,7 @@ std::shared_ptr<Texture> Texture::load(const std::string& path)
     return result;
 }
 
-std::shared_ptr<Texture> Texture::loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels)
+std::shared_ptr<Texture> Texture::loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels, bool generate_mipmaps)
 {
     if (paths.empty())
     {
@@ -88,12 +90,13 @@ std::shared_ptr<Texture> Texture::loadAtlas(const std::vector<std::string>& path
         }
     }
 
-    GLuint texture = TextureUtils::createGLTexture(
+    GLuint texture = GLUtils::createTexture2D(
         atlas_w, atlas_h,
         TextureUtils::getInternalFormat(channels),
         TextureUtils::getFormat(channels),
         GL_UNSIGNED_BYTE,
-        atlas_data.data()
+        atlas_data.data(),
+        generate_mipmaps
     );
 
     return std::make_shared<Texture>(texture);

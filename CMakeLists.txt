@@ -106,5 +106,6 @@ target_precompile_headers(of42 PRIVATE
     <SDL3/SDL.h>
     <glm/glm.hpp>
     <glm/gtc/matrix_transform.hpp>
+    "vendor/glad/include/glad/gl.h"
     "${SRC_DIR}/utils/log.h"
 )

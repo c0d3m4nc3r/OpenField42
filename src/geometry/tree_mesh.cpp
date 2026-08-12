@@ -268,7 +268,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         if (inserted)
         {
             it->second.name = texture_name;
-            it->second.texture = Texture::load(texture_name);
+            it->second.texture = Texture::load(texture_name, true);
             it->second.billboard = is_billboard;
             it->second.transparent = is_transparent;
         }

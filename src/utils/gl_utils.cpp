@@ -1,6 +1,45 @@
 #include "utils/gl_utils.h"
 
+#include "core/config.h"
+
 #include "glad/gl.h"
+
+unsigned int GLUtils::createTexture2D(
+    int width, int height,
+    GLenum internal_format, GLenum format,
+    GLenum type,
+    const void* data,
+    bool generate_mipmaps
+)
+{
+    GLuint texture = 0;
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+
+    int levels = 1;
+    if (generate_mipmaps && width > 0 && height > 0)
+    {
+        int maxdim = std::max(width, height);
+        levels = static_cast<int>(std::floor(std::log2(static_cast<float>(maxdim)))) + 1;
+    }
+
+    glTextureStorage2D(texture, levels, internal_format, width, height);
+
+    if (data)
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, format, type, data);
+
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, DEFAULT_MIN_FILTER);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, DEFAULT_MAG_FILTER);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, DEFAULT_WRAP_S);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, DEFAULT_WRAP_T);
+
+    if (generate_mipmaps)
+        glGenerateTextureMipmap(texture);
+
+    // LOG_DEBUG("GLUtils::createTexture2D: Created texture (ID: %u, Size: %dx%d, Levels: %d)", texture, width, height, levels);
+
+    return texture;
+}
 
 unsigned int GLUtils::compileShader(const char* src, unsigned int type)
 {

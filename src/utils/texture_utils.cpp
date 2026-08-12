@@ -1,5 +1,4 @@
 #include "utils/texture_utils.h"
-#include "core/config.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
 
@@ -9,27 +8,6 @@
 
 namespace TextureUtils
 {
-    GLuint createGLTexture(int width, int height, GLenum internal_format, GLenum format, GLenum type, const void* data)
-    {
-        GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, type, data);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, DEFAULT_MIN_FILTER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, DEFAULT_MAG_FILTER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, DEFAULT_WRAP_S);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, DEFAULT_WRAP_T);
-
-        if (GENERATE_MIPMAPS)
-            glGenerateMipmap(GL_TEXTURE_2D);
-        
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return texture;
-    }
-
     std::vector<unsigned char> loadData(const std::string& path, int* out_width, int* out_height, int* out_channels)
     {
         std::vector<char> file_data = VFS::readFileData(path);
