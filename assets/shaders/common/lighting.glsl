@@ -12,7 +12,7 @@ layout (std140, binding = 2) uniform LightingBlock
     vec4 u_SunDirection;
 };
 
-vec3 calcDirLight(vec3 fragPos, vec3 normal, vec3 viewPos, vec3 albedo, Material mat)
+vec3 CalcDirLight(vec3 fragPos, vec3 normal, vec3 viewPos, vec3 albedo)
 {
     vec3 ambient = (u_AmbientLight.rgb + u_GlobalAmbientLight.rgb) * 2.0 * albedo;
 
@@ -22,12 +22,12 @@ vec3 calcDirLight(vec3 fragPos, vec3 normal, vec3 viewPos, vec3 albedo, Material
     vec3 diffuse = diff * u_DiffuseLight.rgb * albedo;
 
     vec3 specular = vec3(0.0);
-    if (mat.lightingSpecular)
+    if (IsSpecularEnabled())
     {
         vec3 viewDir = normalize(viewPos - fragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), mat.specularPower);
-        specular = spec * u_SpecularLight.rgb * mat.specularColor;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_Material.specular.a);
+        specular = spec * u_SpecularLight.rgb * u_Material.specular.rgb;
     }
 
     return ambient + diffuse + specular;

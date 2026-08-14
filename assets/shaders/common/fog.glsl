@@ -7,7 +7,7 @@ layout (std140, binding = 1) uniform FogBlock
     vec4 u_FogParams; // x - start, y - end, z - enabled, w - padding
 };
 
-void applyFog(inout vec3 color, float distance)
+void ApplyFog(inout vec3 color, float distance)
 {
     if (u_FogParams.z == 1.0)
     {

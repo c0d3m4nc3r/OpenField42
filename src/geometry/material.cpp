@@ -10,36 +10,40 @@
 #include <sstream>
 #include <vector>
 
+#define MAT_FLAG_HAS_MAIN_TEX     (1 << 0) // 1
+#define MAT_FLAG_HAS_DETAIL_TEX   (1 << 1) // 2
+#define MAT_FLAG_LIGHTING_ENABLED (1 << 2) // 4
+#define MAT_FLAG_SPECULAR_ENABLED (1 << 3) // 8
+#define MAT_FLAG_IS_BILLBOARD     (1 << 4) // 16
+
 void Material::apply(Shader* shader) const
 {
     if (!shader) return;
 
-    shader->setVec4("u_Material.diffuseColor", diffuse_color.toVec4());
-    shader->setVec3("u_Material.specularColor", specular_color.toVec3());
-    shader->setFloat("u_Material.specularPower", specular_power);
+    shader->setVec4("u_Material.diffuse", diffuse_color.toVec4());
+    shader->setVec4("u_Material.specular", glm::vec4(specular_color.toVec3(), specular_power));
 
-    shader->setBool("u_Material.lighting", lighting);
-    shader->setBool("u_Material.lightingSpecular", lighting_specular);
+    int flags = 0;
 
     if (texture)
     {
         texture->bind(0);
-        shader->setInt("u_Material.texture", 0);
-        shader->setBool("u_Material.hasTexture", true);
-    } else {
-        shader->setBool("u_Material.hasTexture", false);
+        shader->setInt("u_MainTexture", 0);
+        flags |= MAT_FLAG_HAS_MAIN_TEX;
     }
 
     if (detail_texture)
     {
         detail_texture->bind(1);
-        shader->setInt("u_Material.detailTexture", 1);
-        shader->setBool("u_Material.hasDetailTexture", true);
-    } else {
-        shader->setBool("u_Material.hasDetailTexture", false);
+        shader->setInt("u_DetailTexture", 1);
+        flags |= MAT_FLAG_HAS_DETAIL_TEX;
     }
 
-    shader->setBool("u_Material.billboard", billboard);
+    flags |= (lighting ? MAT_FLAG_LIGHTING_ENABLED : 0);
+    flags |= (lighting_specular ? MAT_FLAG_SPECULAR_ENABLED : 0);
+    flags |= (billboard ? MAT_FLAG_IS_BILLBOARD : 0);
+
+    shader->setInt("u_Material.flags", flags);
 
     if (twosided) {
         glDisable(GL_CULL_FACE);

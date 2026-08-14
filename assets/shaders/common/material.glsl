@@ -1,25 +1,47 @@
 #ifndef COMMON_MATERIAL_GLSL
 #define COMMON_MATERIAL_GLSL
 
-// TODO: Move samplers into a separate uniform and use flags instead of booleans for better packing
+#define MAT_FLAG_HAS_MAIN_TEX     (1 << 0) // 1
+#define MAT_FLAG_HAS_DETAIL_TEX   (1 << 1) // 2
+#define MAT_FLAG_LIGHTING_ENABLED (1 << 2) // 4
+#define MAT_FLAG_SPECULAR_ENABLED (1 << 3) // 8
+#define MAT_FLAG_IS_BILLBOARD     (1 << 4) // 16
+
 struct Material
 {
-    sampler2D texture;
-    bool hasTexture;
-    
-    sampler2D detailTexture;
-    bool hasDetailTexture;
-
-    vec4 diffuseColor;
-    vec3 specularColor;
-    float specularPower;
-    
-    bool lighting;
-    bool lightingSpecular;
-    
-    bool billboard;
+    vec4 diffuse;
+    vec4 specular; // rgb - specular color, a - specular power
+    int flags;
 };
 
 uniform Material u_Material;
+
+uniform sampler2D u_MainTexture;
+uniform sampler2D u_DetailTexture;
+
+bool HasMainTexture()
+{
+    return (u_Material.flags & MAT_FLAG_HAS_MAIN_TEX) != 0;
+}
+
+bool HasDetailTexture()
+{
+    return (u_Material.flags & MAT_FLAG_HAS_DETAIL_TEX) != 0;
+}
+
+bool IsLightingEnabled()
+{
+    return (u_Material.flags & MAT_FLAG_LIGHTING_ENABLED) != 0;
+}
+
+bool IsSpecularEnabled()
+{
+    return (u_Material.flags & MAT_FLAG_SPECULAR_ENABLED) != 0;
+}
+
+bool IsBillboard()
+{
+    return (u_Material.flags & MAT_FLAG_IS_BILLBOARD) != 0;
+}
 
 #endif // COMMON_MATERIAL_GLSL

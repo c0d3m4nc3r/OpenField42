@@ -69,7 +69,7 @@ void main()
 
     vec3 finalColor = (layerColor1 * layerColor2).rgb * v_Color.rgb;
     
-    applyFog(finalColor, length(u_ViewPos.xyz - v_FragPos));
+    ApplyFog(finalColor, length(u_ViewPos.xyz - v_FragPos));
 
     f_Color = vec4(finalColor, v_Color.a);
 }

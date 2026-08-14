@@ -26,7 +26,7 @@ void main()
 {
     v_TexCoords = a_TexCoord;
 
-    if (u_Material.billboard) 
+    if (IsBillboard()) 
     {
         vec3 worldPos = vec3(u_Model * vec4(a_Pos, 1.0));
 
@@ -68,35 +68,35 @@ void main()
         return;
     }
 
-    vec3 objectColor = u_Material.diffuseColor.rgb;
-    float alpha = u_Material.diffuseColor.a;
+    vec3 objectColor = u_Material.diffuse.rgb;
+    float alpha = u_Material.diffuse.a;
 
-    if (u_Material.hasTexture)
+    if (HasMainTexture())
     {
-        vec4 texColor = texture(u_Material.texture, v_TexCoords);
+        vec4 texColor = texture(u_MainTexture, v_TexCoords);
         objectColor = texColor.rgb;
         alpha = texColor.a;
     }
 
-    if (u_Material.billboard)
+    if (IsBillboard())
     {
         objectColor.rgb *= 2.0;
     }
     
-    if (u_Material.hasDetailTexture)
+    if (HasDetailTexture())
     {
-        vec3 detailColor = texture(u_Material.detailTexture, v_TexCoords * 128.0).rgb;
+        vec3 detailColor = texture(u_DetailTexture, v_TexCoords * 128.0).rgb;
         objectColor *= detailColor * 2.0;
     }
 
     vec3 result;
-    if (u_Material.lighting) {
-        result = calcDirLight(v_FragPos, v_Normal, u_ViewPos.xyz, objectColor, u_Material);
+    if (IsLightingEnabled()) {
+        result = CalcDirLight(v_FragPos, v_Normal, u_ViewPos.xyz, objectColor);
     } else {
         result = objectColor;
     }
 
-    applyFog(result, length(u_ViewPos.xyz - v_FragPos));
+    ApplyFog(result, length(u_ViewPos.xyz - v_FragPos));
 
     f_Color = vec4(result, alpha);
 }

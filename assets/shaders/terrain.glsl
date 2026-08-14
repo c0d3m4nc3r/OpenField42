@@ -55,7 +55,7 @@ void main()
     vec3 detailColor = texture(u_DetailTex, v_TexCoords * 128).rgb;
     vec3 result = baseColor * detailColor * 2.0;
 
-    applyFog(result, length(u_ViewPos.xyz - v_FragPos));
+    ApplyFog(result, length(u_ViewPos.xyz - v_FragPos));
 
     f_Color = vec4(result, 1.0);
 }
