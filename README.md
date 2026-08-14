@@ -36,7 +36,7 @@ Here are some planned tasks and features open for contribution:
 - [ ] Implement accurate specular lighting for water rendering
 - [ ] Transition material system from individual uniforms to UBOs
 - [ ] Add per-pass rendering statistics to `DebugUI`
-- [ ] Implement `#include` preprocessor directive support in the shader loader
+- [x] ~~Implement `#include` preprocessor directive support in the shader loader~~
 - [ ] Implement a dedicated shader for tree pass rendering
 - [ ] Add a command-line argument to list all available maps
 - [x] ~~Upgrade OpenGL from 3.3 to 4.5 and start using DSA (Direct State Access)~~
@@ -49,7 +49,7 @@ The project is built on modern, cross-platform technologies:
 
 * **Language:** C++
 * **Windowing/Input:** [SDL3 (Simple DirectMedia Layer)](https://www.libsdl.org/)
-* **Graphics:** [GLAD (OpenGL 3.3)](https://github.com/Dav1dde/glad)
+* **Graphics:** [GLAD (OpenGL 4.5)](https://github.com/Dav1dde/glad)
 * **Debugging/Tools:** [Dear ImGui](https://github.com/ocornut/imgui)
 * **Archiving:** [librfa](https://github.com/c0d3m4nc3r/librfa) (My custom library for RFA file handling)
 
