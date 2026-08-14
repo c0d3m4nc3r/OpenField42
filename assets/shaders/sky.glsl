@@ -1,3 +1,4 @@
+#include "common/material.glsl"
 
 layout (std140, binding = 0) uniform CameraBlock
 {
@@ -28,26 +29,6 @@ void main()
 
 in vec2 v_TexCoords;
 out vec4 f_Color;
-
-struct Material
-{
-    sampler2D texture;
-    bool hasTexture;
-    
-    sampler2D detailTexture;
-    bool hasDetailTexture;
-
-    vec4 diffuseColor;
-    vec3 specularColor;
-    float specularPower;
-    
-    bool lighting;
-    bool lightingSpecular;
-    
-    bool billboard;
-};
-
-uniform Material u_Material;
 
 uniform bool u_WireframeEnabled;
 

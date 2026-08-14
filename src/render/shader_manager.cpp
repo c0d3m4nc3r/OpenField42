@@ -6,6 +6,8 @@
 
 #include "glad/gl.h"
 
+#include <sstream>
+
 #define GLSL_VERSION "#version 450 core\n"
 
 static GLuint buildShaderProgram(const std::string& src)
@@ -30,6 +32,41 @@ static GLuint buildShaderProgram(const std::string& src)
     return program;
 }
 
+static bool preprocessShaderSource(std::string& src, const std::string& shader_name)
+{
+    std::istringstream stream(src);
+    std::string line;
+    int i = 0;
+
+    while (std::getline(stream, line))
+    {
+        i++;
+        
+        if (line.find("#include") != std::string::npos)
+        {
+            size_t start = line.find('\"') + 1;
+            size_t end = line.find('\"', start);
+            std::string include_path = line.substr(start, end - start);
+
+            std::string include_src = VFS::readFileString("shaders/" + include_path);
+            if (include_src.empty())
+            {
+                LOG_ERROR("ShaderManager::preprocessShaderSource: Failed to read included file '%s' in shader '%s' at line %d!",
+                    include_path.c_str(), shader_name.c_str(), i);
+                return false;
+            }
+
+            if (!preprocessShaderSource(include_src, shader_name))
+            {
+                return false;
+            }
+
+            src.replace(src.find(line), line.length(), include_src);
+        }
+    }
+    return true;
+}
+
 Shader* ShaderManager::load(
     const std::string& name,
     const std::string& path
@@ -47,6 +84,12 @@ Shader* ShaderManager::load(
     if (src.empty())
     {
         LOG_ERROR("ShaderManager::load: Failed to read shader sources!");
+        return nullptr;
+    }
+
+    if (!preprocessShaderSource(src, name))
+    {
+        LOG_ERROR("ShaderManager::load: Failed to preprocess shader '%s'!", name.c_str());
         return nullptr;
     }
 
@@ -98,6 +141,13 @@ void ShaderManager::reloadAll()
         if (src.empty())
         {
             LOG_ERROR("ShaderManager::reloadAll: Failed to read file for shader '%s'!", name.c_str());
+            failed_count++;
+            continue;
+        }
+
+        if (!preprocessShaderSource(src, name))
+        {
+            LOG_ERROR("ShaderManager::reloadAll: Failed to preprocess shader '%s'!", name.c_str());
             failed_count++;
             continue;
         }
