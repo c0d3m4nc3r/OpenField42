@@ -8,4 +8,8 @@ public:
 
     bool load(const GeometryTemplate* tmpl);
 
+private:
+
+    bool loadMaterials(const GeometryTemplate* tmpl);
+
 };

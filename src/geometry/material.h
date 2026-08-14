@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <string>
 #include <memory>
 
@@ -41,8 +40,6 @@ struct Material
     bool twosided = false;
     bool transparent = false;
     bool no_depth_write = false;
-
-    static std::vector<Material> load(const std::string& path);
 
     void apply(Shader* shader) const;
 };
