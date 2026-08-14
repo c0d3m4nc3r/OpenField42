@@ -11,7 +11,7 @@ Shader::~Shader()
 
 void Shader::use()
 {
-    static unsigned int current_bound_id = 0;
+    static GLuint current_bound_id = 0;
     
     if (current_bound_id == _id) return;
     glUseProgram(_id);

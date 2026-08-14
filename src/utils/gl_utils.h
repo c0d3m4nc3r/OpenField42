@@ -9,6 +9,6 @@ namespace GLUtils
         const void* data = nullptr,
         bool generate_mipmaps = false
     );
-    unsigned int compileShader(const char* src, unsigned int type);
-    unsigned int linkProgram(unsigned int vert_shader, unsigned int frag_shader);
+    unsigned int compileShader(GLenum type, const char** src, int count);
+    unsigned int linkProgram(GLuint vert_shader, GLuint frag_shader);
 }

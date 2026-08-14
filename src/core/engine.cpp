@@ -37,7 +37,7 @@ bool Engine::init(int argc, char* argv[])
 
     for (const auto& name : SHADERS_TO_LOAD)
     {
-        if (!_shader_mgr->load(name, "shaders/" + name + ".vert", "shaders/" + name + ".frag"))
+        if (!_shader_mgr->load(name, "shaders/" + name + ".glsl"))
         {
             LOG_ERROR("Engine::init: Failed to load shaders!");
             return false;

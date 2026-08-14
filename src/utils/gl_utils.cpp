@@ -41,10 +41,10 @@ unsigned int GLUtils::createTexture2D(
     return texture;
 }
 
-unsigned int GLUtils::compileShader(const char* src, unsigned int type)
+unsigned int GLUtils::compileShader(unsigned int type, const char** src, int count)
 {
     GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &src, nullptr);
+    glShaderSource(shader, count, src, nullptr);
     glCompileShader(shader);
 
     GLint success = 0;

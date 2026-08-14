@@ -6,10 +6,33 @@
 
 #include "glad/gl.h"
 
+#define GLSL_VERSION "#version 450 core\n"
+
+static GLuint buildShaderProgram(const std::string& src)
+{
+    const char* vertex_src[] = { GLSL_VERSION, "#define VERTEX\n", "#line 1\n", src.c_str() };
+    GLuint vert_shader = GLUtils::compileShader(GL_VERTEX_SHADER, vertex_src, 4);
+    if (!vert_shader) return 0;
+
+    const char* fragment_src[] = { GLSL_VERSION, "#define FRAGMENT\n", "#line 1\n", src.c_str() };
+    GLuint frag_shader = GLUtils::compileShader(GL_FRAGMENT_SHADER, fragment_src, 4);
+    if (!frag_shader)
+    {
+        glDeleteShader(vert_shader);
+        return 0;
+    }
+
+    GLuint program = GLUtils::linkProgram(vert_shader, frag_shader);
+
+    glDeleteShader(vert_shader);
+    glDeleteShader(frag_shader);
+
+    return program;
+}
+
 Shader* ShaderManager::load(
     const std::string& name,
-    const std::string& vert_path,
-    const std::string& frag_path
+    const std::string& path
 )
 {
     if (contains(name))
@@ -18,33 +41,16 @@ Shader* ShaderManager::load(
         return _shaders[name].shader.get();
     }
  
-    LOG_INFO("ShaderManager::load: Loading shader '%s' from '%s' and '%s'...",
-        name.c_str(), vert_path.c_str(), frag_path.c_str());
+    LOG_INFO("ShaderManager::load: Loading shader '%s' from '%s'...", name.c_str(), path.c_str());
 
-    std::string vert_src = VFS::readFileString(vert_path);
-    std::string frag_src = VFS::readFileString(frag_path);
-
-    if (vert_src.empty() || frag_src.empty())
+    std::string src = VFS::readFileString(path);
+    if (src.empty())
     {
         LOG_ERROR("ShaderManager::load: Failed to read shader sources!");
         return nullptr;
     }
 
-    GLuint vert_shader = GLUtils::compileShader(vert_src.c_str(), GL_VERTEX_SHADER);
-    if (!vert_shader) return nullptr;
-
-    GLuint frag_shader = GLUtils::compileShader(frag_src.c_str(), GL_FRAGMENT_SHADER);
-    if (!frag_shader)
-    {
-        glDeleteShader(vert_shader);
-        return nullptr;
-    }
-
-    unsigned int program = GLUtils::linkProgram(vert_shader, frag_shader);
-    
-    glDeleteShader(vert_shader);
-    glDeleteShader(frag_shader);
-
+    GLuint program = buildShaderProgram(src);
     if (!program) return nullptr;
     
     LOG_INFO("ShaderManager::load: Shader '%s' loaded! (ID: %u)",
@@ -52,8 +58,7 @@ Shader* ShaderManager::load(
     
     _shaders[name] = ShaderRecord{
         .shader = std::make_unique<Shader>(program),
-        .vert_path = vert_path,
-        .frag_path = frag_path
+        .path = path
     };
 
     return _shaders[name].shader.get();
@@ -89,49 +94,26 @@ void ShaderManager::reloadAll()
 
     for (auto& [name, record] : _shaders)
     {
-        std::string vert_src = VFS::readFileString(record.vert_path);
-        std::string frag_src = VFS::readFileString(record.frag_path);
-
-        if (vert_src.empty() || frag_src.empty())
+        std::string src = VFS::readFileString(record.path);
+        if (src.empty())
         {
-            LOG_ERROR("ShaderManager::reloadAll: Failed to read files for shader '%s'!", name.c_str());
+            LOG_ERROR("ShaderManager::reloadAll: Failed to read file for shader '%s'!", name.c_str());
             failed_count++;
             continue;
         }
 
-        GLuint vertex_shader = GLUtils::compileShader(vert_src.c_str(), GL_VERTEX_SHADER);
-        if (!vertex_shader)
+        GLuint program = buildShaderProgram(src);
+        if (!program)
         {
-            LOG_ERROR("ShaderManager::reloadAll: Failed to compile vertex shader for '%s'!", name.c_str());
+            LOG_ERROR("ShaderManager::reloadAll: Failed to build shader program for '%s'!", name.c_str());
             failed_count++;
             continue;
         }
 
-        GLuint fragment_shader = GLUtils::compileShader(frag_src.c_str(), GL_FRAGMENT_SHADER);
-        if (!fragment_shader)
-        {
-            LOG_ERROR("ShaderManager::reloadAll: Failed to compile fragment shader for '%s'!", name.c_str());
-            glDeleteShader(vertex_shader);
-            failed_count++;
-            continue;
-        }
-
-        GLuint new_program_id = GLUtils::linkProgram(vertex_shader, fragment_shader);
-
-        glDeleteShader(vertex_shader);
-        glDeleteShader(fragment_shader);
-
-        if (!new_program_id)
-        {
-            LOG_ERROR("ShaderManager::reloadAll: Failed to link shader program for '%s'!", name.c_str());
-            failed_count++;
-            continue;
-        }
-
-        record.shader->setID(new_program_id);
+        record.shader->setID(program);
 
         LOG_INFO("ShaderManager::reloadAll: Successfully reloaded '%s' (New ID: %u)", 
-            name.c_str(), new_program_id);
+            name.c_str(), program);
             
         reloaded_count++;
     }

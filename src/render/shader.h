@@ -6,13 +6,13 @@ class Shader
 {
 public:
 
-    Shader(unsigned int id) : _id(id) {}
+    Shader(GLuint id) : _id(id) {}
     ~Shader();
 
     void use();
     
-    void setID(unsigned int id) { _id = id; }
-    unsigned int getID() const { return _id; }
+    void setID(GLuint id) { _id = id; }
+    GLuint getID() const { return _id; }
 
     void setInt(const char* name, int value);
     void setFloat(const char* name, float value);
@@ -25,7 +25,7 @@ public:
 
 private:
 
-    unsigned int _id;
+    GLuint _id;
 
     std::unordered_map<std::string, int> _uniform_locations;
 
