@@ -32,7 +32,7 @@ While I am the primary developer, this is an open-source project, and **help is 
 Here are some planned tasks and features open for contribution:
 
 - [x] ~~Implement resource managers (`ShaderManager` and `TextureManager`)~~
-- [ ] Implement asynchronous/multithreaded texture loading
+- [x] ~~Implement asynchronous/multithreaded texture loading~~
 - [ ] Implement accurate specular lighting for water rendering
 - [ ] Transition material system from individual uniforms to UBOs
 - [ ] Add per-pass rendering statistics to `DebugUI`
