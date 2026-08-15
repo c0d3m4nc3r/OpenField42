@@ -8,7 +8,7 @@ class Texture
 {
 public:
 
-    Texture(unsigned int id);
+    Texture(GLuint id = 0);
     ~Texture();
 
     static std::shared_ptr<Texture> load(const std::string& path, bool generate_mipmaps = false);
@@ -17,11 +17,13 @@ public:
     void bind(int slot = 0);
     void unbind(int slot = 0);
 
+    GLuint getID() const { return _id; }
+
     bool isTransparent() const { return _transparent; }
 
 private:
 
-    unsigned int _id;
+    GLuint _id;
 
     bool _transparent = false;
 };

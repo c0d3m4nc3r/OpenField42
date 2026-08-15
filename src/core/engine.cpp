@@ -9,6 +9,7 @@
 #include "platform/window.h"
 #include "render/renderer.h"
 #include "render/shader_manager.h"
+#include "render/texture_manager.h"
 #include "vfs/vfs.h"
 #include "world/terrain.h"
 #include "world/water.h"
@@ -22,6 +23,7 @@ DebugUI* g_DebugUI = nullptr;
 Console* g_Console = nullptr;
 GeometryManager* g_GeometryMgr = nullptr;
 ShaderManager* g_ShaderMgr = nullptr;
+TextureManager* g_TextureMgr = nullptr;
 World* g_World = nullptr;
 
 std::string SHADERS_TO_LOAD[] = {"sky", "standard", "terrain", "water"};
@@ -38,6 +40,7 @@ bool Engine::init(int argc, char* argv[])
     g_Console = new Console();
     g_GeometryMgr = new GeometryManager();
     g_ShaderMgr = new ShaderManager();
+    g_TextureMgr = new TextureManager();
     g_World = new World();
 
     if (!g_Window->init())
@@ -65,7 +68,6 @@ bool Engine::init(int argc, char* argv[])
 
     g_DebugUI->init();
     g_Console->init();
-
     g_Game->init();
 
     std::string level_name = "Market_Garden";
@@ -90,17 +92,19 @@ void Engine::shutdown()
 
     g_World->getWater().shutdown();
     g_World->getTerrain().shutdown();
-    g_ShaderMgr->unloadAll();
     g_Renderer->shutdown();
+    g_ShaderMgr->unloadAll();
+    g_TextureMgr->clear();
     g_Window->shutdown();
     VFS::unmountAll();
 
     delete g_World; g_World = nullptr;
+    delete g_TextureMgr; g_TextureMgr = nullptr;
+    delete g_ShaderMgr; g_ShaderMgr = nullptr;
     delete g_GeometryMgr; g_GeometryMgr = nullptr;
     delete g_Console; g_Console = nullptr;
     delete g_DebugUI; g_DebugUI = nullptr;
     delete g_Renderer; g_Renderer = nullptr;
-    delete g_ShaderMgr; g_ShaderMgr = nullptr;
     delete g_Input; g_Input = nullptr;
     delete g_Window; g_Window = nullptr;
 

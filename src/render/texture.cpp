@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstddef>
 
-Texture::Texture(unsigned int id) : _id(id) {}
+Texture::Texture(GLuint id) : _id(id) {}
 Texture::~Texture()
 {
     if (_id != 0) glDeleteTextures(1, &_id);
