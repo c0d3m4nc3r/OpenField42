@@ -15,6 +15,7 @@ class TextureManager
 public:
 
     TextureHandle load(const std::string& path);
+    TextureHandle loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels = 4);
     void clear();
 
     Texture& get(const TextureHandle& handle);

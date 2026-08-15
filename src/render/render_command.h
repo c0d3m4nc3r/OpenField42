@@ -1,5 +1,7 @@
 #pragma once
 
+#include "render/texture_manager.h"
+
 class Texture;
 struct Material;
 
@@ -14,5 +16,5 @@ struct RenderCommand
     uint32_t transform_id = 0;
     float distance_to_camera = 0.0f;
 
-    Texture* textures[2] = { nullptr, nullptr };
+    TextureHandle textures[2]{};
 };

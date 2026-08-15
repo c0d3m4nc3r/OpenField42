@@ -1,29 +1,25 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <memory>
-
 class Texture
 {
 public:
 
-    Texture(GLuint id = 0);
+    Texture(GLuint id = 0, bool transparent = false)
+        : _id(id), _transparent(transparent) {}
     ~Texture();
 
-    static std::shared_ptr<Texture> load(const std::string& path, bool generate_mipmaps = false);
-    static std::shared_ptr<Texture> loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels = 3, bool generate_mipmaps = false);
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+    Texture(Texture&&) noexcept;
+    Texture& operator=(Texture&&) noexcept;
 
-    void bind(int slot = 0);
-    void unbind(int slot = 0);
+    void bind(GLuint slot = 0) const;
 
     GLuint getID() const { return _id; }
-
     bool isTransparent() const { return _transparent; }
 
 private:
 
     GLuint _id;
-
-    bool _transparent = false;
+    bool _transparent;
 };

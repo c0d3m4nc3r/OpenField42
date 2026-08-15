@@ -1,15 +1,15 @@
 #include "geometry/material.h"
 
+#include "core/globals.h"
 #include "render/shader.h"
 #include "render/texture.h"
 
 #include "glad/gl.h"
 
-#define MAT_FLAG_HAS_MAIN_TEX     (1 << 0) // 1
-#define MAT_FLAG_HAS_DETAIL_TEX   (1 << 1) // 2
-#define MAT_FLAG_LIGHTING_ENABLED (1 << 2) // 4
-#define MAT_FLAG_SPECULAR_ENABLED (1 << 3) // 8
-#define MAT_FLAG_IS_BILLBOARD     (1 << 4) // 16
+#define MAT_FLAG_HAS_DETAIL_TEX   (1 << 0) // 1
+#define MAT_FLAG_LIGHTING_ENABLED (1 << 1) // 2
+#define MAT_FLAG_SPECULAR_ENABLED (1 << 2) // 4
+#define MAT_FLAG_IS_BILLBOARD     (1 << 3) // 8
 
 void Material::apply(Shader* shader) const
 {
@@ -20,16 +20,12 @@ void Material::apply(Shader* shader) const
 
     int flags = 0;
 
-    if (texture)
-    {
-        texture->bind(0);
-        shader->setInt("u_MainTexture", 0);
-        flags |= MAT_FLAG_HAS_MAIN_TEX;
-    }
+    g_TextureMgr->get(texture).bind(0);
+    shader->setInt("u_MainTexture", 0);
 
-    if (detail_texture)
+    if (detail_texture.isValid())
     {
-        detail_texture->bind(1);
+        g_TextureMgr->get(detail_texture).bind(1);
         shader->setInt("u_DetailTexture", 1);
         flags |= MAT_FLAG_HAS_DETAIL_TEX;
     }

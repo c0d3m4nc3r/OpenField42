@@ -271,10 +271,10 @@ void Console::init()
 
     // Water
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), texLayer1, [](Water* w, const std::string& value) {
-        w->setTexture(0, Texture::load(value, true));
+        w->setTexture(0, g_TextureMgr->load(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), texLayer2, [](Water* w, const std::string& value) {
-        w->setTexture(1, Texture::load(value, true));
+        w->setTexture(1, g_TextureMgr->load(value));
     });
     
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollDirection1, [](Water* w, const std::string& value) {

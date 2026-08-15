@@ -1,7 +1,8 @@
 #pragma once
 
+#include "render/texture_manager.h"
+
 #include <string>
-#include <memory>
 
 #include <glm/vec3.hpp>
 
@@ -24,13 +25,12 @@ struct Color
     glm::vec4 toVec4() const { return glm::vec4(r, g, b, a); }
 };
 
-class Texture;
 class Shader;
 struct Material
 {
     std::string name = "";
-    std::shared_ptr<Texture> texture = nullptr;
-    std::shared_ptr<Texture> detail_texture = nullptr;
+    TextureHandle texture;
+    TextureHandle detail_texture;
     Color diffuse_color = Color(1.0f, 1.0f, 1.0f, 1.0f);
     Color specular_color = Color(0.0f, 0.0f, 0.0f, 1.0f);
     float specular_power = 0.0f;

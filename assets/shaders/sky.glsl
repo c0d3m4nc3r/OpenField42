@@ -40,7 +40,7 @@ void main()
         return;
     }
 
-    vec4 texColor = HasMainTexture() ? texture(u_MainTexture, v_TexCoords) : u_Material.diffuse;
+    vec4 texColor = texture(u_MainTexture, v_TexCoords) * u_Material.diffuse;
     f_Color = vec4(texColor.rgb, texColor.a);
 }
 #endif // FRAGMENT

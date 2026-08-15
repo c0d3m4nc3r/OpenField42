@@ -1,5 +1,6 @@
 #include "geometry/tree_mesh.h"
 
+#include "core/globals.h"
 #include "geometry/geometry_template.h"
 #include "render/texture.h"
 #include "utils/log.h"
@@ -268,7 +269,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         if (inserted)
         {
             it->second.name = texture_name;
-            it->second.texture = Texture::load(texture_name, true);
+            it->second.texture = g_TextureMgr->load(texture_name);
             it->second.billboard = is_billboard;
             it->second.transparent = is_transparent;
         }

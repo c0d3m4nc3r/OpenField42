@@ -166,8 +166,8 @@ void Engine::update(float dt)
         Renderer::WaterParams water_params;
         water_params.layer_1 = glm::vec4(layer1.scroll_dir, layer1.scroll_speed, layer1.uv_scale);
         water_params.layer_2 = glm::vec4(layer2.scroll_dir, layer2.scroll_speed, layer2.uv_scale);
-        water_params.tex_layer1 = layer1.texture.get();
-        water_params.tex_layer2 = layer2.texture.get();
+        water_params.tex_layer1 = layer1.texture;
+        water_params.tex_layer2 = layer2.texture;
         g_Renderer->setWaterParams(water_params);
         water.clearDirty();
     }

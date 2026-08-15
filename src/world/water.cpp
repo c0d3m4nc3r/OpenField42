@@ -144,7 +144,7 @@ void Water::shutdown()
 {
     for (auto& layer : _layers)
     {
-        layer.texture.reset();
+        layer.texture = { INVALID_TEXTURE_ID };
         layer.scroll_dir = glm::vec2(0.0f);
         layer.scroll_speed = 0.0f;
         layer.uv_scale = 1.0f;

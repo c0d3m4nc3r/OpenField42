@@ -1,5 +1,6 @@
 #include "world/terrain.h"
 
+#include "core/globals.h"
 #include "geometry/geometry.h"
 #include "geometry/geometry_template.h"
 #include "render/texture.h"
@@ -97,17 +98,17 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         tiles_per_side
     );
 
-    _base_tex = Texture::loadAtlas(texture_paths, 1024, 1024, 3, true);
-    if (!_base_tex)
+    _base_tex = g_TextureMgr->loadAtlas(texture_paths, 1024, 1024, 3);
+    if (!_base_tex.isValid())
     {
-        LOG_ERROR("Terrain::init: Failed to load textures!");
-        return false;
+        LOG_WARNING("Terrain::init: Failed to load textures!");
+        // return false;
     }
 
     if (!tmpl->detail_tex_name.empty())
     {
-        _detail_tex = Texture::load(tmpl->detail_tex_name, true);
-        if (!_detail_tex)
+        _detail_tex = g_TextureMgr->load(tmpl->detail_tex_name);
+        if (!_detail_tex.isValid())
         {
             LOG_WARNING("Terrain::init: Failed to load detail texture!");
         }
@@ -207,8 +208,8 @@ bool Terrain::init(const GeometryTemplate* tmpl)
 
 void Terrain::shutdown()
 {
-    _base_tex.reset();
-    _detail_tex.reset();
+    _base_tex = { INVALID_TEXTURE_ID };
+    _detail_tex = { INVALID_TEXTURE_ID };
     _geometry.reset();
     _heights.clear();
 

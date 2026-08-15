@@ -68,16 +68,12 @@ void main()
         return;
     }
 
-    vec3 objectColor = u_Material.diffuse.rgb;
     float alpha = u_Material.diffuse.a;
 
-    if (HasMainTexture())
-    {
-        vec4 texColor = texture(u_MainTexture, v_TexCoords);
-        objectColor = texColor.rgb;
-        alpha = texColor.a;
-    }
-
+    vec4 texColor = texture(u_MainTexture, v_TexCoords);
+    vec3 objectColor = texColor.rgb * u_Material.diffuse.rgb;
+    alpha = texColor.a;
+    
     if (IsBillboard())
     {
         objectColor.rgb *= 2.0;

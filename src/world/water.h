@@ -4,8 +4,6 @@
 
 #include <glm/vec2.hpp>
 
-#include <memory>
-
 class Terrain;
 class Texture;
 class Water
@@ -14,7 +12,7 @@ public:
 
     struct Layer
     {
-        std::shared_ptr<Texture> texture = nullptr;
+        TextureHandle texture;
         glm::vec2 scroll_dir{0.0f};
         float scroll_speed = 0.0f;
         float uv_scale = 1.0f;
@@ -30,9 +28,9 @@ public:
     bool isDirty() const { return _dirty; }
     void clearDirty() { _dirty = false; }
 
-    void setTexture(int layer, std::shared_ptr<Texture> texture)
+    void setTexture(int layer, const TextureHandle& texture)
     {
-        _layers[layer].texture = std::move(texture);
+        _layers[layer].texture = texture;
         _dirty = true;
     }
 

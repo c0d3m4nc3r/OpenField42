@@ -1,6 +1,8 @@
 #pragma once
 
 #include "render/texture.h"
+#include "render/texture_manager.h"
+
 #include <algorithm>
 
 struct GeometryTemplate;
@@ -15,8 +17,8 @@ public:
     void shutdown();
 
     Geometry* getGeometry() const { return _geometry.get(); }
-    Texture* getBaseTexture() const { return _base_tex.get(); }
-    Texture* getDetailTexture() const { return _detail_tex.get(); }
+    TextureHandle getBaseTexture() const { return _base_tex; }
+    TextureHandle getDetailTexture() const { return _detail_tex; }
     
     int getSize() const { return _size; }
     int getWorldSize() const { return _world_size; }
@@ -48,8 +50,8 @@ public:
 private:
   
     std::unique_ptr<Geometry> _geometry;
-    std::shared_ptr<Texture> _base_tex;
-    std::shared_ptr<Texture> _detail_tex;
+    TextureHandle _base_tex;
+    TextureHandle _detail_tex;
     std::vector<float> _heights = {};
 
     int _size = 0, _world_size = 0;

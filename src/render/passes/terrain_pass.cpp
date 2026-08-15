@@ -1,3 +1,4 @@
+#include "core/globals.h"
 #include "render/render_passes.h"
 
 #include "render/render_context.h"
@@ -16,26 +17,14 @@ void TerrainPass::execute(RenderContext& ctx)
 
     uint32_t last_vao = 0;
     uint32_t last_transform_id = -1;
-    Texture* last_base_tex = nullptr;
-    Texture* last_detail_tex = nullptr;
-    
+
     for (auto& cmd : queue)
     {
-        if (cmd.textures[0] != last_base_tex &&
-            cmd.textures[0] != nullptr)
-        {
-            cmd.textures[0]->bind(0);
-            shader->setInt("u_BaseTex", 0);
-            last_base_tex = cmd.textures[0];
-        }
-
-        if (cmd.textures[1] != last_detail_tex &&
-            cmd.textures[1] != nullptr)
-        {
-            cmd.textures[1]->bind(1);
-            shader->setInt("u_DetailTex", 1);
-            last_detail_tex = cmd.textures[1];
-        }
+        g_TextureMgr->get(cmd.textures[0]).bind(0);
+        shader->setInt("u_BaseTex", 0);
+        
+        g_TextureMgr->get(cmd.textures[1]).bind(1);
+        shader->setInt("u_DetailTex", 1);
 
         if (last_transform_id != cmd.transform_id) {
             shader->setMat4("u_Model", ctx.transforms[cmd.transform_id]);

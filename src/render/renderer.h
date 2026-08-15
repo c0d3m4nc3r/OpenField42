@@ -15,8 +15,8 @@ public:
     {
         glm::vec4 layer_1; // xy dir, z speed, w uv_scale
         glm::vec4 layer_2;
-        Texture* tex_layer1 = nullptr;
-        Texture* tex_layer2 = nullptr;
+        TextureHandle tex_layer1;
+        TextureHandle tex_layer2;
     };
 
     struct Stats
@@ -64,7 +64,7 @@ public:
         _water_dirty = true;
     }
 
-    void setTerrainTextures(Texture* base, Texture* detail)
+    void setTerrainTextures(TextureHandle base, TextureHandle detail)
     {
         _terrain_textures[0] = base;
         _terrain_textures[1] = detail;
@@ -131,8 +131,8 @@ private:
     unsigned int _water_ubo = 0;
     bool _water_dirty = true;
 
-    Texture* _water_textures[2] = { nullptr, nullptr };
-    Texture* _terrain_textures[2] = { nullptr, nullptr };
+    TextureHandle _water_textures[2]{};
+    TextureHandle _terrain_textures[2]{};
     
     Stats _stats;
 

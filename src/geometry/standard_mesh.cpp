@@ -1,4 +1,5 @@
 #include "geometry/standard_mesh.h"
+#include "core/globals.h"
 #include "geometry/material.h"
 #include "geometry/geometry_template.h"
 #include "render/texture.h"
@@ -235,13 +236,13 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
         {
             if (tokens.size() >= 2)
             {
-                auto texture = Texture::load(tokens[1], true);
-                if (!texture)
+                auto texture = g_TextureMgr->load(tokens[1]);
+                if (!texture.isValid())
                 {
                     LOG_WARNING("Material::load: Failed to load texture from '%s' for material '%s'!",
                         tokens[1].c_str(), current.name.c_str());
                 } else {
-                    current.transparent = texture->isTransparent();
+                    current.transparent = g_TextureMgr->get(texture).isTransparent();
                     current.texture = texture;
                 }
             }

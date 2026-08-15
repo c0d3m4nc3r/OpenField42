@@ -9,8 +9,6 @@ TextureHandle TextureManager::load(const std::string& path)
     auto it = _path_to_handle.find(path);
     if (it != _path_to_handle.end())
         return it->second;
-    
-    LOG_INFO("TextureManager::load: Loading texture from '%s'...", path.c_str());
 
     int width, height, channels;
     auto texture_data = TextureUtils::loadData(path, &width, &height, &channels);
@@ -29,11 +27,81 @@ TextureHandle TextureManager::load(const std::string& path)
         true // todo
     );
 
-    TextureHandle handle = { static_cast<unsigned int>(_textures.size()) };
+    TextureHandle handle = { static_cast<unsigned int>(_textures.size() ) };
     _path_to_handle[path] = handle;
-    _textures.emplace_back(texture);
+    _textures.emplace_back(texture, channels == 4 ? true : false);
 
-    LOG_INFO("TextureManager::load: Texture '%s' loaded! (ID: %u)", path.c_str(), handle.id);
+    LOG_DEBUG("TextureManager::load: Texture '%s' loaded! (ID: %u)", path.c_str(), handle.id);
+
+    return handle;
+}
+
+TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels)
+{
+    if (paths.empty())
+    {
+        LOG_ERROR("TextureManager::loadAtlas: No paths provided!");
+        return { INVALID_TEXTURE_ID };
+    }
+
+    size_t tiles_count = paths.size();
+    size_t atlas_cols = static_cast<size_t>(std::ceil(std::sqrt(tiles_count)));
+    size_t atlas_rows = static_cast<size_t>(std::ceil(tiles_count / (float)atlas_cols));
+
+    int atlas_w = atlas_cols * tile_w;
+    int atlas_h = atlas_rows * tile_h;
+
+    std::vector<unsigned char> atlas_data(atlas_w * atlas_h * channels, 0);
+
+    for (size_t i = 0; i < tiles_count; ++i)
+    {
+        int x = (i % atlas_cols) * tile_w;
+        int y = (i / atlas_cols) * tile_h;
+
+        int original_w, original_h, original_channels;
+        auto tile_data = TextureUtils::loadData(paths[i], &original_w, &original_h, &original_channels);
+        if (tile_data.empty())
+        {
+            LOG_ERROR("TextureManager::loadAtlas: Failed to load texture from '%s'!", paths[i].c_str());
+            continue;
+        }
+
+        for (int ty = 0; ty < tile_h; ++ty)
+        {
+            for (int tx = 0; tx < tile_w; ++tx)
+            {
+                int src_x = tx % original_w;
+                int src_y = ty % original_h;
+                
+                for (int c = 0; c < channels; ++c)
+                {
+                    int src_channel = std::min(c, original_channels - 1);
+                    atlas_data[channels * ((y + ty) * atlas_w + (x + tx)) + c] =
+                        tile_data[original_channels * (src_y * original_w + src_x) + src_channel];
+                }
+            }
+        }
+    }
+
+    GLuint texture = GLUtils::createTexture2D(
+        atlas_w, atlas_h,
+        TextureUtils::getInternalFormat(channels),
+        TextureUtils::getFormat(channels),
+        GL_UNSIGNED_BYTE,
+        atlas_data.data(),
+        true // todo
+    );
+
+    TextureHandle handle = { static_cast<unsigned int>(_textures.size() ) };
+    _textures.emplace_back(texture, channels == 4 ? true : false);
+
+    LOG_DEBUG("TextureManager::loadAtlas: Texture atlas loaded from %zu paths! (ID: %u)",
+        paths.size(), handle.id);
+
+    for (const auto& path : paths)
+    {
+        LOG_DEBUG("TextureManager::loadAtlas: - %s", path.c_str());
+    }
 
     return handle;
 }

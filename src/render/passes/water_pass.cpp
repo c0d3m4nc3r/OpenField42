@@ -1,3 +1,4 @@
+#include "core/globals.h"
 #include "render/render_passes.h"
 
 #include "render/render_context.h"
@@ -19,21 +20,21 @@ void WaterPass::execute(RenderContext& ctx)
 
     unsigned int last_vao = 0;
     unsigned int last_transform_id = 0;
-    Texture* last_tex1 = nullptr;
-    Texture* last_tex2 = nullptr;
+    TextureHandle last_tex1;
+    TextureHandle last_tex2;
 
     for (const auto& cmd : queue)
     {
-        if (cmd.textures[0] != last_tex1 && cmd.textures[0] != nullptr)
+        if (cmd.textures[0].id != last_tex1.id && cmd.textures[0].isValid())
         {
-            cmd.textures[0]->bind(0);
+            g_TextureMgr->get(cmd.textures[0]).bind(0);
             shader->setInt("u_TexLayer1", 0);
             last_tex1 = cmd.textures[0];
         }
 
-        if (cmd.textures[1] != last_tex2 && cmd.textures[1] != nullptr)
+        if (cmd.textures[1].id != last_tex2.id && cmd.textures[1].isValid())
         {
-            cmd.textures[1]->bind(1);
+            g_TextureMgr->get(cmd.textures[1]).bind(1);
             shader->setInt("u_TexLayer2", 1);
             last_tex2 = cmd.textures[1];
         }
