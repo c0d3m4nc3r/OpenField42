@@ -259,11 +259,10 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         READ_DATA(lod.indices[i], sizeof(uint16_t));
     }
 
-    auto getMat = [this](const std::string& texture_name, bool is_billboard, bool is_transparent) -> Material&
+    auto getMat = [this](const std::string& texture_name, bool is_billboard) -> Material&
     {
         std::string mat_key = texture_name;
         if (is_billboard)   mat_key += "_bb";
-        if (is_transparent) mat_key += "_tr";
 
         auto [it, inserted] = materials.try_emplace(mat_key);
         if (inserted)
@@ -271,7 +270,6 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
             it->second.name = texture_name;
             it->second.texture = g_TextureMgr->load(texture_name);
             it->second.billboard = is_billboard;
-            it->second.transparent = is_transparent;
         }
         return it->second;
     };
@@ -282,7 +280,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         mesh.index_count = trunk.primitive_count * 3;
         mesh.index_start = trunk.index_start;
         mesh.base_vertex = 0;
-        mesh.material = &getMat(trunk.texture_name, false, false);
+        mesh.material = &getMat(trunk.texture_name, false);
         mesh.material->lighting = true;
     }
 
@@ -292,7 +290,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         mesh.index_count = branch.primitive_count * 3;
         mesh.index_start = branch.index_start;
         mesh.base_vertex = 0;
-        mesh.material = &getMat(branch.texture_name, false, true);
+        mesh.material = &getMat(branch.texture_name, false);
     }
 
     for (const auto& sprite : sprites)
@@ -301,8 +299,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         mesh.index_count = sprite.primitive_count * 3;
         mesh.index_start = sprite.index_start;
         mesh.base_vertex = 0;
-        mesh.material = &getMat(sprite.texture_name, true, true);
-        mesh.material->no_depth_write = true;
+        mesh.material = &getMat(sprite.texture_name, true);
     }
 
     // TODO: Load billboards

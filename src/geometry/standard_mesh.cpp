@@ -241,10 +241,8 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
                 {
                     LOG_WARNING("Material::load: Failed to load texture from '%s' for material '%s'!",
                         tokens[1].c_str(), current.name.c_str());
-                } else {
-                    current.transparent = g_TextureMgr->get(texture).isTransparent();
-                    current.texture = texture;
                 }
+                current.texture = texture;
             }
         }
         // Colors

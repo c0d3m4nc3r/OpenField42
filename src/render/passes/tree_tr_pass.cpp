@@ -14,11 +14,6 @@ void TreeTransparentPass::execute(RenderContext& ctx)
 
     shader->use();
 
-    // std::sort(queue.begin(), queue.end(), 
-    //     [](const RenderCommand& a, const RenderCommand& b) {
-    //         return a.distance_to_camera > b.distance_to_camera;
-    //     });
-
     std::stable_sort(queue.begin(), queue.end(), 
         [](const RenderCommand& a, const RenderCommand& b) {
             return a.distance_to_camera > b.distance_to_camera;

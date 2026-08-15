@@ -25,11 +25,7 @@ void StandardTransparentPass::execute(RenderContext& ctx)
     for (auto& cmd : queue)
     {   
         if (cmd.material)
-        {
             cmd.material->apply(shader);
-            if (cmd.material->no_depth_write)
-                glDepthMask(GL_FALSE);
-        }
         
         if (last_vao != cmd.vao) {
             glBindVertexArray(cmd.vao);
@@ -48,8 +44,6 @@ void StandardTransparentPass::execute(RenderContext& ctx)
             cmd.index_offset,
             cmd.base_vertex
         );
-
-        glDepthMask(GL_TRUE);
     }
 
     glBindVertexArray(0);

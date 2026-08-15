@@ -97,7 +97,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         tiles_per_side
     );
 
-    _base_tex = g_TextureMgr->loadAtlas(texture_paths, 1024, 1024, 4);
+    _base_tex = g_TextureMgr->loadAtlas(texture_paths, 1024, 1024, 3);
     if (!_base_tex.isValid())
     {
         LOG_WARNING("Terrain::init: Failed to load textures!");

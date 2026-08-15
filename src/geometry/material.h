@@ -37,8 +37,8 @@ struct Material
     bool lighting_specular = false;
     bool billboard = false;
     bool twosided = false;
-    bool transparent = false;
-    bool no_depth_write = false;
 
     void apply(Shader* shader) const;
+
+    bool isTransparent() const;
 };

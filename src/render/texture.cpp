@@ -1,11 +1,4 @@
 #include "render/texture.h"
-#include "utils/gl_utils.h"
-#include "utils/log.h"
-
-#include "utils/texture_utils.h"
-
-#include <cmath>
-#include <cstddef>
 
 Texture::~Texture()
 {

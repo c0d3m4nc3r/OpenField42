@@ -34,3 +34,8 @@ void Material::apply(Shader* shader) const
         glEnable(GL_CULL_FACE);
     }
 }
+
+bool Material::isTransparent() const
+{
+    return g_TextureMgr->get(texture).isTransparent();
+}

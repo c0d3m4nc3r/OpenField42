@@ -8,7 +8,7 @@
 
 namespace TextureUtils
 {
-    std::vector<unsigned char> loadData(const std::string& path, int* out_width, int* out_height, int* out_channels)
+    TextureData loadData(const std::string& path)
     {
         std::vector<char> file_data = VFS::readFileData(path);
         if (file_data.empty())
@@ -17,8 +17,8 @@ namespace TextureUtils
             return {};
         }
 
-        int width = 0, height = 0, channels = 0;
-        unsigned char* data = nullptr;
+        TextureData texture_data;
+        unsigned char* pixels = nullptr;
         bool is_custom_alloc = false;
 
         // NOTE: Hack for RGB565 dds images which is used for normal maps in bf1942
@@ -30,17 +30,17 @@ namespace TextureUtils
 
             if (bit_count == 16 && r_mask == 0xF800)
             {
-                width    = *reinterpret_cast<const uint32_t*>(&file_data[4 + 12]);
-                height   = *reinterpret_cast<const uint32_t*>(&file_data[4 + 8]);
-                channels = 4;
+                texture_data.width    = *reinterpret_cast<const uint32_t*>(&file_data[4 + 12]);
+                texture_data.height   = *reinterpret_cast<const uint32_t*>(&file_data[4 + 8]);
+                texture_data.channels = 4;
 
-                size_t num_pixels = static_cast<size_t>(width) * height;
+                size_t num_pixels = static_cast<size_t>(texture_data.width) * texture_data.height;
                 size_t expected_file_size = 128 + num_pixels * 2;
 
                 if (file_data.size() >= expected_file_size)
                 {
-                    data = static_cast<unsigned char*>(malloc(num_pixels * 4));
-                    if (data)
+                    pixels = static_cast<unsigned char*>(malloc(num_pixels * 4));
+                    if (pixels)
                     {
                         is_custom_alloc = true;
                         const uint16_t* raw_pixels = reinterpret_cast<const uint16_t*>(&file_data[128]);
@@ -53,46 +53,44 @@ namespace TextureUtils
                             uint8_t g = (pixel >> 5)  & 0x3F;
                             uint8_t b =  pixel        & 0x1F;
 
-                            data[i * 4 + 0] = (r << 3) | (r >> 2);
-                            data[i * 4 + 1] = (g << 2) | (g >> 4);
-                            data[i * 4 + 2] = (b << 3) | (b >> 2);
-                            data[i * 4 + 3] = 255;
+                            pixels[i * 4 + 0] = (r << 3) | (r >> 2);
+                            pixels[i * 4 + 1] = (g << 2) | (g >> 4);
+                            pixels[i * 4 + 2] = (b << 3) | (b >> 2);
+                            pixels[i * 4 + 3] = 255;
                         }
                     }
                 }
             }
         }
-        if (!data)
+        if (!pixels)
         {
-            data = SOIL_load_image_from_memory(
+            pixels = SOIL_load_image_from_memory(
                 reinterpret_cast<const unsigned char*>(file_data.data()),
                 static_cast<int>(file_data.size()),
-                &width, &height, &channels,
+                &texture_data.width, &texture_data.height, &texture_data.channels,
                 SOIL_LOAD_AUTO
             );
         }
 
-        if (!data)
+        if (!pixels)
         {
             LOG_ERROR("TextureUtils::loadData: Failed to load data from '%s': %s!", path.c_str(), SOIL_last_result());
             return {};
         }
 
-        if (out_width) *out_width = width;
-        if (out_height) *out_height = height;
-        if (out_channels) *out_channels = channels;
+        size_t data_size = static_cast<size_t>(texture_data.width) * texture_data.height * texture_data.channels;
 
-        size_t data_size = static_cast<size_t>(width) * height * channels;
+        texture_data.pixels.resize(data_size);
+        memcpy(texture_data.pixels.data(), pixels, data_size);
 
-        std::vector<unsigned char> result(data_size);
-        memcpy(result.data(), data, data_size);
+        texture_data.is_valid = true;
 
         if (is_custom_alloc)
-            free(data);
+            free(pixels);
         else
-            SOIL_free_image_data(data);
+            SOIL_free_image_data(pixels);
 
-        return result;
+        return texture_data;
     }
 
     GLenum getFormat(int channels)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <vector>
 #include <string>
 
@@ -54,5 +55,6 @@ namespace VFS
     
         RFA_Archive* _archive;
         std::string _archive_path;
+        mutable std::mutex _mutex;
     };
 }

@@ -182,6 +182,7 @@ void Engine::update(float dt)
 
 void Engine::render()
 {
+    g_TextureMgr->updateGpuUploads(4);
     g_Renderer->resetStats();
     g_World->render();
     g_Renderer->flush();

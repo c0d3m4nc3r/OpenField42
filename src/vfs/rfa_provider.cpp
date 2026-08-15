@@ -63,6 +63,8 @@ std::vector<char> RFAProvider::readFile(const std::string& path)
 {
     if (!_archive) return {};
 
+    std::lock_guard<std::mutex> lock(_mutex);
+
     if (!exists(path))
     {
         LOG_ERROR("RFAProvider::readFile: File '%s' not found in archive!", path.c_str());
@@ -90,6 +92,8 @@ std::vector<char> RFAProvider::readFile(const std::string& path)
 std::vector<std::string> RFAProvider::listFiles()
 {
     if (!_archive) return {};
+
+    std::lock_guard<std::mutex> lock(_mutex);
 
     std::vector<std::string> files;
     files.resize(_archive->entries_count);

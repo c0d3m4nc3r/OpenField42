@@ -154,14 +154,14 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         switch (geom->type)
         {
         case GeometryType::StandardMesh:
-            if (mesh.material && mesh.material->transparent) {
+            if (mesh.material && mesh.material->isTransparent()) {
                 getPass(RenderPass::Type::Standard_Transparent)->add(cmd);
             } else {
                 getPass(RenderPass::Type::Standard_Opaque)->add(cmd);
             }
             break;
         case GeometryType::TreeMesh:
-            if (mesh.material && mesh.material->transparent) {
+            if (mesh.material && mesh.material->isTransparent()) {
                 getPass(RenderPass::Type::Tree_Transparent)->add(cmd);
             } else {
                 getPass(RenderPass::Type::Tree_Opaque)->add(cmd);
