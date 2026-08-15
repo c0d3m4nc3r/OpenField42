@@ -2,6 +2,7 @@
 
 #include "core/console.h"
 #include "core/debugui.h"
+#include "core/globals.h"
 #include "game/game.h"
 #include "geometry/geometry_manager.h"
 #include "platform/input.h"
@@ -13,8 +14,15 @@
 #include "world/water.h"
 #include "world/world.h"
 
-Engine::Engine() {}
-Engine::~Engine() = default;
+Game* g_Game = nullptr;
+Window* g_Window = nullptr;
+Input* g_Input = nullptr;
+Renderer* g_Renderer = nullptr;
+DebugUI* g_DebugUI = nullptr;
+Console* g_Console = nullptr;
+GeometryManager* g_GeometryMgr = nullptr;
+ShaderManager* g_ShaderMgr = nullptr;
+World* g_World = nullptr;
 
 std::string SHADERS_TO_LOAD[] = {"sky", "standard", "terrain", "water"};
 
@@ -22,53 +30,48 @@ bool Engine::init(int argc, char* argv[])
 {
     LOG_INFO("Engine::init: Initializing engine...");
 
-    _window = std::make_unique<Window>();
-    if (!_window->init())
+    g_Game = new Game();
+    g_Window = new Window();
+    g_Input = new Input();
+    g_Renderer = new Renderer();
+    g_DebugUI = new DebugUI();
+    g_Console = new Console();
+    g_GeometryMgr = new GeometryManager();
+    g_ShaderMgr = new ShaderManager();
+    g_World = new World();
+
+    if (!g_Window->init())
     {
         LOG_ERROR("Engine::init: Failed to initialize window!");
         return false;
     }
 
-    _input = std::make_unique<Input>(*_window);
-
     VFS::mountProvider(std::make_shared<VFS::FolderProvider>("assets"));
-
-    _shader_mgr = std::make_unique<ShaderManager>();
 
     for (const auto& name : SHADERS_TO_LOAD)
     {
-        if (!_shader_mgr->load(name, "shaders/" + name + ".glsl"))
+        if (!g_ShaderMgr->load(name, "shaders/" + name + ".glsl"))
         {
             LOG_ERROR("Engine::init: Failed to load shaders!");
             return false;
         }
     }
 
-    _renderer = std::make_unique<Renderer>(*_shader_mgr.get());
-    if (!_renderer->init())
+    if (!g_Renderer->init())
     {
         LOG_ERROR("Engine::init: Failed to initialize renderer!");
         return false;
     }
 
-    _debug_ui = std::make_unique<DebugUI>();
-    _debug_ui->init(*_window);
+    g_DebugUI->init();
+    g_Console->init();
 
-    _console = std::make_unique<Console>();
-    _console->init(*this);
-    
-    _geometry_mgr = std::make_unique<GeometryManager>();
-
-    _world = std::make_unique<World>(*_geometry_mgr.get());
-    _world->init();
-
-    _game = std::make_unique<Game>(*this);
-    _game->init();
+    g_Game->init();
 
     std::string level_name = "Market_Garden";
     if (argc > 1) level_name = argv[1];
     
-    if (!_game->loadLevel(level_name))
+    if (!g_Game->loadLevel(level_name))
     {
         LOG_ERROR("Engine::init: Failed to load level '%s'!", level_name.c_str());
         return 3;
@@ -85,13 +88,21 @@ void Engine::shutdown()
 {
     LOG_INFO("Engine::shutdown: Shutting down engine...");
 
-    _shader_mgr->unloadAll();
-    
-    _geometry_mgr.reset();
-    _world->shutdown();
-    _renderer->shutdown();
-    _window->shutdown();
+    g_World->getWater().shutdown();
+    g_World->getTerrain().shutdown();
+    g_ShaderMgr->unloadAll();
+    g_Renderer->shutdown();
+    g_Window->shutdown();
     VFS::unmountAll();
+
+    delete g_World; g_World = nullptr;
+    delete g_GeometryMgr; g_GeometryMgr = nullptr;
+    delete g_Console; g_Console = nullptr;
+    delete g_DebugUI; g_DebugUI = nullptr;
+    delete g_Renderer; g_Renderer = nullptr;
+    delete g_ShaderMgr; g_ShaderMgr = nullptr;
+    delete g_Input; g_Input = nullptr;
+    delete g_Window; g_Window = nullptr;
 
     LOG_INFO("Engine::shutdown: Engine shutdown!");
 }
@@ -119,7 +130,7 @@ void Engine::tick(float dt, float fps, uint64_t frequency)
 
 void Engine::update(float dt)
 {
-    _input->update();
+    g_Input->update();
     
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -133,15 +144,15 @@ void Engine::update(float dt)
             }
         }
 
-        _debug_ui->onEvent(event);
-        _input->onEvent(event);
-        _game->onEvent(event);
+        g_DebugUI->onEvent(event);
+        g_Input->onEvent(event);
+        g_Game->onEvent(event);
     }
 
-    _world->update(dt);
-    _game->update(dt);
+    g_World->update(dt);
+    g_Game->update(dt);
 
-    auto& water = _world->getWater();
+    auto& water = g_World->getWater();
 
     if (water.isDirty())
     {
@@ -153,13 +164,13 @@ void Engine::update(float dt)
         water_params.layer_2 = glm::vec4(layer2.scroll_dir, layer2.scroll_speed, layer2.uv_scale);
         water_params.tex_layer1 = layer1.texture.get();
         water_params.tex_layer2 = layer2.texture.get();
-        _renderer->setWaterParams(water_params);
+        g_Renderer->setWaterParams(water_params);
         water.clearDirty();
     }
 
-    auto& terrain = _world->getTerrain();
+    auto& terrain = g_World->getTerrain();
 
-    _renderer->setTerrainTextures(
+    g_Renderer->setTerrainTextures(
         terrain.getBaseTexture(),
         terrain.getDetailTexture()
     );
@@ -167,10 +178,9 @@ void Engine::update(float dt)
 
 void Engine::render()
 {
-    _renderer->resetStats();
-    _world->render(*_renderer);
-    _renderer->flush();
-    if (_debug_ui_enabled)
-        _debug_ui->render(_stats, *_renderer);
-    _window->swapBuffers();
+    g_Renderer->resetStats();
+    g_World->render();
+    g_Renderer->flush();
+    g_DebugUI->render(_stats);
+    g_Window->swapBuffers();
 }

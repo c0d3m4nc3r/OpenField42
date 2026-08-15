@@ -1,15 +1,12 @@
 #pragma once
 
-class GeometryManager;
 struct GeometryTemplate;
+class GeometryManager;
 class Geometry;
 class Shader;
 class Sky
 {
 public:
-
-    Sky(GeometryManager& geometry_mgr)
-        : _geometry_mgr(geometry_mgr) {};
 
     float rot_angle = 0.0f;
 
@@ -19,7 +16,6 @@ public:
 
 private:
 
-    GeometryManager& _geometry_mgr;
     Geometry* _geometry = nullptr;
 
 };

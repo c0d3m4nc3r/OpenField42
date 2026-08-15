@@ -1,6 +1,8 @@
 #include "render/renderer.h"
-#include "render/camera.h"
+
+#include "core/globals.h"
 #include "core/config.h"
+#include "render/camera.h"
 #include "render/render_passes.h"
 #include "render/shader.h"
 #include "render/shader_manager.h"
@@ -14,10 +16,10 @@ bool Renderer::init()
 {
     LOG_INFO("Renderer::init: Initializing renderer...");
 
-    Shader* sky_shader = _shader_mgr.get("sky");
-    Shader* standard_shader = _shader_mgr.get("standard");
-    Shader* terrain_shader = _shader_mgr.get("terrain");
-    Shader* water_shader = _shader_mgr.get("water");
+    Shader* sky_shader = g_ShaderMgr->get("sky");
+    Shader* standard_shader = g_ShaderMgr->get("standard");
+    Shader* terrain_shader = g_ShaderMgr->get("terrain");
+    Shader* water_shader = g_ShaderMgr->get("water");
 
     // Create and bind UBOs
 

@@ -1,5 +1,7 @@
 #include "core/debugui.h"
+
 #include "core/engine.h"
+#include "core/globals.h"
 #include "platform/window.h"
 #include "render/camera.h"
 #include "render/renderer.h"
@@ -7,7 +9,7 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
 
-void DebugUI::init(const Window& window)
+void DebugUI::init()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -17,7 +19,7 @@ void DebugUI::init(const Window& window)
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
 
-    ImGui_ImplSDL3_InitForOpenGL(window.getHandle(), window.getGLContext());
+    ImGui_ImplSDL3_InitForOpenGL(g_Window->getHandle(), g_Window->getGLContext());
     ImGui_ImplOpenGL3_Init("#version 330");
 
     LOG_INFO("DebugUI::init: Debug UI initialized!");
@@ -28,8 +30,10 @@ void DebugUI::onEvent(const SDL_Event& event)
     ImGui_ImplSDL3_ProcessEvent(&event);
 }
 
-void DebugUI::render(const EngineStats& stats, const Renderer& renderer)
+void DebugUI::render(const EngineStats& stats)
 {
+    if (!_enabled) return;
+    
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
@@ -61,7 +65,7 @@ void DebugUI::render(const EngineStats& stats, const Renderer& renderer)
     ImGui::Text("Update: [%.2f%%]", (stats.update_time_ms / stats.total_frame_time_ms) * 100.0f);
     ImGui::Text("Render: [%.2f%%]", (stats.render_time_ms / stats.total_frame_time_ms) * 100.0f);
 
-    const auto& render_stats = renderer.getStats(); 
+    const auto& render_stats = g_Renderer->getStats(); 
 
     ImGui::Separator();
     ImGui::Text("Renderer Statistics:");
@@ -82,7 +86,7 @@ void DebugUI::render(const EngineStats& stats, const Renderer& renderer)
                         render_stats.meshes_rendered, render_stats.meshes_culled);
     }
 
-    Camera* camera = renderer.getCamera();
+    Camera* camera = g_Renderer->getCamera();
 
     ImGui::Separator();
     const glm::vec3& camera_pos = camera->getPosition();

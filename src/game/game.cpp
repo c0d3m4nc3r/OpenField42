@@ -1,6 +1,8 @@
 #include "game/game.h"
 
 #include "core/console.h"
+#include "core/debugui.h"
+#include "core/globals.h"
 #include "render/shader_manager.h"
 #include "utils/log.h"
 #include "platform/input.h"
@@ -9,7 +11,6 @@
 #include "vfs/vfs.h"
 #include "world/water.h"
 #include "world/world.h"
-
 
 bool Game::init()
 {
@@ -21,9 +22,7 @@ bool Game::init()
     VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture.rfa"));
     VFS::mountProvider(std::make_shared<VFS::RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/texture_001.rfa"));
 
-    auto& input = _engine.getInput();
-
-    input.setMouseCaptured(true);
+    g_Input->setMouseCaptured(true);
 
     const float WORLD_SIZE = 2048.0f;
     glm::vec3 world_center(WORLD_SIZE/2.0f);
@@ -31,8 +30,7 @@ bool Game::init()
 
     _camera.setPosition(world_center);
 
-    auto& renderer = _engine.getRenderer();
-    renderer.setCamera(&_camera);
+    g_Renderer->setCamera(&_camera);
 
     LOG_INFO("Game::init: Game initialized!");
 
@@ -54,14 +52,12 @@ void Game::update(float dt)
     if (glm::length(right) > 0.0f)
         right = glm::normalize(right);
 
-    auto& input = _engine.getInput();
-
-    if (input.isKeyDown(MOVE_FORWARD_KEY))  move_dir += forward;
-    if (input.isKeyDown(MOVE_BACKWARD_KEY)) move_dir -= forward;
-    if (input.isKeyDown(MOVE_LEFT_KEY))     move_dir -= right;
-    if (input.isKeyDown(MOVE_RIGHT_KEY))    move_dir += right;
-    if (input.isKeyDown(MOVE_UP_KEY))       move_dir += glm::vec3(0.0f, 1.0f, 0.0f);
-    if (input.isKeyDown(MOVE_DOWN_KEY))     move_dir += glm::vec3(0.0f, -1.0f, 0.0f);
+    if (g_Input->isKeyDown(MOVE_FORWARD_KEY))  move_dir += forward;
+    if (g_Input->isKeyDown(MOVE_BACKWARD_KEY)) move_dir -= forward;
+    if (g_Input->isKeyDown(MOVE_LEFT_KEY))     move_dir -= right;
+    if (g_Input->isKeyDown(MOVE_RIGHT_KEY))    move_dir += right;
+    if (g_Input->isKeyDown(MOVE_UP_KEY))       move_dir += glm::vec3(0.0f, 1.0f, 0.0f);
+    if (g_Input->isKeyDown(MOVE_DOWN_KEY))     move_dir += glm::vec3(0.0f, -1.0f, 0.0f);
 
     if (glm::length(move_dir) > 0.0f)
     {
@@ -69,10 +65,10 @@ void Game::update(float dt)
         _camera.move(move_dir * _camera_speed * dt);
     }
     
-    if (input.isMouseCaptured())
+    if (g_Input->isMouseCaptured())
     {
         int delta_x, delta_y;
-        input.getMouseDelta(&delta_x, &delta_y);
+        g_Input->getMouseDelta(&delta_x, &delta_y);
 
         float sensitivity = 0.15f;
         glm::vec3 rot = _camera.getRotation();
@@ -87,10 +83,8 @@ void Game::update(float dt)
         _camera.setRotation(rot);
     }
 
-    auto& window = _engine.getWindow();
-
     int width, height;
-    window.getSize(&width, &height);
+    g_Window->getSize(&width, &height);
 
     float aspect_ratio = static_cast<float>(width) /
                          static_cast<float>(height);
@@ -107,35 +101,30 @@ void Game::onEvent(const SDL_Event& event)
     {
         if (event.key.scancode == SDL_SCANCODE_ESCAPE)
         {
-            auto& input = _engine.getInput();
-            input.setMouseCaptured(!input.isMouseCaptured());
+            g_Input->setMouseCaptured(!g_Input->isMouseCaptured());
         }
         else if (event.key.scancode == SDL_SCANCODE_F1)
         {
             if (event.key.repeat) break;
-            auto& renderer = _engine.getRenderer();
-            renderer.setWireframeEnabled(!renderer.isWireframeEnabled());
+            g_Renderer->setWireframeEnabled(!g_Renderer->isWireframeEnabled());
         }
         else if (event.key.scancode == SDL_SCANCODE_F3)
         {
             if (event.key.repeat) break;
-            _engine.toggleDebugUI();
+            g_DebugUI->setEnabled(!g_DebugUI->isEnabled());
         }
         else if (event.key.scancode == SDL_SCANCODE_F5)
         {
             if (event.key.repeat) break;
-            auto& shader_mgr = _engine.getShaderMgr();
-            shader_mgr.reloadAll();
+            g_ShaderMgr->reloadAll();
         }
         else if (event.key.scancode == SDL_SCANCODE_F11)
         {
             if (event.key.repeat) break;
             _fullscreen = !_fullscreen;
             
-            auto& window = _engine.getWindow();
-
             // TODO: Replace with window.setFullscreen(bool fullscreen)
-            SDL_SetWindowFullscreen(window.getHandle(), _fullscreen);
+            SDL_SetWindowFullscreen(g_Window->getHandle(), _fullscreen);
         }
     } break;
     case SDL_EVENT_MOUSE_WHEEL:
@@ -154,8 +143,7 @@ void Game::onEvent(const SDL_Event& event)
     } break;
     case SDL_EVENT_WINDOW_RESIZED:
     {
-        auto& renderer = _engine.getRenderer();
-        renderer.setViewport(0, 0, (int)event.window.data1, (int)event.window.data2);
+        g_Renderer->setViewport(0, 0, (int)event.window.data1, (int)event.window.data2);
     } break;
     default: break;
     }
@@ -184,9 +172,8 @@ bool Game::loadLevel(const std::string& name)
         }
     }
 
-    auto& console = _engine.getConsole();
-    console.execFile("bf1942/levels/" + name + "/Init.con");
-    console.execFile("bf1942/levels/" + name + "/StaticObjects.con");
+    g_Console->execFile("bf1942/levels/" + name + "/Init.con");
+    g_Console->execFile("bf1942/levels/" + name + "/StaticObjects.con");
 
     // if (!Geometry::uploadAll())
     // {
@@ -194,8 +181,7 @@ bool Game::loadLevel(const std::string& name)
     //     return false;
     // }
 
-    auto& world = _engine.getWorld();
-    world.getWater().init(world.getTerrain());
+    g_World->getWater().init();
 
     LOG_INFO("Game::loadLevel: Level '%s' loaded!", name.c_str());
 
@@ -220,13 +206,11 @@ bool Game::loadGameObjs()
 
     std::vector<std::string> object_paths = VFS::listFiles("Objects/");
 
-    auto& console = _engine.getConsole();
-
     for (const auto& path : object_paths)
     {
         if (!path.ends_with(".con")) continue;
         
-        if (!console.execFile(path))
+        if (!g_Console->execFile(path))
         {
             LOG_ERROR("Game::loadGameObjs: Failed to load game objects: Error in '%s'!", path.c_str());
             return false;

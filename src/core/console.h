@@ -14,7 +14,7 @@ public:
     using CommandArgs = std::vector<std::string>;
     using CommandHandler = std::function<bool(const CommandArgs&)>;
 
-    void init(const Engine& engine);
+    void init();
 
     void registerCmd(const std::string& name, CommandHandler handler);
 

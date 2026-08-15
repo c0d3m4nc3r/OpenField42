@@ -1,5 +1,6 @@
 #include "world/sky.h"
 
+#include "core/globals.h"
 #include "geometry/geometry_manager.h"
 #include "geometry/geometry.h"
 #include "utils/log.h"
@@ -18,7 +19,7 @@ bool Sky::init(const GeometryTemplate* tmpl)
         return false;
     }
 
-    _geometry = _geometry_mgr.createGeometry(tmpl);
+    _geometry = g_GeometryMgr->createGeometry(tmpl);
     if (!_geometry)
     {
         LOG_ERROR("Sky::init: Failed to create sky geometry!");

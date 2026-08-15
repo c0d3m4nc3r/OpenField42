@@ -1,5 +1,6 @@
 #include "world/world.h"
 
+#include "core/globals.h"
 #include "geometry/geometry_manager.h"
 #include "geometry/geometry_template.h"
 #include "object/object.h"
@@ -8,40 +9,6 @@
 #include "world/sky.h"
 #include "world/terrain.h"
 #include "world/water.h"
-
-World::World(GeometryManager& geometry_mgr)
-    : _geometry_mgr(geometry_mgr) {}
-
-World::~World() {}
-
-void World::init()
-{
-    LOG_INFO("World::init: Initializing world...");
-
-    _sky = std::make_unique<Sky>(_geometry_mgr);
-    _terrain = std::make_unique<Terrain>();
-    _water = std::make_unique<Water>();
-
-    LOG_INFO("World::init: World initialized!");
-}
-
-void World::shutdown()
-{
-    LOG_INFO("World::shutdown: Shutting down World...");
-
-    // _sky->shutdown();
-    _sky.reset();
-    
-    _terrain->shutdown();
-    _terrain.reset();
-
-    _water->shutdown();
-    _water.reset();
-
-    _objects.clear();
-
-    LOG_INFO("World::shutdown: World shutdown!");
-}
 
 void World::update(float dt)
 {
@@ -91,7 +58,7 @@ Object* World::createObject(const ObjectTemplate* tmpl)
         return raw;
     }
 
-    const GeometryTemplate* geom_tmpl = _geometry_mgr.getTemplate(tmpl->geometry);
+    const GeometryTemplate* geom_tmpl = g_GeometryMgr->getTemplate(tmpl->geometry);
     if (!geom_tmpl)
     {
         LOG_ERROR("World::createObject: Geometry template with name '%s' not found!", tmpl->geometry.c_str());
@@ -108,11 +75,11 @@ Object* World::createObject(const ObjectTemplate* tmpl)
     
     if (geom_tmpl->type == GeometryType::PatchTerrain)
     {
-        _terrain->init(geom_tmpl);
+        _terrain.init(geom_tmpl);
         return nullptr;
     }
 
-    auto* geometry = _geometry_mgr.createGeometry(geom_tmpl);
+    auto* geometry = g_GeometryMgr->createGeometry(geom_tmpl);
     if (!geometry)
     {
         LOG_ERROR("World::createObject: Failed to load geometry!");
@@ -126,27 +93,27 @@ Object* World::createObject(const ObjectTemplate* tmpl)
     return raw;
 }
 
-void World::render(Renderer& renderer)
+void World::render()
 {
     for (auto& obj : _objects)
     {
         auto* geom = obj->getGeometry();
         if (!geom) continue;
 
-        renderer.submit(geom, obj->getModelMatrix());
+        g_Renderer->submit(geom, obj->getModelMatrix());
     }
 
-    auto* terrain_geom = _terrain->getGeometry();
-    if (terrain_geom) renderer.submit(terrain_geom, glm::mat4(1.0f));
+    auto* terrain_geom = _terrain.getGeometry();
+    if (terrain_geom) g_Renderer->submit(terrain_geom, glm::mat4(1.0f));
 
-    auto* sky_geom = _sky->getGeometry();
+    auto* sky_geom = _sky.getGeometry();
     if (sky_geom)
     {
         glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::rotate(transform, glm::radians(_sky->rot_angle), glm::vec3(0.0f, 1.0f, 0.0f));
-        renderer.submit(sky_geom, transform);
+        transform = glm::rotate(transform, glm::radians(_sky.rot_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        g_Renderer->submit(sky_geom, transform);
     }
 
-    auto* water_geom = _water->getGeometry();
-    if (water_geom) renderer.submit(water_geom, glm::mat4(1.0f));
+    auto* water_geom = _water.getGeometry();
+    if (water_geom) g_Renderer->submit(water_geom, glm::mat4(1.0f));
 }

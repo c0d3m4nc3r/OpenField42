@@ -14,9 +14,6 @@ class Input
 {
 public:
 
-    Input(Window& window) : _window(window) {}
-    ~Input() = default;
-
     void onEvent(const SDL_Event& event);
     void update();
 
@@ -37,8 +34,6 @@ public:
     void setMouseCaptured(bool captured);
 
 private:
-
-    Window& _window;
 
     std::unordered_map<Key, bool> _keys;
     std::unordered_map<Key, bool> _prev_keys;

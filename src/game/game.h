@@ -12,9 +12,6 @@ class Game
 {
 public:
 
-    Game(Engine& engine) : _engine(engine) {}
-    ~Game() = default;
-
     bool init();
     void update(float dt);
 
@@ -31,8 +28,6 @@ private:
 
     bool _fullscreen = false;
     bool _objs_loaded = false;
-
-    Engine& _engine;
     
     bool loadGameObjs();
 };

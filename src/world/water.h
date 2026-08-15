@@ -20,7 +20,7 @@ public:
         float uv_scale = 1.0f;
     };
 
-    bool init(const Terrain& terrain);
+    bool init();
     void shutdown();
 
     Geometry* getGeometry() { return &_geometry; }

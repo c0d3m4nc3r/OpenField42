@@ -27,9 +27,6 @@ public:
         size_t polygons_culled = 0;
     };
 
-    Renderer(ShaderManager& shader_mgr)
-        : _shader_mgr(shader_mgr) {}
-
     bool init();
     void shutdown();
     void submit(Geometry* geom, const glm::mat4& model);
@@ -105,8 +102,6 @@ private:
         glm::vec4 layer_1 = glm::vec4(glm::vec3(0.0f), 1.0f);
         glm::vec4 layer_2 = glm::vec4(glm::vec3(0.0f), 1.0f);
     };
-
-    ShaderManager& _shader_mgr;
     
     std::array<std::unique_ptr<RenderPass>, static_cast<size_t>(RenderPass::Type::Count)> _passes;
     const RenderPass::Type _execution_order[static_cast<size_t>(RenderPass::Type::Count)] = {

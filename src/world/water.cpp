@@ -1,11 +1,14 @@
 #include "world/water.h"
+
+#include "core/globals.h"
 #include "world/terrain.h"
+#include "world/world.h"
 
 #include "glad/gl.h"
 
 #include <glm/common.hpp>
 
-bool Water::init(const Terrain& terrain)
+bool Water::init()
 {
     LOG_INFO("Water::init: Initializing water...");
 
@@ -13,6 +16,8 @@ bool Water::init(const Terrain& terrain)
     const int step = 4;
     const int CHUNK_VERTS_PER_SIDE = (TILE_SIZE / step) + 1;
     const int CHUNK_VERT_COUNT = CHUNK_VERTS_PER_SIDE * CHUNK_VERTS_PER_SIDE;
+
+    Terrain& terrain = g_World->getTerrain();
 
     float scale_xz = static_cast<float>(terrain.getWorldSize()) / static_cast<float>(terrain.getSize());
 

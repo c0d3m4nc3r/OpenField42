@@ -1,5 +1,7 @@
 #include "core/console.h"
+
 #include "core/engine.h"
+#include "core/globals.h"
 #include "game//game.h"
 #include "geometry/geometry_manager.h"
 #include "render/renderer.h"
@@ -55,7 +57,7 @@
         if (obj) obj->Field = Console::parseVec3(value); \
     }
 
-void Console::init(const Engine& engine)
+void Console::init()
 {
     LOG_INFO("Console::init: Initializing console...");
 
@@ -64,7 +66,8 @@ void Console::init(const Engine& engine)
 
     registerCmd("run", [this](const CommandArgs& args)
     {
-        if (args.empty()) {
+        if (args.empty())
+        {
             LOG_ERROR("Console: run: Not enough arguments!");
             return false;
         }
@@ -74,7 +77,7 @@ void Console::init(const Engine& engine)
         return execFile(path);
     });
 
-    registerCmd("GeometryTemplate.create", [&engine, this](const CommandArgs& args)
+    registerCmd("GeometryTemplate.create", [this](const CommandArgs& args)
     {
         if (args.size() < 2)
         {
@@ -90,8 +93,7 @@ void Console::init(const Engine& engine)
             return false;
         }
 
-        auto& geometry_mgr = engine.getGeometryMgr();
-        _current_geom_tmpl = geometry_mgr.createTemplate(args[1], type);
+        _current_geom_tmpl = g_GeometryMgr->createTemplate(args[1], type);
 
         return true;
     });
@@ -166,7 +168,7 @@ void Console::init(const Engine& engine)
         return true;
     });
 
-    registerCmd("Object.create", [&engine](const CommandArgs& args)
+    registerCmd("Object.create", [](const CommandArgs& args)
     {
         Object::current = nullptr;
         
@@ -183,12 +185,10 @@ void Console::init(const Engine& engine)
             return true;
         }
 
-        auto& world = engine.getWorld();
-        if (!(Object::current = world.createObject(tmpl)))
+        if (!(Object::current = g_World->createObject(tmpl)))
         {
             // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
-            auto& geometry_mgr = engine.getGeometryMgr();
-            GeometryTemplate* geom_tmpl = geometry_mgr.getTemplate(tmpl->geometry);
+            GeometryTemplate* geom_tmpl = g_GeometryMgr->getTemplate(tmpl->geometry);
             if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
                 return true;
             
@@ -199,9 +199,9 @@ void Console::init(const Engine& engine)
         return true;
     });
 
-    registerCmd("Sky.initSky", [&engine, this](const CommandArgs& args)
+    registerCmd("Sky.initSky", [this](const CommandArgs& args)
     {
-        return engine.getWorld().getSky().init(_current_geom_tmpl);
+        return g_World->getSky().init(_current_geom_tmpl);
     });
 
     // GeometryTemplate
@@ -232,85 +232,85 @@ void Console::init(const Engine& engine)
     });
 
     // Renderer
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), fogColorVec, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, fogColorVec, [](Renderer* r, const std::string& value) {
         if (r) r->setFogColor(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), fogStart, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, fogStart, [](Renderer* r, const std::string& value) {
         if (r) r->setFogStart(Console::parseFloat(value));
     });
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), fogEnd, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, fogEnd, [](Renderer* r, const std::string& value) {
         if (r) r->setFogEnd(Console::parseFloat(value));
     });
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), vertexFogEnable, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, vertexFogEnable, [](Renderer* r, const std::string& value) {
         if (r) r->setFogEnabled(Console::parseInt(value) != 0);
     });
 
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), diffuseColor, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, diffuseColor, [](Renderer* r, const std::string& value) {
         if (r) r->setDiffuseLight(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), specularColor, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, specularColor, [](Renderer* r, const std::string& value) {
         if (r) r->setSpecularLight(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), ambientColor, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, ambientColor, [](Renderer* r, const std::string& value) {
         if (r) r->setAmbientLight(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Renderer, &engine.getRenderer(), globalAmbientColor, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, globalAmbientColor, [](Renderer* r, const std::string& value) {
         if (r) r->setGlobalAmbientLight(Console::parseVec3(value));
     });
 
     // Game
-    REGISTER_OBJECT_PROPERTY(Game, &engine.getGame(), setViewDistance, [](Game* g, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Game, g_Game, setViewDistance, [](Game* g, const std::string& value) {
         if (g) g->setViewDistance(Console::parseFloat(value));
     });
 
     // Sky
-    REGISTER_OBJECT_PROPERTY(Sky, &engine.getRenderer(), sunLightDirectionVec, [](Renderer* r, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Sky, g_Renderer, sunLightDirectionVec, [](Renderer* r, const std::string& value) {
         if (r) r->setSunDirection(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Sky, &engine.getWorld().getSky(), setRotAngle, GEN_FLOAT_SETTER(Sky, rot_angle));
+    REGISTER_OBJECT_PROPERTY(Sky, &g_World->getSky(), setRotAngle, GEN_FLOAT_SETTER(Sky, rot_angle));
 
     // Water
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), texLayer1, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), texLayer1, [](Water* w, const std::string& value) {
         w->setTexture(0, Texture::load(value, true));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), texLayer2, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), texLayer2, [](Water* w, const std::string& value) {
         w->setTexture(1, Texture::load(value, true));
     });
     
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollDirection1, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollDirection1, [](Water* w, const std::string& value) {
         w->setScrollDir(0, parseVec2(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollDirection2, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollDirection2, [](Water* w, const std::string& value) {
         w->setScrollDir(1, parseVec2(value));
     });
 
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollLayer1, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollLayer1, [](Water* w, const std::string& value) {
         w->setScrollSpeed(0, parseFloat(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), scrollLayer2, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollLayer2, [](Water* w, const std::string& value) {
         w->setScrollSpeed(1, parseFloat(value));
     });
 
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), tileLayer1, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), tileLayer1, [](Water* w, const std::string& value) {
         w->setUVScale(0, parseFloat(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), tileLayer2, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), tileLayer2, [](Water* w, const std::string& value) {
         w->setUVScale(1, parseFloat(value));
     });
 
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), color, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), color, [](Water* w, const std::string& value) {
         w->setColor(parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), deepColor, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), deepColor, [](Water* w, const std::string& value) {
         w->setDeepColor(parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), waterColorDepth, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), waterColorDepth, [](Water* w, const std::string& value) {
         w->setColorDepth(parseFloat(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), waterAlphaDepth, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), waterAlphaDepth, [](Water* w, const std::string& value) {
         w->setAlphaDepth(parseFloat(value));
     });
-    REGISTER_OBJECT_PROPERTY(Water, &engine.getWorld().getWater(), waterShallowAlpha, [](Water* w, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), waterShallowAlpha, [](Water* w, const std::string& value) {
         w->setShallowAlpha(parseFloat(value));
     });
 }
