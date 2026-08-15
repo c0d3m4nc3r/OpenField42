@@ -1,5 +1,7 @@
 #pragma once
 
+#include "render/texture.h"
+
 constexpr unsigned int INVALID_TEXTURE_ID = -1;
 
 struct TextureHandle
@@ -9,7 +11,6 @@ struct TextureHandle
     bool isValid() const { return id != INVALID_TEXTURE_ID; }
 };
 
-class Texture;
 class TextureManager
 {
 public:
@@ -21,10 +22,15 @@ public:
     Texture& get(const TextureHandle& handle);
     Texture& getDefault();
 
+    size_t count() const { return _textures.size(); }
+    size_t getMemoryUsage() const { return _memory_usage; }
+
 private:
 
     std::unordered_map<std::string, TextureHandle> _path_to_handle;
     std::vector<Texture> _textures;
     std::unique_ptr<Texture> _default_tex;
+
+    size_t _memory_usage = 0; // in bytes
 
 };

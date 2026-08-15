@@ -3,7 +3,6 @@
 #include "core/globals.h"
 #include "geometry/geometry.h"
 #include "geometry/geometry_template.h"
-#include "render/texture.h"
 #include "vfs/vfs.h"
 
 #define TILE_SIZE 64
@@ -98,11 +97,10 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         tiles_per_side
     );
 
-    _base_tex = g_TextureMgr->loadAtlas(texture_paths, 1024, 1024, 3);
+    _base_tex = g_TextureMgr->loadAtlas(texture_paths, 1024, 1024, 4);
     if (!_base_tex.isValid())
     {
         LOG_WARNING("Terrain::init: Failed to load textures!");
-        // return false;
     }
 
     if (!tmpl->detail_tex_name.empty())

@@ -1,6 +1,5 @@
 #include "render/texture_manager.h"
 
-#include "render/texture.h"
 #include "utils/gl_utils.h"
 #include "utils/texture_utils.h"
 
@@ -30,8 +29,10 @@ TextureHandle TextureManager::load(const std::string& path)
     TextureHandle handle = { static_cast<unsigned int>(_textures.size() ) };
     _path_to_handle[path] = handle;
     _textures.emplace_back(texture, channels == 4 ? true : false);
+    _memory_usage += texture_data.size();
 
-    LOG_DEBUG("TextureManager::load: Texture '%s' loaded! (ID: %u)", path.c_str(), handle.id);
+    LOG_DEBUG("TextureManager::load: Texture '%s' loaded! (ID: %u, Width: %d, Height: %d, Size: %zu KB)",
+        path.c_str(), handle.id, width, height, texture_data.size() / 1024);
 
     return handle;
 }
@@ -94,9 +95,10 @@ TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, i
 
     TextureHandle handle = { static_cast<unsigned int>(_textures.size() ) };
     _textures.emplace_back(texture, channels == 4 ? true : false);
+    _memory_usage += atlas_data.size();
 
-    LOG_DEBUG("TextureManager::loadAtlas: Texture atlas loaded from %zu paths! (ID: %u)",
-        paths.size(), handle.id);
+    LOG_DEBUG("TextureManager::loadAtlas: Texture atlas loaded from %zu paths! (Size: %zu KB, ID: %u)",
+        paths.size(), atlas_data.size() / 1024, handle.id);
 
     for (const auto& path : paths)
     {
@@ -112,6 +114,7 @@ void TextureManager::clear()
 
     _path_to_handle.clear();
     _textures.clear();
+    _memory_usage = 0;
 
     LOG_INFO("TextureManager::clear: All %zu textures unloaded!", count);
 }

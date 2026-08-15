@@ -86,6 +86,11 @@ void DebugUI::render(const EngineStats& stats)
                         render_stats.meshes_rendered, render_stats.meshes_culled);
     }
 
+    ImGui::Separator();
+
+    ImGui::Text("Memory Usage:");
+    ImGui::Text("Textures: %zu / %.2f MB", g_TextureMgr->count(), g_TextureMgr->getMemoryUsage() / (1024.0f * 1024.0f));
+
     Camera* camera = g_Renderer->getCamera();
 
     ImGui::Separator();
