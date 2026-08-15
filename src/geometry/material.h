@@ -30,7 +30,6 @@ struct Material
 {
     std::string name = "";
     TextureHandle texture;
-    TextureHandle detail_texture;
     Color diffuse_color = Color(1.0f, 1.0f, 1.0f, 1.0f);
     Color specular_color = Color(0.0f, 0.0f, 0.0f, 1.0f);
     float specular_power = 0.0f;

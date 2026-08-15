@@ -70,19 +70,13 @@ void main()
 
     float alpha = u_Material.diffuse.a;
 
-    vec4 texColor = texture(u_MainTexture, v_TexCoords);
+    vec4 texColor = texture(u_Texture, v_TexCoords);
     vec3 objectColor = texColor.rgb * u_Material.diffuse.rgb;
     alpha = texColor.a;
     
     if (IsBillboard())
     {
         objectColor.rgb *= 2.0;
-    }
-    
-    if (HasDetailTexture())
-    {
-        vec3 detailColor = texture(u_DetailTexture, v_TexCoords * 128.0).rgb;
-        objectColor *= detailColor * 2.0;
     }
 
     vec3 result;

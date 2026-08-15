@@ -202,6 +202,7 @@ void Renderer::flush()
 
     if (_fog_dirty)
     {
+        if (!RENDER_FOG) _fog.params.z = 0.0f;
         glNamedBufferSubData(_fog_ubo, 0, sizeof(UBO_FogBlock), &_fog);
         _fog_dirty = false;
     }
