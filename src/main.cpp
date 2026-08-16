@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL_timer.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -53,6 +54,38 @@ bool checkRequiredDirs(const std::vector<std::string>& required_dirs)
     return all_found;
 }
 
+bool hasNoDigits(const std::string& name)
+{
+    return std::none_of(name.begin(), name.end(), [](unsigned char c) {
+        return std::isdigit(c);
+    });
+}
+
+void listLevels()
+{
+    LOG_INFO("Levels list:");
+    fs::path levels_dir = std::string(GAME_DATA_DIR) + "/bf1942/Archives/bf1942/levels";
+
+    int i = 0;
+
+    for (const auto& entry : fs::directory_iterator(levels_dir))
+    {
+        if (entry.is_regular_file())
+        {
+            std::string filename = entry.path().filename().string();
+
+            if (hasNoDigits(filename))
+            {
+                if (filename.length() > 4)
+                    filename = filename.substr(0, filename.length() - 4);
+
+                i++;
+                LOG_INFO("%d: %s", i, filename.c_str());
+            }
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     if (!checkRequiredDirs({GAME_DATA_DIR, ASSETS_DIR}))
@@ -61,6 +94,15 @@ int main(int argc, char* argv[])
         std::cout << "Press ENTER to exit...\n";
         std::cin.get();
         return 1;
+    }
+
+    for (int i = 0; i < argc; i++)
+    {
+        if (strncmp(argv[i], "-l", 2) == 0)
+        {
+            listLevels();
+            return 0;
+        }
     }
 
     Engine engine;

@@ -38,7 +38,7 @@ Here are some planned tasks and features open for contribution:
 - [ ] Add per-pass rendering statistics to `DebugUI`
 - [x] ~~Implement `#include` preprocessor directive support in the shader loader~~
 - [ ] Implement a dedicated shader for tree pass rendering
-- [ ] Add a command-line argument to list all available maps
+- [x] Add a command-line argument to list all available maps
 - [x] ~~Upgrade OpenGL from 3.3 to 4.5 and start using DSA (Direct State Access)~~
 
 If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!
@@ -105,10 +105,16 @@ To run OpenField42, you must provide the original Battlefield 1942 game files:
 3.  **Run the Executable:**
     The executable will be located in the `bin/` directory.
 
-    * **With arguments:** Launch a specific map by passing its name:
+    * **List available maps:** View all available maps found in the `game_data` directory:
+        ```bash
+        ./bin/of42 -l
+        ```
+
+    * **Launch a specific map:** Pass the map name as an argument:
         ```bash
         ./bin/of42 Market_Garden 
         ```
+
     * **Without arguments:** The engine defaults to loading the **Market Garden** map.
         ```bash
         ./bin/of42
