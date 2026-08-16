@@ -165,6 +165,8 @@ void TextureManager::uploadAtlasTile(const TextureData& task)
             _atlas_pending_tiles.erase(pending_it);
         }
     }
+
+    _memory_usage += task.pixels.size();
 }
 
 void TextureManager::uploadNewTexture(const TextureData& task)

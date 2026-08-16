@@ -34,9 +34,9 @@ public:
     
     void reloadShaders();
     void resetStats();
-
-    Camera* getCamera() const { return _camera; }
     
+    Camera* getCamera() const { return _camera; }
+    RenderPass* getPass(RenderPass::Type type) const;
     const Stats& getStats() const { return _stats; }
 
     bool isWireframeEnabled() const { return _context.wireframe_enabled; }
@@ -142,6 +142,4 @@ private:
         static_assert(std::is_base_of<RenderPass, T>::value, "T must be derived from RenderPass");
         _passes[static_cast<size_t>(type)] = std::make_unique<T>(shader);
     }
-
-    RenderPass* getPass(RenderPass::Type type);
 };

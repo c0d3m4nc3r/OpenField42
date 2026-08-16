@@ -9,6 +9,8 @@
 
 void WaterPass::execute(RenderContext& ctx)
 {
+    Shader* shader = getShader();
+
     if (queue.empty() || !shader) return;
 
     shader->use();

@@ -35,10 +35,10 @@ Here are some planned tasks and features open for contribution:
 - [x] ~~Implement asynchronous/multithreaded texture loading~~
 - [ ] Implement accurate specular lighting for water rendering
 - [ ] Transition material system from individual uniforms to UBOs
-- [ ] Add per-pass rendering statistics to `DebugUI`
+- [x] ~~Add per-pass rendering statistics to `DebugUI`~~
 - [x] ~~Implement `#include` preprocessor directive support in the shader loader~~
 - [ ] Implement a dedicated shader for tree pass rendering
-- [x] Add a command-line argument to list all available maps
+- [x] ~~Add a command-line argument to list all available maps~~
 - [x] ~~Upgrade OpenGL from 3.3 to 4.5 and start using DSA (Direct State Access)~~
 
 If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!

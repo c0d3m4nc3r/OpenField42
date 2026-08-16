@@ -238,14 +238,19 @@ void Renderer::resetStats()
     _stats.meshes_rendered = 0;
     _stats.polygons_culled = 0;
     _stats.polygons_rendered = 0;
+
+    for (auto& pass : _passes)
+    {
+        pass->clearStats();
+    }
+}
+
+RenderPass* Renderer::getPass(RenderPass::Type type) const
+{
+    return _passes[static_cast<size_t>(type)].get();
 }
 
 void Renderer::setViewport(int x, int y, int w, int h) const
 {
     glViewport(x, y, w, h);
-}
-
-RenderPass* Renderer::getPass(RenderPass::Type type)
-{
-    return _passes[static_cast<size_t>(type)].get();
 }

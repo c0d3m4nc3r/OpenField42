@@ -56,40 +56,55 @@ void DebugUI::render(const EngineStats& stats)
 
     ImGui::Separator();
     ImGui::Text("Performance Profiling:");
-    ImGui::Text("Update: %.2f ms", stats.update_time_ms);
-    ImGui::Text("Render: %.2f ms", stats.render_time_ms);
-    ImGui::Text("Total Frame: %.2f ms", stats.total_frame_time_ms);
+    ImGui::Text("\tUpdate: %.2f ms", stats.update_time_ms);
+    ImGui::Text("\tRender: %.2f ms", stats.render_time_ms);
+    ImGui::Text("\tTotal Frame: %.2f ms", stats.total_frame_time_ms);
 
     ImGui::Separator();
     ImGui::Text("Frame Time Distribution:");
-    ImGui::Text("Update: [%.2f%%]", (stats.update_time_ms / stats.total_frame_time_ms) * 100.0f);
-    ImGui::Text("Render: [%.2f%%]", (stats.render_time_ms / stats.total_frame_time_ms) * 100.0f);
+    ImGui::Text("\tUpdate: [%.2f%%]", (stats.update_time_ms / stats.total_frame_time_ms) * 100.0f);
+    ImGui::Text("\tRender: [%.2f%%]", (stats.render_time_ms / stats.total_frame_time_ms) * 100.0f);
 
     const auto& render_stats = g_Renderer->getStats(); 
 
     ImGui::Separator();
     ImGui::Text("Renderer Statistics:");
-    ImGui::Text("Meshes Rendered: %zu", render_stats.meshes_rendered);
-    ImGui::Text("Meshes Culled: %zu", render_stats.meshes_culled);
-    ImGui::Text("Polygons Rendered: %zu", render_stats.polygons_rendered);
-    ImGui::Text("Polygons Culled: %zu", render_stats.polygons_culled);
+    ImGui::Text("\tMeshes Rendered: %zu", render_stats.meshes_rendered);
+    ImGui::Text("\tMeshes Culled: %zu", render_stats.meshes_culled);
+    ImGui::Text("\tPolygons Rendered: %zu", render_stats.polygons_rendered);
+    ImGui::Text("\tPolygons Culled: %zu", render_stats.polygons_culled);
 
     size_t total_meshes = render_stats.meshes_rendered + render_stats.meshes_culled;
     if (total_meshes > 0) 
     {
         float culling_efficiency = (static_cast<float>(render_stats.meshes_culled) / total_meshes) * 100.0f;
-        ImGui::Text("Culling Efficiency: %.1f%%", culling_efficiency);
+        ImGui::Text("\tCulling Efficiency: %.1f%%", culling_efficiency);
         
-        ImGui::Text("Visible/Culled Ratio: ");
+        ImGui::Text("\tVisible/Culled Ratio: ");
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%zu/%zu", 
                         render_stats.meshes_rendered, render_stats.meshes_culled);
     }
 
     ImGui::Separator();
+    ImGui::Text("Per-pass Statistics:");
+
+    for (size_t i = 0; i < static_cast<size_t>(RenderPass::Type::Count); i++)
+    {
+        auto type = static_cast<RenderPass::Type>(i);
+        auto* pass = g_Renderer->getPass(type);
+        const auto& pass_stats = pass->getStats();
+
+        ImGui::Text("\t%s: ", passTypeToString(type).c_str());
+        ImGui::Text("\t\tMeshes rendered: %zu", pass_stats.meshes_rendered);
+        ImGui::Text("\t\tPolygons rendered: %zu", pass_stats.polygons_rendered);
+
+    }
+
+    ImGui::Separator();
 
     ImGui::Text("Memory Usage:");
-    ImGui::Text("Textures: %zu / %.2f MB", g_TextureMgr->count(), g_TextureMgr->getMemoryUsage() / (1024.0f * 1024.0f));
+    ImGui::Text("\tTextures: %zu / %.2f MB", g_TextureMgr->count(), g_TextureMgr->getMemoryUsage() / (1024.0f * 1024.0f));
 
     Camera* camera = g_Renderer->getCamera();
 
