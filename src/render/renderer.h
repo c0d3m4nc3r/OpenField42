@@ -5,6 +5,8 @@
 #include "render/render_pass.h"
 #include "render/shader.h"
 
+#include <array>
+
 class Camera;
 class ShaderManager;
 class Renderer

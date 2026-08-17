@@ -2,6 +2,7 @@
 
 #include "geometry/geometry_type.h"
 
+#include <array>
 #include <string>
 
 struct GeometryTemplate

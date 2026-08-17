@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'assets/**'
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'FUNDING.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'assets/**'
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'FUNDING.yml'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxss-dev libasound2-dev libpulse-dev libaudio-dev \
+          libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev \
+          libxcursor-dev libxfixes-dev libxi-dev libwayland-dev \
+          libegl1-mesa-dev libgles2-mesa-dev libdbus-1-dev libibus-1.0-dev \
+          libudev-dev
+
+      - name: Cache FetchContent deps
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Configure CMake
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DSDL_X11_XTEST=OFF -DSDL_X11_XSCRNSAVER=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache FetchContent deps
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Configure CMake
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
