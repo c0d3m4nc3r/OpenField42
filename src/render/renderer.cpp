@@ -76,14 +76,28 @@ void Renderer::shutdown()
     LOG_INFO("Renderer::shutdown: Renderer shutdown!");
 }
 
-static size_t calculateLOD(float distance, float max_distance, size_t max_lod)
+float distanceToAABB(const glm::vec3& point, const AABB& box, const glm::mat4& model)
 {
-    if (distance >= max_distance) 
-        return max_lod;
-    
-    float ratio = distance / max_distance;
-    size_t lod = static_cast<size_t>(ratio * max_lod);
-    return glm::min(lod, max_lod);
+    glm::vec3 world_min = glm::vec3(model * glm::vec4(box.min, 1.0f));
+    glm::vec3 world_max = glm::vec3(model * glm::vec4(box.max, 1.0f));
+
+    glm::vec3 closest = glm::clamp(point, glm::min(world_min, world_max), glm::max(world_min, world_max));
+    return glm::distance(point, closest);
+}
+
+int selectLOD(float distance, const Geometry& geom)
+{
+    if (geom.lods.empty()) return 0;
+    if (geom.lods.size() == 1) return 0;
+
+    for (int i = static_cast<int>(geom.lods.size()) - 1; i >= 1; --i) {
+        float lod_dist = geom.lods[i].distance * 5.0f;
+        if (distance >= lod_dist && lod_dist > 0.0f) {
+            return i;
+        }
+    }
+
+    return 0;
 }
 
 void Renderer::submit(Geometry* geom, const glm::mat4& model)
@@ -94,18 +108,14 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     glm::vec3 cam_pos = _camera->getPosition();
     glm::vec3 cam_forward = _camera->getForward(); 
 
-    glm::vec3 world_center = glm::vec3(model * glm::vec4(geom->aabb.center(), 1.0f));
-
-    glm::vec3 to_object = world_center - cam_pos;
-
-    float distance = glm::dot(to_object, cam_forward);
+    float distance = distanceToAABB(cam_pos, geom->aabb, model);
 
     size_t lod_index = 0;
     
     if (USE_LODS && geom->type != GeometryType::SkyMesh)
     {
         // TODO: Load LOD max distance from .con files
-        lod_index = calculateLOD(distance, _camera->getFarPlane()*0.9f, geom->lods.size() - 1);
+        lod_index = selectLOD(distance, *geom);
     }
 
     Geometry::LOD& lod = geom->lods[lod_index];

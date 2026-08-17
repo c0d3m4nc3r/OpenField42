@@ -5,7 +5,6 @@
 #include "game//game.h"
 #include "geometry/geometry_manager.h"
 #include "render/renderer.h"
-#include "render/texture.h"
 #include "geometry/geometry_template.h"
 #include "object/object_template.h"
 #include "object/object.h"
@@ -216,6 +215,20 @@ void Console::init()
     REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, waterLevel, GEN_INT_SETTER(GeometryTemplate, water_level));
     REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, yScale, GEN_FLOAT_SETTER(GeometryTemplate, y_scale));
 
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, setLodDistance, [](GeometryTemplate* tmpl, const std::string& value) {
+        auto args = StringUtils::split(value);
+        if (args.size() < 2)
+        {
+            LOG_ERROR("Console: GeometryTemplate.setLodDistance: Not enough arguments!");
+            return;
+        }
+
+        int level = parseInt(args[0]);
+        float distance = parseFloat(args[1]);
+
+        tmpl->lod_distances[level] = distance;
+    });
+
     // ObjectTemplate
     REGISTER_OBJECT_PROPERTY(ObjectTemplate, ObjectTemplate::current, geometry, GEN_STRING_SETTER(ObjectTemplate, geometry));
     REGISTER_OBJECT_PROPERTY(ObjectTemplate, ObjectTemplate::current, setContinousRotationSpeed, GEN_VEC3_SETTER(ObjectTemplate, continous_rot_speed));
@@ -239,6 +252,12 @@ void Console::init()
         if (r) r->setFogStart(Console::parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, fogEnd, [](Renderer* r, const std::string& value) {
+        if (r) r->setFogEnd(Console::parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, fogLinearStart, [](Renderer* r, const std::string& value) {
+        if (r) r->setFogStart(Console::parseFloat(value));
+    });
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, fogLinearEnd, [](Renderer* r, const std::string& value) {
         if (r) r->setFogEnd(Console::parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, vertexFogEnable, [](Renderer* r, const std::string& value) {

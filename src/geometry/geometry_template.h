@@ -19,4 +19,6 @@ struct GeometryTemplate
     int tex_offset_y;
     int water_level;
     float y_scale;
+
+    std::array<float, 6> lod_distances;
 };

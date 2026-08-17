@@ -55,6 +55,11 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl, bool upl
 
     geom->type = tmpl->type;
 
+    for (size_t i = 0; i < geom->lods.size(); ++i)
+    {
+        geom->lods[i].distance = tmpl->lod_distances[i];
+    }
+
     if (upload && !geom->upload())
     {
         LOG_ERROR("GeometryManager::createGeometry: Failed to upload %s '%s'!", geometryTypeToString(tmpl->type).c_str(), tmpl->name.c_str());

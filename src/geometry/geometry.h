@@ -42,9 +42,11 @@ public:
         
         uint32_t vao = 0, vbo = 0, ebo = 0;
         bool uploaded = false;
-
+        
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
+        
+        float distance = 0.0f;
 
         bool upload();
         void unload();

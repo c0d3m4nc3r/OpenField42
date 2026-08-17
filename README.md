@@ -34,7 +34,6 @@ Here are some planned tasks and features open for contribution:
 - [x] ~~Implement resource managers (`ShaderManager` and `TextureManager`)~~
 - [x] ~~Implement asynchronous/multithreaded texture loading~~
 - [ ] Implement accurate specular lighting for water rendering
-- [ ] Transition material system from individual uniforms to UBOs
 - [x] ~~Add per-pass rendering statistics to `DebugUI`~~
 - [x] ~~Implement `#include` preprocessor directive support in the shader loader~~
 - [ ] Implement a dedicated shader for tree pass rendering
