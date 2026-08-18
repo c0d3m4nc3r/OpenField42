@@ -19,7 +19,7 @@ TextureHandle TextureManager::load(const std::string& path)
     _textures.push_back(_default_tex);
     _path_to_handle[path] = new_handle;
 
-    auto future = std::async(std::launch::async, [this, path, new_handle]() {
+    _pool.enqueue([this, path, new_handle]() {
         TextureData data = TextureUtils::loadData(path);
         if (data.is_valid)
         {
@@ -32,8 +32,6 @@ TextureHandle TextureManager::load(const std::string& path)
             LOG_ERROR("TextureManager::load: Failed to load texture from '%s'!", path.c_str());
         }
     });
-
-    _active_tasks.push_back(std::move(future));
 
     return new_handle;
 }
@@ -100,7 +98,7 @@ TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, i
 
         const std::string& path = paths[i];
 
-        auto future = std::async(std::launch::async, [this, path, handle, x, y, tile_w, tile_h, channels]() {
+        _pool.enqueue([this, path, handle, x, y, tile_w, tile_h, channels]() {
             TextureData tile_src = TextureUtils::loadData(path);
             if (!tile_src.is_valid)
             {
@@ -123,8 +121,6 @@ TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, i
 
             _completed_uploads.push(std::move(task));
         });
-
-        _active_tasks.push_back(std::move(future));
     }
 
     return handle;

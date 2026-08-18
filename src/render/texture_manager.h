@@ -1,9 +1,8 @@
 #pragma once
 
-#include "core/ts_queue.h"
+#include "core/thread_pool.h"
+#include "core/thread_safe_queue.h"
 #include "render/texture.h"
-
-#include <future>
 
 constexpr unsigned int INVALID_TEXTURE_ID = -1;
 
@@ -53,9 +52,8 @@ private:
     std::vector<std::shared_ptr<Texture>> _textures;
     std::shared_ptr<Texture> _default_tex;
 
+    ThreadPool _pool{4};
     ThreadSafeQueue<TextureData> _completed_uploads;
-    std::vector<std::future<void>> _active_tasks;
-
     std::unordered_map<unsigned int, int> _atlas_pending_tiles;
 
     static std::vector<unsigned char> conformTileData(const TextureData& src, int target_w, int target_h, int target_channels);
