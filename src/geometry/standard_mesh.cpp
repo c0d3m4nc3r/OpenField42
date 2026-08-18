@@ -2,7 +2,6 @@
 #include "core/globals.h"
 #include "geometry/material.h"
 #include "geometry/geometry_template.h"
-#include "render/texture.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
 #include "utils/string_utils.h"
@@ -36,7 +35,7 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
 
     std::string full_path = "standardMesh/" + tmpl->file + ".sm";
 
-    auto data = VFS::readFileData(full_path);
+    auto data = g_VFS->readFileData(full_path);
     if (data.empty())
     {
         LOG_ERROR("StandardMesh::load: Failed to read data from '%s'!", full_path.c_str());
@@ -193,7 +192,7 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
 {
     std::string full_path = "standardMesh/" + tmpl->file + ".rs";
 
-    auto data = VFS::readFileString(full_path);
+    auto data = g_VFS->readFileString(full_path);
     if (data.empty())
     {
         LOG_ERROR("StandardMesh::loadMaterials: Failed to read data from file '%s'!", full_path.c_str());

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "vfs/providers.h"
-
 #include <memory>
 
-namespace VFS
-{
-    static std::vector<std::shared_ptr<IFileProvider>> providers;
+class IFileProvider;
 
-    bool mountProvider(std::shared_ptr<IFileProvider> provider);
+class VFS
+{
+public:
+
+    bool mountProvider(const std::shared_ptr<IFileProvider>& provider);
     void unmountAll();
 
     bool exists(const std::string& path);
@@ -17,4 +17,8 @@ namespace VFS
     std::string readFileString(const std::string& path);
     std::vector<std::string> listFiles(const std::string& path);
     std::string normalizePath(const std::string& path);
-}
+
+private:
+
+    std::vector<std::shared_ptr<IFileProvider>> _providers;
+};

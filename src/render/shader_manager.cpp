@@ -1,5 +1,6 @@
 #include "render/shader_manager.h"
 
+#include "core/globals.h"
 #include "utils/gl_utils.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
@@ -48,7 +49,7 @@ static bool preprocessShaderSource(std::string& src, const std::string& shader_n
             size_t end = line.find('\"', start);
             std::string include_path = line.substr(start, end - start);
 
-            std::string include_src = VFS::readFileString("shaders/" + include_path);
+            std::string include_src = g_VFS->readFileString("shaders/" + include_path);
             if (include_src.empty())
             {
                 LOG_ERROR("ShaderManager::preprocessShaderSource: Failed to read included file '%s' in shader '%s' at line %d!",
@@ -80,7 +81,7 @@ Shader* ShaderManager::load(
  
     LOG_INFO("ShaderManager::load: Loading shader '%s' from '%s'...", name.c_str(), path.c_str());
 
-    std::string src = VFS::readFileString(path);
+    std::string src = g_VFS->readFileString(path);
     if (src.empty())
     {
         LOG_ERROR("ShaderManager::load: Failed to read shader sources!");
@@ -137,7 +138,7 @@ void ShaderManager::reloadAll()
 
     for (auto& [name, record] : _shaders)
     {
-        std::string src = VFS::readFileString(record.path);
+        std::string src = g_VFS->readFileString(record.path);
         if (src.empty())
         {
             LOG_ERROR("ShaderManager::reloadAll: Failed to read file for shader '%s'!", name.c_str());

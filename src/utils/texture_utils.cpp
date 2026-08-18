@@ -1,4 +1,6 @@
 #include "utils/texture_utils.h"
+
+#include "core/globals.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
 
@@ -10,7 +12,7 @@ namespace TextureUtils
 {
     TextureData loadData(const std::string& path)
     {
-        std::vector<char> file_data = VFS::readFileData(path);
+        std::vector<char> file_data = g_VFS->readFileData(path);
         if (file_data.empty())
         {
             LOG_ERROR("TextureUtils::loadData: Failed to read file '%s'!", path.c_str());

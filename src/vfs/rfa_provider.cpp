@@ -1,8 +1,8 @@
 #include "vfs/providers.h"
+
+#include "core/globals.h"
 #include "vfs/vfs.h"
 #include "utils/log.h"
-
-using namespace VFS;
 
 RFAProvider::RFAProvider(const std::string& archive_path)
     : _archive_path(archive_path) {}
@@ -50,7 +50,7 @@ std::string RFAProvider::findFile(const std::string& name) const
         const RFA_FileEntry* entry = &_archive->entries[i];
         if (!entry->name) continue;
         
-        std::string fullpath = VFS::normalizePath(entry->name);
+        std::string fullpath = g_VFS->normalizePath(entry->name);
         
         if (fullpath.find(name) != std::string::npos)
             return fullpath;

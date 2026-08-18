@@ -365,7 +365,7 @@ bool Console::exec(const std::string& line)
 
 bool Console::execFile(const std::string& path)
 {
-    auto content = VFS::readFileString(path);
+    auto content = g_VFS->readFileString(path);
     if (content.empty())
     {
         LOG_ERROR("Console::execFile: Failed to read content from '%s'!", path.c_str());

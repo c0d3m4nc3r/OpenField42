@@ -1,60 +1,59 @@
 #pragma once
 
+#include "vfs/providers.h"
+
+#include "librfa/rfa.h"
+
 #include <mutex>
 #include <vector>
 #include <string>
 
-#include "librfa/rfa.h"
-
-namespace VFS
+class IFileProvider
 {
-    class IFileProvider
-    {
-    public:
+public:
+
+    virtual ~IFileProvider() = default;
+    virtual bool init() = 0;
+    virtual bool exists(const std::string& path) const = 0;
+    virtual std::string findFile(const std::string& name) const = 0;
+    virtual std::vector<char> readFile(const std::string& path) = 0;
+    virtual std::vector<std::string> listFiles() = 0;
+};
+
+class FolderProvider : public IFileProvider
+{
+public:
+
+    FolderProvider(const std::string& path);
+    ~FolderProvider();
     
-        virtual ~IFileProvider() = default;
-        virtual bool init() = 0;
-        virtual bool exists(const std::string& path) const = 0;
-        virtual std::string findFile(const std::string& name) const = 0;
-        virtual std::vector<char> readFile(const std::string& path) = 0;
-        virtual std::vector<std::string> listFiles() = 0;
-    };
+    bool init() override;
+    bool exists(const std::string& path) const override;
+    std::string findFile(const std::string& name) const override;
+    std::vector<char> readFile(const std::string& path) override;
+    std::vector<std::string> listFiles() override;
+
+private:
+
+    std::string _base_path;
+};
+
+class RFAProvider : public IFileProvider
+{
+public:
+
+    RFAProvider(const std::string& archive_path);
+    ~RFAProvider();
     
-    class FolderProvider : public IFileProvider
-    {
-    public:
-    
-        FolderProvider(const std::string& path);
-        ~FolderProvider();
-        
-        bool init() override;
-        bool exists(const std::string& path) const override;
-        std::string findFile(const std::string& name) const override;
-        std::vector<char> readFile(const std::string& path) override;
-        std::vector<std::string> listFiles() override;
-    
-    private:
-    
-        std::string _base_path;
-    };
-    
-    class RFAProvider : public IFileProvider
-    {
-    public:
-    
-        RFAProvider(const std::string& archive_path);
-        ~RFAProvider();
-        
-        bool init() override;
-        bool exists(const std::string& path) const override;
-        std::string findFile(const std::string& name) const override;
-        std::vector<char> readFile(const std::string& path) override;
-        std::vector<std::string> listFiles() override;
-    
-    private:
-    
-        RFA_Archive* _archive;
-        std::string _archive_path;
-        mutable std::mutex _mutex;
-    };
-}
+    bool init() override;
+    bool exists(const std::string& path) const override;
+    std::string findFile(const std::string& name) const override;
+    std::vector<char> readFile(const std::string& path) override;
+    std::vector<std::string> listFiles() override;
+
+private:
+
+    RFA_Archive* _archive;
+    std::string _archive_path;
+    mutable std::mutex _mutex;
+};

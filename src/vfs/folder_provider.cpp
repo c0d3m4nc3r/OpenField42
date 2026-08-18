@@ -4,8 +4,6 @@
 #include <filesystem>
 #include <fstream>
 
-using namespace VFS;
-
 FolderProvider::FolderProvider(const std::string& path)
     : _base_path(path) {}
 

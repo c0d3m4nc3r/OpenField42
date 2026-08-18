@@ -2,7 +2,6 @@
 
 #include "core/globals.h"
 #include "geometry/geometry_template.h"
-#include "render/texture.h"
 #include "utils/log.h"
 #include "vfs/vfs.h"
 
@@ -65,7 +64,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     std::string full_path = "treeMesh/" + tmpl->file + ".tm";
 
-    std::vector<char> data = VFS::readFileData(full_path);
+    std::vector<char> data = g_VFS->readFileData(full_path);
     if (data.empty())
     {
         LOG_ERROR("TreeMesh::load: Failed to read data from '%s'!", full_path.c_str());

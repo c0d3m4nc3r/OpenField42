@@ -10,6 +10,7 @@
 #include "render/renderer.h"
 #include "render/shader_manager.h"
 #include "render/texture_manager.h"
+#include "vfs/providers.h"
 #include "vfs/vfs.h"
 #include "world/terrain.h"
 #include "world/water.h"
@@ -19,8 +20,9 @@ Game* g_Game = nullptr;
 Window* g_Window = nullptr;
 Input* g_Input = nullptr;
 Renderer* g_Renderer = nullptr;
-DebugUI* g_DebugUI = nullptr;
 Console* g_Console = nullptr;
+VFS* g_VFS = nullptr;
+DebugUI* g_DebugUI = nullptr;
 GeometryManager* g_GeometryMgr = nullptr;
 ShaderManager* g_ShaderMgr = nullptr;
 TextureManager* g_TextureMgr = nullptr;
@@ -36,8 +38,9 @@ bool Engine::init(int argc, char* argv[])
     g_Window = new Window();
     g_Input = new Input();
     g_Renderer = new Renderer();
-    g_DebugUI = new DebugUI();
     g_Console = new Console();
+    g_VFS = new VFS();
+    g_DebugUI = new DebugUI();
     g_GeometryMgr = new GeometryManager();
     g_ShaderMgr = new ShaderManager();
     g_TextureMgr = new TextureManager();
@@ -49,7 +52,7 @@ bool Engine::init(int argc, char* argv[])
         return false;
     }
 
-    VFS::mountProvider(std::make_shared<VFS::FolderProvider>("assets"));
+    g_VFS->mountProvider(std::make_shared<FolderProvider>("assets"));
 
     for (const auto& name : SHADERS_TO_LOAD)
     {
@@ -96,7 +99,7 @@ void Engine::shutdown()
     g_ShaderMgr->unloadAll();
     g_TextureMgr->clear();
     g_Window->shutdown();
-    VFS::unmountAll();
+    g_VFS->unmountAll();
 
     delete g_World; g_World = nullptr;
     delete g_TextureMgr; g_TextureMgr = nullptr;

@@ -31,7 +31,7 @@ static std::vector<std::string> genTexturePaths(const std::string& base_path, in
                                 (src_x < 10 ? "0" : "") + std::to_string(src_x) + "x" +
                                 (src_y < 10 ? "0" : "") + std::to_string(src_y) + ".dds";
                 
-                if (VFS::exists(path))
+                if (g_VFS->exists(path))
                     texture_paths.push_back(path);
                 else
                     texture_paths.push_back(DEBUG_TEX);
@@ -58,7 +58,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
     
     // 1. Load heightmap
     
-    auto heightmap_data = VFS::readFileData(tmpl->file);
+    auto heightmap_data = g_VFS->readFileData(tmpl->file);
     if (heightmap_data.empty())
     {
         LOG_ERROR("Terrain::init: Failed to read heightmap data from '%s'!", tmpl->file.c_str());
