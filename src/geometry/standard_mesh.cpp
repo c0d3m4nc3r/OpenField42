@@ -1,4 +1,6 @@
 #include "geometry/standard_mesh.h"
+
+#include "core/buffer_reader.h"
 #include "core/globals.h"
 #include "geometry/material.h"
 #include "geometry/geometry_template.h"
@@ -8,16 +10,6 @@
 
 #include <sstream>
 #include <cstring>
-
-#define READ_DATA(dest, type) \
-    do { \
-        if (size - (ptr - data.data()) < sizeof(type)) { \
-            LOG_ERROR("StandardMesh::load: Not enough data in '%s'!", full_path.c_str()); \
-            return false; \
-        } \
-        std::memcpy(&dest, ptr, sizeof(type)); \
-        ptr += sizeof(type); \
-    } while (0)
 
 bool StandardMesh::load(const GeometryTemplate* tmpl)
 {
@@ -35,15 +27,14 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
 
     std::string full_path = "standardMesh/" + tmpl->file + ".sm";
 
-    auto data = g_VFS->readFileData(full_path);
-    if (data.empty())
+    auto bytes = g_VFS->readFile(full_path);
+    if (bytes.empty())
     {
         LOG_ERROR("StandardMesh::load: Failed to read data from '%s'!", full_path.c_str());
         return false;
     }
 
-    const char* ptr = data.data();
-    size_t size = data.size();
+    BufferReader reader(bytes);
 
     // 1. Materials
 
@@ -55,44 +46,39 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
 
     // 2. Header
 
-    uint32_t version;
-    READ_DATA(version, uint32_t);
+    uint32_t version = reader.read<uint32_t>();
+    
+    reader.skip(sizeof(uint32_t));
 
-    ptr += sizeof(uint32_t); // skip unknown
-
-    READ_DATA(aabb.min, glm::vec3);
-    READ_DATA(aabb.max, glm::vec3);
+    aabb.min = reader.read<glm::vec3>();
+    aabb.max = reader.read<glm::vec3>();
 
     if (version > 9)
     {
-        ptr += sizeof(uint8_t); // skip qflag
+        reader.skip(sizeof(uint8_t));
     }
 
     // 3. Collision meshes
 
-    uint32_t col_mesh_num;
-    READ_DATA(col_mesh_num, uint32_t);
+    uint32_t col_mesh_num = reader.read<uint32_t>();
 
     // skip collision meshes
     for (uint32_t i = 0; i < col_mesh_num; i++)
     {
-        uint32_t block_size;
-        READ_DATA(block_size, uint32_t);
-        ptr += block_size;
+        uint32_t block_size = reader.read<uint32_t>();
+        reader.skip(block_size);
     }
 
     // 4. LODs
 
-    uint32_t lod_num;
-    READ_DATA(lod_num, uint32_t);
+    uint32_t lod_num = reader.read<uint32_t>();
     lods.resize(lod_num);
 
     for (uint32_t i = 0; i < lod_num; i++)
     {
         auto& lod = lods[i];
 
-        uint32_t mesh_num;
-        READ_DATA(mesh_num, uint32_t);
+        uint32_t mesh_num = reader.read<uint32_t>();
         lod.meshes.resize(mesh_num);
 
         struct MeshInfo
@@ -112,12 +98,8 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
         {
             Mesh& mesh = lods[i].meshes[j];
 
-            uint32_t mat_name_len;
-            READ_DATA(mat_name_len, uint32_t);
-
-            std::string mat_name;
-            mat_name.assign(ptr, mat_name_len);
-            ptr += mat_name_len;
+            uint32_t mat_name_len = reader.read<uint32_t>();
+            std::string mat_name = reader.readString(mat_name_len);
 
             auto it = materials.find(StringUtils::lowercase(mat_name));
             if (it != materials.end()) {
@@ -127,24 +109,23 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
                 mesh.material = nullptr;
             }
 
-            ptr += sizeof(uint32_t) * 3; // skip unknown
+            reader.skip(sizeof(uint32_t) * 3);
 
-            uint32_t prim_type;
-            READ_DATA(prim_type, uint32_t);
+            uint32_t prim_type = reader.read<uint32_t>();
             assert(prim_type == 4);
 
-            ptr += sizeof(uint32_t); // skip unknown
+            reader.skip(sizeof(uint32_t));
 
             auto& info = mesh_infos.emplace_back();
 
-            READ_DATA(info.vertex_stride, uint32_t);
-            READ_DATA(info.vertex_count, uint32_t);
-            READ_DATA(info.index_count, uint32_t);
+            info.vertex_stride = reader.read<uint32_t>();
+            info.vertex_count = reader.read<uint32_t>();
+            info.index_count = reader.read<uint32_t>();
 
             total_vertices += info.vertex_count;
             total_indices += info.index_count;
 
-            ptr += sizeof(uint32_t); // skip unknown
+            reader.skip(sizeof(uint32_t));
         }
 
         lod.vertices.reserve(total_vertices);
@@ -162,22 +143,20 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
             for (uint32_t v = 0; v < info.vertex_count; v++)
             {
                 Vertex vertex;
-    
-                READ_DATA(vertex.position, glm::vec3);
-                READ_DATA(vertex.normal, glm::vec3);
-                READ_DATA(vertex.uv, glm::vec2);
+                vertex.position = reader.read<glm::vec3>();
+                vertex.normal = reader.read<glm::vec3>();
+                vertex.uv = reader.read<glm::vec2>();
                 vertex.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
                 lod.vertices.push_back(vertex);
                 
                 size_t extra = info.vertex_stride - (sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
-                ptr += extra;
+                reader.skip(extra);
             }
 
             for (uint32_t idx = 0; idx < info.index_count; idx++)
             {
-                uint16_t raw;
-                READ_DATA(raw, uint16_t);
+                uint16_t raw = reader.read<uint16_t>();
                 lod.indices.push_back(raw);
             }
         }

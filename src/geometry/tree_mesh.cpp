@@ -1,5 +1,6 @@
 #include "geometry/tree_mesh.h"
 
+#include "core/buffer_reader.h"
 #include "core/globals.h"
 #include "geometry/geometry_template.h"
 #include "utils/log.h"
@@ -64,39 +65,35 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     std::string full_path = "treeMesh/" + tmpl->file + ".tm";
 
-    std::vector<char> data = g_VFS->readFileData(full_path);
-    if (data.empty())
+    auto bytes = g_VFS->readFile(full_path);
+    if (bytes.empty())
     {
         LOG_ERROR("TreeMesh::load: Failed to read data from '%s'!", full_path.c_str());
         return false;
     }
 
-    const char* ptr = data.data();
-    size_t size = data.size();
+    BufferReader reader(bytes);
 
     // Header
 
-    uint32_t version, sub_version;
-    uint32_t angle_count;
-
-    READ_DATA(version, sizeof(uint32_t));
-
+    uint32_t version = reader.read<uint32_t>();
+    
     if (version != 3)
     {
         LOG_ERROR("TreeMesh::load: Unsupported version: %u", version);
         return false;
     }
-
-    READ_DATA(sub_version, sizeof(uint32_t));
-    READ_DATA(angle_count, sizeof(uint32_t));
+    
+    uint32_t sub_version = reader.read<uint32_t>();
+    uint32_t angle_count = reader.read<uint32_t>();
 
     LOG_DEBUG("TreeMesh::load: Version: %u, Subversion: %u", version, sub_version);
     LOG_DEBUG("TreeMesh::load: Angle count: %u", angle_count);
 
     // Mesh AABB
 
-    READ_DATA(aabb.min, sizeof(glm::vec3));
-    READ_DATA(aabb.max, sizeof(glm::vec3));
+    aabb.min = reader.read<glm::vec3>();
+    aabb.max = reader.read<glm::vec3>();
 
     LOG_DEBUG("TreeMesh::load: Mesh AABB: Min: (%.2f, %.2f, %.2f),  Max: (%.2f, %.2f, %.2f)",
         aabb.min.x, aabb.min.y, aabb.min.z,
@@ -106,8 +103,8 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     AABB sprites_aabb;
 
-    READ_DATA(sprites_aabb.min, sizeof(glm::vec3));
-    READ_DATA(sprites_aabb.max, sizeof(glm::vec3));
+    sprites_aabb.min = reader.read<glm::vec3>();
+    sprites_aabb.max = reader.read<glm::vec3>();
 
     LOG_DEBUG("TreeMesh::load: Sprites AABB: Min: (%.2f, %.2f, %.2f),  Max: (%.2f, %.2f, %.2f)",
         sprites_aabb.min.x, sprites_aabb.min.y, sprites_aabb.min.z,
@@ -116,15 +113,16 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     // Blocks
 
     auto readTMBlocks = [&](std::vector<TM_Block>& dest) -> bool{
-        uint32_t count;
-        READ_DATA(count, sizeof(uint32_t));
+        uint32_t count = reader.read<uint32_t>();
 
         for (uint32_t i = 0; i < count; ++i)
         {
             auto& block = dest.emplace_back();
-            READ_DATA(block.index_start, sizeof(uint32_t));
-            READ_DATA(block.primitive_count, sizeof(uint32_t));
-            READ_STRING(block.texture_name);
+            block.index_start = reader.read<uint32_t>();
+            block.primitive_count = reader.read<uint32_t>();
+            
+            uint32_t tex_name_size = reader.read<uint32_t>();
+            block.texture_name = reader.readString(tex_name_size);
         }
 
         return true;
@@ -164,57 +162,49 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     // Collision Mesh
 
-    int32_t col_magic;
-    READ_DATA(col_magic, sizeof(int32_t));
+    int32_t col_magic = reader.read<uint32_t>();
 
     if (col_magic == COLLISION_MAGIC)
     {
         LOG_DEBUG("TreeMesh::load: Mesh has collision :(");
-        uint32_t col_version;
-        READ_DATA(col_version, sizeof(uint32_t));
+        uint32_t col_version = reader.read<uint32_t>();
 
         if (col_version == 5)
         {
-            uint32_t num_verts;
-            READ_DATA(num_verts, sizeof(uint32_t));
+            uint32_t num_verts = reader.read<uint32_t>();
 
             // 3 floats (pos) + 1 float (padding) = 16 bytes
-            ptr += num_verts * 16; // skip collision vertices
+            reader.skip(num_verts * 16); // skip collision vertices
 
-            uint32_t num_faces;
-            READ_DATA(num_faces, sizeof(uint32_t));
+            uint32_t num_faces = reader.read<uint32_t>();
 
             // 3 × int16 (indices) + 1 × int16 (matID) = 8 bytes
-            ptr += num_faces * 8; // skip collision faces
+            reader.skip(num_faces * 8); // skip collision faces
 
             LOG_DEBUG("TreeMesh::load: Collision mesh vertices: %u", num_verts);
             LOG_DEBUG("TreeMesh::load: Collision mesh faces: %u", num_faces);
 
             auto bypassBSPNode = [&](auto&& self) -> bool {
-                ptr += 24; // plane (4 floats * 4 bytes + 8 bytes)
+                reader.skip(24); // plane (4 floats * 4 bytes + 8 bytes)
                 
-                uint32_t idxCnt;
-                READ_DATA(idxCnt, sizeof(uint32_t));
+                uint32_t idx_cnt = reader.read<uint32_t>();
 
-                ptr += idxCnt * 4;
+                reader.skip(idx_cnt * 4);
                 
-                uint8_t tmp;
-
-                READ_DATA(tmp, sizeof(uint8_t));
+                uint8_t tmp = reader.read<uint8_t>();
                 if (tmp == 1) self(self); // above node
                 
-                READ_DATA(tmp, sizeof(uint8_t));
+                tmp = reader.read<uint8_t>();
                 if (tmp == 1) self(self); // below node
 
                 return true;
             };
 
             // uint32 (total_face_list_cnt) + uint32 (total_bsp_node_cnt) = 8 bytes
-            ptr += 8;
+            reader.skip(8);
             
-            uint32_t total_face_cnt;
-            READ_DATA(total_face_cnt, sizeof(uint32_t));
-            ptr += total_face_cnt * 32;
+            uint32_t total_face_cnt = reader.read<uint32_t>();
+            reader.skip(total_face_cnt * 32);
             bypassBSPNode(bypassBSPNode);
 
         } else {
@@ -228,8 +218,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     auto& lod = lods.emplace_back();
 
-    uint32_t num_verts;
-    READ_DATA(num_verts, sizeof(uint32_t));
+    uint32_t num_verts = reader.read<uint32_t>();
     lod.vertices.resize(num_verts);
 
     LOG_DEBUG("TreeMesh::load: Visible mesh vertices: %u", num_verts);
@@ -237,17 +226,16 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     for (uint32_t i = 0; i < num_verts; ++i)
     {
         auto& v = lod.vertices[i];
-        READ_DATA(v.position, sizeof(glm::vec3));
-        READ_DATA(v.normal, sizeof(glm::vec3));
+        v.position = reader.read<glm::vec3>();
+        v.normal = reader.read<glm::vec3>();
 
-        ptr += sizeof(uint32_t); // color?
+        reader.skip(sizeof(uint32_t)); // color?
         
-        READ_DATA(v.uv, sizeof(glm::vec2));
-        READ_DATA(v.sprite_ofs, sizeof(glm::vec2));
+        v.uv = reader.read<glm::vec2>();
+        v.sprite_ofs = reader.read<glm::vec2>();
     }
 
-    uint32_t num_indices;
-    READ_DATA(num_indices, sizeof(uint32_t));
+    uint32_t num_indices = reader.read<uint32_t>();
 
     LOG_DEBUG("TreeMesh::load: Visible mesh indices: %u", num_indices);
 
@@ -255,7 +243,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     
     for (uint32_t i = 0; i < num_indices; ++i)
     {
-        READ_DATA(lod.indices[i], sizeof(uint16_t));
+        lod.indices[i] = reader.read<uint16_t>();
     }
 
     auto getMat = [this](const std::string& texture_name, bool is_billboard) -> Material&

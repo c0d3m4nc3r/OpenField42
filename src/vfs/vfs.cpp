@@ -48,13 +48,13 @@ std::string VFS::findFile(const std::string& name)
     return "";
 }
 
-std::vector<char> VFS::readFileData(const std::string& path)
+std::vector<char> VFS::readFile(const std::string& path)
 {
     std::string full_path = findFile(path); 
 
     if (full_path.empty())
     {
-        LOG_ERROR("VFS::readFileData: File '%s' not found!", path.c_str());
+        LOG_ERROR("VFS::readFile: File '%s' not found!", path.c_str());
         return {};
     }
 
@@ -64,7 +64,7 @@ std::vector<char> VFS::readFileData(const std::string& path)
             return p->readFile(full_path);
     }
         
-    LOG_ERROR("VFS::readFileData: File '%s' found at '%s' but could not be read!",
+    LOG_ERROR("VFS::readFile: File '%s' found at '%s' but could not be read!",
         path.c_str(), full_path.c_str());
     return {};
 }

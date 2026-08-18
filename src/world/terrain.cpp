@@ -58,7 +58,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
     
     // 1. Load heightmap
     
-    auto heightmap_data = g_VFS->readFileData(tmpl->file);
+    auto heightmap_data = g_VFS->readFile(tmpl->file);
     if (heightmap_data.empty())
     {
         LOG_ERROR("Terrain::init: Failed to read heightmap data from '%s'!", tmpl->file.c_str());
