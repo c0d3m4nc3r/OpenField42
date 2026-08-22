@@ -8,14 +8,12 @@
 #include "geometry/geometry_template.h"
 #include "object/object_template.h"
 #include "object/object.h"
-#include "vfs/vfs.h"
+#include "script/script_manager.h"
 #include "utils/string_utils.h"
 #include "utils/log.h"
 #include "world/sky.h"
 #include "world/water.h"
 #include "world/world.h"
-
-#include <sstream>
 
 #define REGISTER_OBJECT_PROPERTY(ObjectName, ObjectRef, PropertyName, SetterFunction) \
     registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&](const CommandArgs& args) \
@@ -63,7 +61,7 @@ void Console::init()
     registerCmd("rem", [](const CommandArgs& args) { return true; });
     registerCmd("REM", [](const CommandArgs& args) { return true; });
 
-    registerCmd("run", [this](const CommandArgs& args)
+    registerCmd("run", [](const CommandArgs& args)
     {
         if (args.empty())
         {
@@ -73,7 +71,7 @@ void Console::init()
         std::string path = args[0];
         if (!path.ends_with(".con")) path += ".con";
 
-        return execFile(path);
+        return g_ScriptMgr->execCon(path);
     });
 
     registerCmd("GeometryTemplate.create", [this](const CommandArgs& args)
@@ -361,40 +359,6 @@ bool Console::exec(const std::string& line)
         // LOG_WARNING("Console::exec: Unknown command: %s", cmd.c_str());
         return true;
     }
-}
-
-bool Console::execFile(const std::string& path)
-{
-    auto content = g_VFS->readFileString(path);
-    if (content.empty())
-    {
-        LOG_ERROR("Console::execFile: Failed to read content from '%s'!", path.c_str());
-        return false;
-    }
-
-    // std::string full_path = VFS::findFile(path);
-    // LOG_DEBUG("Console::execFile: Executing file '%s'...", full_path.c_str());
-
-    std::istringstream stream(content);
-    std::string line;
-    int line_number = 0;
-
-    while (std::getline(stream, line))
-    {
-        line_number++;
-
-        std::erase_if(line, [](char c) {
-            return c == '\t' || c == '\r' || c == '\"' || c == '\'' || c == ';';
-        });
-
-        if (!exec(line))
-        {
-            LOG_ERROR("Console::execFile: Error at line %d in '%s'!", line_number, path.c_str());
-            return false;
-        }
-    }
-
-    return true;
 }
 
 int Console::parseInt(const std::string& str)

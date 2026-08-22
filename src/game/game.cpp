@@ -1,9 +1,9 @@
 #include "game/game.h"
 
-#include "core/console.h"
 #include "core/debugui.h"
 #include "core/globals.h"
 #include "render/shader_manager.h"
+#include "script/script_manager.h"
 #include "utils/log.h"
 #include "platform/input.h"
 #include "platform/window.h"
@@ -173,8 +173,8 @@ bool Game::loadLevel(const std::string& name)
         }
     }
 
-    g_Console->execFile("bf1942/levels/" + name + "/Init.con");
-    g_Console->execFile("bf1942/levels/" + name + "/StaticObjects.con");
+    g_ScriptMgr->execCon("bf1942/levels/" + name + "/Init.con");
+    g_ScriptMgr->execCon("bf1942/levels/" + name + "/StaticObjects.con");
 
     // if (!Geometry::uploadAll())
     // {
@@ -211,7 +211,7 @@ bool Game::loadGameObjs()
     {
         if (!path.ends_with(".con")) continue;
         
-        if (!g_Console->execFile(path))
+        if (!g_ScriptMgr->execCon(path))
         {
             LOG_ERROR("Game::loadGameObjs: Failed to load game objects: Error in '%s'!", path.c_str());
             return false;

@@ -19,7 +19,6 @@ public:
     void registerCmd(const std::string& name, CommandHandler handler);
 
     bool exec(const std::string& line);
-    bool execFile(const std::string& path);
 
     static int parseInt(const std::string& str);
     static float parseFloat(const std::string& str);

@@ -10,6 +10,7 @@
 #include "render/renderer.h"
 #include "render/shader_manager.h"
 #include "render/texture_manager.h"
+#include "script/script_manager.h"
 #include "vfs/providers.h"
 #include "vfs/vfs.h"
 #include "world/terrain.h"
@@ -26,6 +27,7 @@ DebugUI* g_DebugUI = nullptr;
 GeometryManager* g_GeometryMgr = nullptr;
 ShaderManager* g_ShaderMgr = nullptr;
 TextureManager* g_TextureMgr = nullptr;
+ScriptManager* g_ScriptMgr = nullptr;
 World* g_World = nullptr;
 
 std::string SHADERS_TO_LOAD[] = {"sky", "standard", "terrain", "water"};
@@ -44,6 +46,7 @@ bool Engine::init(int argc, char* argv[])
     g_GeometryMgr = new GeometryManager();
     g_ShaderMgr = new ShaderManager();
     g_TextureMgr = new TextureManager();
+    g_ScriptMgr = new ScriptManager();
     g_World = new World();
 
     if (!g_Window->init())
@@ -102,6 +105,7 @@ void Engine::shutdown()
     g_VFS->unmountAll();
 
     delete g_World; g_World = nullptr;
+    delete g_ScriptMgr; g_ScriptMgr = nullptr;
     delete g_TextureMgr; g_TextureMgr = nullptr;
     delete g_ShaderMgr; g_ShaderMgr = nullptr;
     delete g_GeometryMgr; g_GeometryMgr = nullptr;

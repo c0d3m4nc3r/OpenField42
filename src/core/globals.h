@@ -10,6 +10,7 @@ class DebugUI;
 class GeometryManager;
 class ShaderManager;
 class TextureManager;
+class ScriptManager;
 struct World;
 
 extern Game* g_Game;
@@ -22,4 +23,5 @@ extern DebugUI* g_DebugUI;
 extern GeometryManager* g_GeometryMgr;
 extern ShaderManager* g_ShaderMgr;
 extern TextureManager* g_TextureMgr;
+extern ScriptManager* g_ScriptMgr;
 extern World* g_World;
