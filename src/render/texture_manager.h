@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/thread_pool.h"
 #include "core/thread_safe_queue.h"
 #include "render/texture.h"
 
@@ -52,7 +51,6 @@ private:
     std::vector<std::shared_ptr<Texture>> _textures;
     std::shared_ptr<Texture> _default_tex;
 
-    ThreadPool _pool{4};
     ThreadSafeQueue<TextureData> _completed_uploads;
     std::unordered_map<unsigned int, int> _atlas_pending_tiles;
 

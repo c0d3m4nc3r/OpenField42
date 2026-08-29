@@ -1,5 +1,6 @@
 #include "render/texture_manager.h"
 
+#include "core/globals.h"
 #include "utils/gl_utils.h"
 #include "utils/texture_utils.h"
 
@@ -19,7 +20,7 @@ TextureHandle TextureManager::load(const std::string& path)
     _textures.push_back(_default_tex);
     _path_to_handle[path] = new_handle;
 
-    _pool.enqueue([this, path, new_handle]() {
+    g_ThreadPool.enqueue([this, path, new_handle]() {
         TextureData data = TextureUtils::loadData(path);
         if (data.is_valid)
         {
@@ -98,7 +99,7 @@ TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, i
 
         const std::string& path = paths[i];
 
-        _pool.enqueue([this, path, handle, x, y, tile_w, tile_h, channels]() {
+        g_ThreadPool.enqueue([this, path, handle, x, y, tile_w, tile_h, channels]() {
             TextureData tile_src = TextureUtils::loadData(path);
             if (!tile_src.is_valid)
             {

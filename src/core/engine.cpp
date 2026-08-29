@@ -32,6 +32,8 @@ TextureManager* g_TextureMgr = nullptr;
 ScriptManager* g_ScriptMgr = nullptr;
 World* g_World = nullptr;
 
+ThreadPool g_ThreadPool;
+
 std::string SHADERS_TO_LOAD[] = {"sky", "standard", "terrain", "water"};
 
 bool Engine::init(int argc, char* argv[])

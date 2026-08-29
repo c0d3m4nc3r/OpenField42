@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/thread_pool.h"
+
 class Game;
 class Window;
 class Renderer;
@@ -27,3 +29,5 @@ extern ShaderManager* g_ShaderMgr;
 extern TextureManager* g_TextureMgr;
 extern ScriptManager* g_ScriptMgr;
 extern World* g_World;
+
+extern ThreadPool g_ThreadPool;

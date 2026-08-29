@@ -44,5 +44,5 @@ bool ScriptManager::execCon(const std::string& path)
 
 std::future<bool> ScriptManager::execConAsync(const std::string& path)
 {
-    return _pool.enqueue([this, path] { return execCon(path); });
+    return g_ThreadPool.enqueue([this, path] { return execCon(path); });
 }
