@@ -7,6 +7,9 @@
 
 struct ObjectTemplate
 {
+    ObjectTemplate(const std::string& name, ObjectType type = ObjectType::Unknown)
+        : name(name), type(type) {}
+
     struct Child
     {
         std::string tmpl_name;
@@ -15,7 +18,7 @@ struct ObjectTemplate
     };
 
     std::string name;
-    ObjectType type = ObjectType::Unknown;
+    ObjectType type;
     
     std::string geometry;
     glm::vec3 continous_rot_speed = glm::vec3(0.0f); 

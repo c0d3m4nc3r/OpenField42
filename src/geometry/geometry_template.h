@@ -7,6 +7,9 @@
 
 struct GeometryTemplate
 {
+    GeometryTemplate(const std::string& name, GeometryType type = GeometryType::Unknown)
+        : name(name), type(type) {}
+
     std::string name;
     GeometryType type = GeometryType::Unknown;
 

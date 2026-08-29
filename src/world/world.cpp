@@ -1,10 +1,10 @@
 #include "world/world.h"
 
 #include "core/globals.h"
+#include "core/template_manager.h"
 #include "geometry/geometry_manager.h"
 #include "geometry/geometry_template.h"
 #include "object/object.h"
-#include "object/object_manager.h"
 #include "object/object_template.h"
 #include "render/renderer.h"
 #include "world/sky.h"
@@ -33,7 +33,7 @@ Object* World::createObject(const ObjectTemplate* tmpl)
 
     for (const auto& child : tmpl->children)
     {
-        auto child_tmpl = g_ObjectMgr->getTemplate(child.tmpl_name);
+        auto child_tmpl = g_TemplateMgr->get<ObjectTemplate>(child.tmpl_name);
         if (!child_tmpl)
         {
             LOG_ERROR("World::createObject: Failed to create child: Object template with name '%s' not found!", child.tmpl_name.c_str());
@@ -59,7 +59,7 @@ Object* World::createObject(const ObjectTemplate* tmpl)
         return raw;
     }
 
-    const GeometryTemplate* geom_tmpl = g_GeometryMgr->getTemplate(tmpl->geometry);
+    auto* geom_tmpl = g_TemplateMgr->get<GeometryTemplate>(tmpl->geometry);
     if (!geom_tmpl)
     {
         LOG_ERROR("World::createObject: Geometry template with name '%s' not found!", tmpl->geometry.c_str());

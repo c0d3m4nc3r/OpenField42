@@ -5,7 +5,6 @@
 #include "geometry/standard_mesh.h"
 #include "geometry/tree_mesh.h"
 
-#include "utils/string_utils.h"
 
 Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl, bool upload)
 {
@@ -72,25 +71,10 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl, bool upl
     return geom;
 }
 
-GeometryTemplate* GeometryManager::createTemplate(const std::string& name, GeometryType type)
-{
-    std::string lc_name = StringUtils::lowercase(name);
-    auto& tmpl = _templates[lc_name];
-    tmpl.name = lc_name;
-    tmpl.type = type;
-    return &tmpl;
-}
-
 Geometry* GeometryManager::getGeometry(const std::string& name)
 {
     auto it = _geometries.find(name);
     if (it == _geometries.end())
         return nullptr;
     return it->second.get();
-}
-
-GeometryTemplate* GeometryManager::getTemplate(const std::string& name)
-{
-    auto it = _templates.find(StringUtils::lowercase(name));
-    return it != _templates.end() ? &it->second : nullptr;
 }

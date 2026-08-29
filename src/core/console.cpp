@@ -2,10 +2,10 @@
 
 #include "core/engine.h"
 #include "core/globals.h"
+#include "core/template_manager.h"
 #include "game//game.h"
 #include "geometry/geometry_manager.h"
 #include "geometry/geometry_template.h"
-#include "object/object_manager.h"
 #include "object/object_template.h"
 #include "object/object.h"
 #include "render/renderer.h"
@@ -91,7 +91,7 @@ void Console::init()
             return false;
         }
 
-        ctx.last_geom_tmpl = g_GeometryMgr->createTemplate(args[1], type);
+        ctx.last_geom_tmpl = g_TemplateMgr->create<GeometryTemplate>(args[1], type);
 
         return true;
     });
@@ -112,7 +112,7 @@ void Console::init()
             return true;
         }
         
-        ctx.last_obj_tmpl = &g_ObjectMgr->createTemplate(args[1], type);
+        ctx.last_obj_tmpl = g_TemplateMgr->create<ObjectTemplate>(args[1], type);
 
         return true;
     });
@@ -176,7 +176,7 @@ void Console::init()
             return false;
         }
 
-        ObjectTemplate* tmpl = g_ObjectMgr->getTemplate(args[0]);
+        auto* tmpl = g_TemplateMgr->get<ObjectTemplate>(args[0]);
         if (!tmpl)
         {
             LOG_ERROR("Console: Object.create: Object template with name '%s' not found!", args[0].c_str());
@@ -187,7 +187,7 @@ void Console::init()
         if (!ctx.last_obj)
         {
             // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
-            GeometryTemplate* geom_tmpl = g_GeometryMgr->getTemplate(tmpl->geometry);
+            auto* geom_tmpl = g_TemplateMgr->get<GeometryTemplate>(tmpl->geometry);
             if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
                 return true;
             

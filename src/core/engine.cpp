@@ -3,9 +3,9 @@
 #include "core/console.h"
 #include "core/debugui.h"
 #include "core/globals.h"
+#include "core/template_manager.h"
 #include "game/game.h"
 #include "geometry/geometry_manager.h"
-#include "object/object_manager.h"
 #include "platform/input.h"
 #include "platform/window.h"
 #include "render/renderer.h"
@@ -25,7 +25,7 @@ Renderer* g_Renderer = nullptr;
 Console* g_Console = nullptr;
 VFS* g_VFS = nullptr;
 DebugUI* g_DebugUI = nullptr;
-ObjectManager* g_ObjectMgr = nullptr;
+TemplateManager* g_TemplateMgr = nullptr;
 GeometryManager* g_GeometryMgr = nullptr;
 ShaderManager* g_ShaderMgr = nullptr;
 TextureManager* g_TextureMgr = nullptr;
@@ -45,7 +45,7 @@ bool Engine::init(int argc, char* argv[])
     g_Console = new Console();
     g_VFS = new VFS();
     g_DebugUI = new DebugUI();
-    g_ObjectMgr = new ObjectManager();
+    g_TemplateMgr = new TemplateManager();
     g_GeometryMgr = new GeometryManager();
     g_ShaderMgr = new ShaderManager();
     g_TextureMgr = new TextureManager();
@@ -111,7 +111,7 @@ void Engine::shutdown()
     delete g_ScriptMgr; g_ScriptMgr = nullptr;
     delete g_TextureMgr; g_TextureMgr = nullptr;
     delete g_ShaderMgr; g_ShaderMgr = nullptr;
-    delete g_ObjectMgr; g_ObjectMgr = nullptr;
+    delete g_TemplateMgr; g_TemplateMgr = nullptr;
     delete g_GeometryMgr; g_GeometryMgr = nullptr;
     delete g_Console; g_Console = nullptr;
     delete g_DebugUI; g_DebugUI = nullptr;
