@@ -61,7 +61,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
         return false;
     }
 
-    LOG_INFO("TreeMesh::load: Loading TreeMesh from '%s'...", tmpl->file.c_str());
+    // LOG_INFO("TreeMesh::load: Loading TreeMesh from '%s'...", tmpl->file.c_str());
 
     std::string full_path = "treeMesh/" + tmpl->file + ".tm";
 
@@ -87,17 +87,17 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     uint32_t sub_version = reader.read<uint32_t>();
     uint32_t angle_count = reader.read<uint32_t>();
 
-    LOG_DEBUG("TreeMesh::load: Version: %u, Subversion: %u", version, sub_version);
-    LOG_DEBUG("TreeMesh::load: Angle count: %u", angle_count);
+    // LOG_DEBUG("TreeMesh::load: Version: %u, Subversion: %u", version, sub_version);
+    // LOG_DEBUG("TreeMesh::load: Angle count: %u", angle_count);
 
     // Mesh AABB
 
     aabb.min = reader.read<glm::vec3>();
     aabb.max = reader.read<glm::vec3>();
 
-    LOG_DEBUG("TreeMesh::load: Mesh AABB: Min: (%.2f, %.2f, %.2f),  Max: (%.2f, %.2f, %.2f)",
-        aabb.min.x, aabb.min.y, aabb.min.z,
-        aabb.max.x, aabb.max.y, aabb.max.z);
+    // LOG_DEBUG("TreeMesh::load: Mesh AABB: Min: (%.2f, %.2f, %.2f),  Max: (%.2f, %.2f, %.2f)",
+    //     aabb.min.x, aabb.min.y, aabb.min.z,
+    //     aabb.max.x, aabb.max.y, aabb.max.z);
 
     // Sprites AABB
 
@@ -106,9 +106,9 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     sprites_aabb.min = reader.read<glm::vec3>();
     sprites_aabb.max = reader.read<glm::vec3>();
 
-    LOG_DEBUG("TreeMesh::load: Sprites AABB: Min: (%.2f, %.2f, %.2f),  Max: (%.2f, %.2f, %.2f)",
-        sprites_aabb.min.x, sprites_aabb.min.y, sprites_aabb.min.z,
-        sprites_aabb.max.x, sprites_aabb.max.y, sprites_aabb.max.z);
+    // LOG_DEBUG("TreeMesh::load: Sprites AABB: Min: (%.2f, %.2f, %.2f),  Max: (%.2f, %.2f, %.2f)",
+    //     sprites_aabb.min.x, sprites_aabb.min.y, sprites_aabb.min.z,
+    //     sprites_aabb.max.x, sprites_aabb.max.y, sprites_aabb.max.z);
 
     // Blocks
 
@@ -147,16 +147,16 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     {
         if (!readTMBlocks(target.vec))
         {
-            LOG_ERROR("TreeMesh::load: Failed to load %s!", target.name);
+            // LOG_ERROR("TreeMesh::load: Failed to load %s!", target.name);
             return false;
         }
-        LOG_DEBUG("TreeMesh::load: %s: %zu", target.name, target.vec.size());
+        // LOG_DEBUG("TreeMesh::load: %s: %zu", target.name, target.vec.size());
         
         for (size_t i = 0; i < target.vec.size(); ++i)
         {
             auto& block = target.vec[i];
-            LOG_DEBUG("\tBlock %zu: Index Start: %u, Primitive Count: %u, Texture Name: %s",
-                i, block.index_start, block.primitive_count, block.texture_name.c_str());
+            // LOG_DEBUG("\tBlock %zu: Index Start: %u, Primitive Count: %u, Texture Name: %s",
+            //     i, block.index_start, block.primitive_count, block.texture_name.c_str());
         }
     }
 
@@ -166,7 +166,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     if (col_magic == COLLISION_MAGIC)
     {
-        LOG_DEBUG("TreeMesh::load: Mesh has collision :(");
+        // LOG_DEBUG("TreeMesh::load: Mesh has collision :(");
         uint32_t col_version = reader.read<uint32_t>();
 
         if (col_version == 5)
@@ -181,8 +181,8 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
             // 3 × int16 (indices) + 1 × int16 (matID) = 8 bytes
             reader.skip(num_faces * 8); // skip collision faces
 
-            LOG_DEBUG("TreeMesh::load: Collision mesh vertices: %u", num_verts);
-            LOG_DEBUG("TreeMesh::load: Collision mesh faces: %u", num_faces);
+            // LOG_DEBUG("TreeMesh::load: Collision mesh vertices: %u", num_verts);
+            // LOG_DEBUG("TreeMesh::load: Collision mesh faces: %u", num_faces);
 
             auto bypassBSPNode = [&](auto&& self) -> bool {
                 reader.skip(24); // plane (4 floats * 4 bytes + 8 bytes)
@@ -208,10 +208,10 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
             bypassBSPNode(bypassBSPNode);
 
         } else {
-            LOG_WARNING("TreeMesh::load: Unsupported collision version: %u", col_version);
+            // LOG_WARNING("TreeMesh::load: Unsupported collision version: %u", col_version);
         }
     } else {
-        LOG_DEBUG("TreeMesh::load: Mesh has no collision :)");
+        // LOG_DEBUG("TreeMesh::load: Mesh has no collision :)");
     }
 
     // Visible Mesh
@@ -221,7 +221,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
     uint32_t num_verts = reader.read<uint32_t>();
     lod.vertices.resize(num_verts);
 
-    LOG_DEBUG("TreeMesh::load: Visible mesh vertices: %u", num_verts);
+    // LOG_DEBUG("TreeMesh::load: Visible mesh vertices: %u", num_verts);
     
     for (uint32_t i = 0; i < num_verts; ++i)
     {
@@ -237,7 +237,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     uint32_t num_indices = reader.read<uint32_t>();
 
-    LOG_DEBUG("TreeMesh::load: Visible mesh indices: %u", num_indices);
+    // LOG_DEBUG("TreeMesh::load: Visible mesh indices: %u", num_indices);
 
     lod.indices.resize(num_indices);
     
@@ -291,7 +291,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
     // TODO: Load billboards
 
-    LOG_INFO("TreeMesh::load: Loaded successfully!");
+    // LOG_INFO("TreeMesh::load: Loaded successfully!");
 
     return true;
 }

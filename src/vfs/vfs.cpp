@@ -17,11 +17,11 @@ bool VFS::mountProvider(const std::shared_ptr<IFileProvider>& provider)
 
 void VFS::unmountAll()
 {
-    LOG_INFO("VFS::unmountAll: Unmounting all _providers...");
+    LOG_INFO("VFS::unmountAll: Unmounting all providers...");
 
     _providers.clear();
 
-    LOG_INFO("VFS::unmountAll: All _providers unmounted successfully!");
+    LOG_INFO("VFS::unmountAll: All providers unmounted successfully!");
 }
 
 bool VFS::exists(const std::string& path)

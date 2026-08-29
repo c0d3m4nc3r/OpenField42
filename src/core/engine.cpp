@@ -71,6 +71,8 @@ bool Engine::init(int argc, char* argv[])
         }
     }
 
+    g_TextureMgr->init();
+
     if (!g_Renderer->init())
     {
         LOG_ERROR("Engine::init: Failed to initialize renderer!");
@@ -195,7 +197,8 @@ void Engine::update(float dt)
 
 void Engine::render()
 {
-    g_TextureMgr->updateGpuUploads(4);
+    g_TextureMgr->update(1);
+    g_GeometryMgr->update(1);
     g_Renderer->resetStats();
     g_World->render();
     g_Renderer->flush();

@@ -5,5 +5,5 @@
 class TreeMesh : public Geometry
 {
 public:
-    bool load(const GeometryTemplate* tmpl);
+    bool load(const GeometryTemplate* tmpl) override;
 };

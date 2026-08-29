@@ -5,6 +5,7 @@
 
 #include "math/aabb.h"
 
+#include <atomic>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -54,12 +55,16 @@ public:
 
     virtual ~Geometry();
 
+    virtual bool load(const GeometryTemplate* tmpl) { return true; }
+
     GeometryType type = GeometryType::Unknown;
 
     AABB aabb;
 
     std::vector<LOD> lods;
     std::unordered_map<std::string, Material> materials;
+    
+    bool uploaded = false;
 
     bool upload();
     void unload();

@@ -162,8 +162,9 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
         }
     }
 
-    LOG_DEBUG("StandardMesh::load: Loaded '%s' with %zu materials and %zu LODs!", tmpl->name.c_str(), materials.size(), lods.size());
     
+    // LOG_DEBUG("StandardMesh::load: Loaded '%s' with %zu materials and %zu LODs!", tmpl->name.c_str(), materials.size(), lods.size());
+        
     return true;
 }
 

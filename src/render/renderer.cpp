@@ -104,6 +104,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 {
     if (!geom) return;
     if (geom->lods.empty()) return;
+    if (!geom->uploaded) return;
 
     glm::vec3 cam_pos = _camera->getPosition();
     glm::vec3 cam_forward = _camera->getForward(); 

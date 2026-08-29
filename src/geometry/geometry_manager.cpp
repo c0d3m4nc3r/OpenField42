@@ -1,12 +1,25 @@
 #include "geometry_manager.h"
 
+#include "core/globals.h"
 #include "geometry/geometry.h"
 #include "geometry/geometry_template.h"
 #include "geometry/standard_mesh.h"
 #include "geometry/tree_mesh.h"
 
+void GeometryManager::update(int uploads_per_frame)
+{
+    int uploaded = 0;
 
-Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl, bool upload)
+    while (uploaded < uploads_per_frame)
+    {
+        auto geo_opt = _geometries_to_upload.pop();
+        if (!geo_opt.has_value()) break;
+
+        geo_opt.value()->upload();
+    }
+}
+
+Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl)
 {
     if (!tmpl)
     {
@@ -14,61 +27,42 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl, bool upl
         return nullptr;
     }
 
-    auto it = _geometries.find(tmpl->name);
-    if (it != _geometries.end())
-        return it->second.get();
+    {
+        auto it = _geometries.find(tmpl->name);
+        if (it != _geometries.end())
+            return it->second.get();
+    }
 
-    Geometry* geom = nullptr;
+    auto [it, _] = _geometries.try_emplace(tmpl->name);
+    auto& geom = it->second;
+
+    std::string type_str = geometryTypeToString(tmpl->type);
 
     switch (tmpl->type)
     {
-        case GeometryType::StandardMesh:
-        {
-            StandardMesh* stdmesh_geom = new StandardMesh();
-            geom = stdmesh_geom;
-            if (!stdmesh_geom->load(tmpl))
-            {
-                LOG_ERROR("GeometryManager::createGeometry: Failed to load StandardMesh '%s'!", tmpl->name.c_str());
-                delete stdmesh_geom;
-                return nullptr;
-            }
-        } break;
-        case GeometryType::TreeMesh:
-        {
-            TreeMesh* treemesh_geom = new TreeMesh();
-            geom = treemesh_geom;
-            if (!treemesh_geom->load(tmpl))
-            {
-                LOG_ERROR("GeometryManager::createGeometry: Failed to load TreeMesh '%s'!", tmpl->name.c_str());
-                delete treemesh_geom;
-                return nullptr;
-            } break;
-        }
-        default:
-        {
-            LOG_ERROR("GeometryManager::createGeometry: Unsupported geometry type: %s!",
-                geometryTypeToString(tmpl->type).c_str());
-            return nullptr;
-        }
+    case GeometryType::StandardMesh:
+        geom = std::make_unique<StandardMesh>(); break;
+    case GeometryType::TreeMesh:
+        geom = std::make_unique<TreeMesh>(); break;
+    default:
+        LOG_ERROR("GeometryManager::createGeometry: Unsupported geometry type: %s!",
+            type_str.c_str());
+        _geometries.erase(it);
+        return nullptr;
     }
+
+    g_ThreadPool.enqueue([this, &geom, tmpl] {
+        if (geom->load(tmpl)) {
+            _geometries_to_upload.push(geom.get());
+        }
+    });
 
     geom->type = tmpl->type;
 
     for (size_t i = 0; i < geom->lods.size(); ++i)
-    {
         geom->lods[i].distance = tmpl->lod_distances[i];
-    }
 
-    if (upload && !geom->upload())
-    {
-        LOG_ERROR("GeometryManager::createGeometry: Failed to upload %s '%s'!", geometryTypeToString(tmpl->type).c_str(), tmpl->name.c_str());
-        delete geom;
-        return nullptr;
-    }
-
-    _geometries[tmpl->name] = std::unique_ptr<Geometry>(geom);
-
-    return geom;
+    return geom.get();
 }
 
 Geometry* GeometryManager::getGeometry(const std::string& name)

@@ -7,8 +7,31 @@
 #include <algorithm>
 #include <cmath>
 
+void TextureManager::init()
+{
+    GLuint texture = 0;
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+    glTextureStorage2D(texture, 1, GL_RGBA8, 2, 2);
+
+    const unsigned char pixels[] = {
+        255, 0, 255, 255, 0, 0, 0, 255,
+        0, 0, 0, 255, 255, 0, 255, 255
+    };
+
+    glTextureSubImage2D(texture, 0, 0, 0, 2, 2, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    _default_tex = std::make_shared<Texture>(texture);
+}
+
 TextureHandle TextureManager::load(const std::string& path)
 {
+    std::lock_guard<std::mutex> lock(_registry_mutex);
+
     auto it = _path_to_handle.find(path);
     if (it != _path_to_handle.end())
         return it->second;
@@ -16,11 +39,11 @@ TextureHandle TextureManager::load(const std::string& path)
     TextureHandle new_handle;
     new_handle.id = static_cast<unsigned int>(_textures.size());
 
-    getDefault();
     _textures.push_back(_default_tex);
     _path_to_handle[path] = new_handle;
 
-    g_ThreadPool.enqueue([this, path, new_handle]() {
+    g_ThreadPool.enqueue([this, path, new_handle]()
+    {
         TextureData data = TextureUtils::loadData(path);
         if (data.is_valid)
         {
@@ -181,7 +204,7 @@ void TextureManager::uploadNewTexture(const TextureData& task)
     _memory_usage += task.pixels.size();
 }
 
-void TextureManager::updateGpuUploads(int max_uploads_per_frame)
+void TextureManager::update(int max_uploads_per_frame)
 {
     int uploaded = 0;
 
@@ -204,32 +227,6 @@ void TextureManager::updateGpuUploads(int max_uploads_per_frame)
 Texture& TextureManager::get(const TextureHandle& handle)
 {
     if (!handle.isValid() || handle.id >= _textures.size())
-        return getDefault();
+        return *_default_tex;
     return *_textures.at(handle.id);
-}
-
-Texture& TextureManager::getDefault()
-{
-    if (!_default_tex)
-    {
-        GLuint texture;
-        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-        glTextureStorage2D(texture, 1, GL_RGBA8, 2, 2);
-
-        const unsigned char pixels[] = {
-            255, 0, 255, 255, 0, 0, 0, 255,
-            0, 0, 0, 255, 255, 0, 255, 255
-        };
-
-        glTextureSubImage2D(texture, 0, 0, 0, 2, 2, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        _default_tex = std::make_shared<Texture>(texture);
-    }
-
-    return *_default_tex;
 }

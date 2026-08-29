@@ -32,15 +32,16 @@ class TextureManager
 {
 public:
 
+    void init();
+
     TextureHandle load(const std::string& path);
     TextureHandle loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels = 3);
 
     void clear();
 
-    void updateGpuUploads(int max_uploads_per_frame);
+    void update(int max_uploads_per_frame);
 
     Texture& get(const TextureHandle& handle);
-    Texture& getDefault();
 
     size_t count() const { return _textures.size(); }
     size_t getMemoryUsage() const { return _memory_usage; }
@@ -53,6 +54,7 @@ private:
 
     ThreadSafeQueue<TextureData> _completed_uploads;
     std::unordered_map<unsigned int, int> _atlas_pending_tiles;
+    std::mutex _registry_mutex;
 
     static std::vector<unsigned char> conformTileData(const TextureData& src, int target_w, int target_h, int target_channels);
     static int calcMipLevels(int w, int h);

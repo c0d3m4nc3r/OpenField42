@@ -78,6 +78,8 @@ Geometry::~Geometry()
 
 bool Geometry::upload()
 {
+    if (uploaded) return true;
+
     for (size_t i = 0; i < lods.size(); i++)
     {
         LOD& lod = lods[i];
@@ -90,14 +92,20 @@ bool Geometry::upload()
         }
     }
 
+    uploaded = true;
+
     return true;
 }
 
 void Geometry::unload()
 {
+    if (!uploaded) return;
+
     for (auto& lod : lods)
     {
         if (!lod.uploaded) continue;
         lod.unload();
     }
+
+    uploaded = false;
 }
