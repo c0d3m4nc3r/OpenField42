@@ -4,10 +4,11 @@
 #include "core/globals.h"
 #include "game//game.h"
 #include "geometry/geometry_manager.h"
-#include "render/renderer.h"
 #include "geometry/geometry_template.h"
+#include "object/object_manager.h"
 #include "object/object_template.h"
 #include "object/object.h"
+#include "render/renderer.h"
 #include "script/script_manager.h"
 #include "utils/string_utils.h"
 #include "utils/log.h"
@@ -111,7 +112,7 @@ void Console::init()
             return true;
         }
         
-        ObjectTemplate::create(args[1], type);
+        ObjectTemplate::current = &g_ObjectMgr->createTemplate(args[1], type);
 
         return true;
     });
@@ -175,7 +176,7 @@ void Console::init()
             return false;
         }
 
-        ObjectTemplate* tmpl = ObjectTemplate::get(args[0]);
+        ObjectTemplate* tmpl = g_ObjectMgr->getTemplate(args[0]);
         if (!tmpl)
         {
             LOG_ERROR("Console: Object.create: Object template with name '%s' not found!", args[0].c_str());

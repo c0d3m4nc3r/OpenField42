@@ -60,8 +60,8 @@ set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/math/aabb.cpp
     ${SRC_DIR}/math/frustum.cpp
+    ${SRC_DIR}/object/object_manager.cpp
     ${SRC_DIR}/object/object.cpp
-    ${SRC_DIR}/object/object_template.cpp
     ${SRC_DIR}/platform/input.cpp
     ${SRC_DIR}/platform/window.cpp
     ${SRC_DIR}/render/passes/sky_pass.cpp
