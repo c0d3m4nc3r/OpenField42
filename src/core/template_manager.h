@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utils/string_utils.h"
 #include <mutex>
 #include <typeindex>
 
@@ -11,24 +12,28 @@ public:
     T* create(const std::string& name, Args&&... args)
     {
         std::lock_guard<std::mutex> lock(_mutex);
+
+        std::string key = StringUtils::lowercase(name);
         
         auto& storage = getStorage<T>();
-        auto it = storage.find(name);
+        auto it = storage.find(key);
         if (it != storage.end()) {
             return it->second.get();
         }
 
-        storage[name] = std::make_unique<T>(name, std::forward<Args>(args)...);
-        return storage[name].get();
+        storage[key] = std::make_unique<T>(name, std::forward<Args>(args)...);
+        return storage[key].get();
     }
 
     template<typename T>
     T* get(const std::string& name)
     {
         std::lock_guard<std::mutex> lock(_mutex);
+
+        std::string key = StringUtils::lowercase(name);
         
         auto& storage = getStorage<T>();
-        auto it = storage.find(name);
+        auto it = storage.find(key);
         if (it != storage.end()) {
             return it->second.get();
         }

@@ -41,3 +41,8 @@ bool ScriptManager::execCon(const std::string& path)
 
     return true;
 }
+
+std::future<bool> ScriptManager::execConAsync(const std::string& path)
+{
+    return _pool.enqueue([this, path] { return execCon(path); });
+}

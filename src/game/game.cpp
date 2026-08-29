@@ -13,6 +13,9 @@
 #include "world/water.h"
 #include "world/world.h"
 
+#include <chrono>
+
+
 bool Game::init()
 {
     LOG_INFO("Game::init: Initializing game...");
@@ -198,6 +201,8 @@ bool Game::loadGameObjs()
 {
     LOG_INFO("Game::loadGameObjs: Loading game objects...");
 
+    auto t_start = std::chrono::steady_clock::now();
+
     bool success = g_VFS->mountProvider(std::make_shared<RFAProvider>(std::string(GAME_DATA_DIR) + "/bf1942/Archives/Objects.rfa"));
     if (!success)
     {
@@ -207,18 +212,40 @@ bool Game::loadGameObjs()
 
     std::vector<std::string> object_paths = g_VFS->listFiles("Objects/");
 
-    for (const auto& path : object_paths)
-    {
-        if (!path.ends_with(".con")) continue;
-        
-        if (!g_ScriptMgr->execCon(path))
-        {
-            LOG_ERROR("Game::loadGameObjs: Failed to load game objects: Error in '%s'!", path.c_str());
-            return false;
-        }
+    std::vector<std::string> con_paths;
+    for (auto& path : object_paths) {
+        if (path.ends_with(".con")) con_paths.push_back(path);
     }
 
-    LOG_INFO("Game::loadGameObjs: Game objects loaded successfully!");
+    auto t_mount_done = std::chrono::steady_clock::now();
+
+    std::vector<std::future<bool>> futures;
+    futures.reserve(con_paths.size());
+
+    for (const auto& path : con_paths)
+        futures.push_back(g_ScriptMgr->execConAsync(path));
+
+    bool all_ok = true;
+    for (auto& f : futures)
+        if (!f.get()) all_ok = false;
+
+    if (!all_ok)
+    {
+        LOG_ERROR("Game::loadGameObjs: One or more .con files failed to load!");
+        return false;
+    }
+    
+    auto t_end = std::chrono::steady_clock::now();
+
+    auto mount_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_mount_done - t_start).count();
+    auto load_ms  = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_mount_done).count();
+    auto total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
+
+    LOG_INFO("Game::loadGameObjs: Mounted archive + listed %zu .con files in %lld ms",
+              con_paths.size(), mount_ms);
+    LOG_INFO("Game::loadGameObjs: Loaded %zu objects in %lld ms (async)",
+              con_paths.size(), load_ms);
+    LOG_INFO("Game::loadGameObjs: Total: %lld ms", total_ms);
 
     _objs_loaded = true;
 
