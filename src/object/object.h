@@ -17,8 +17,6 @@ struct Object
     Object* parent = nullptr;
     glm::vec3 continous_rot_speed = glm::vec3(0.0f);
 
-    static inline Object* current = nullptr;
-
     Object(
         const glm::vec3& position = glm::vec3(0.0f),
         const glm::vec3& rotation = glm::vec3(0.0f),

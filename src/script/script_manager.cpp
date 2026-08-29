@@ -18,6 +18,8 @@ bool ScriptManager::execCon(const std::string& path)
     // std::string full_path = g_VFS->findFile(path);
     // LOG_DEBUG("ScriptManager::execCon: Executing file '%s'...", full_path.c_str());
 
+    Console::ExecContext ctx;
+
     std::istringstream stream(content);
     std::string line;
     int line_number = 0;
@@ -30,7 +32,7 @@ bool ScriptManager::execCon(const std::string& path)
             return c == '\t' || c == '\r' || c == '\"' || c == '\'' || c == ';';
         });
 
-        if (!g_Console->exec(line))
+        if (!g_Console->exec(line, ctx))
         {
             LOG_ERROR("Console::execFile: Error at line %d in '%s'!", line_number, path.c_str());
             return false;

@@ -1,24 +1,40 @@
 #pragma once
 
+#include "object/object_template.h"
+
 #include <string>
 #include <functional>
 
 #include <glm/fwd.hpp>
 
 struct GeometryTemplate;
+struct Object;
+
 class Engine;
 class Console
 {
 public:
 
+    struct ExecContext
+    {
+        GeometryTemplate* last_geom_tmpl = nullptr;
+        ObjectTemplate* last_obj_tmpl = nullptr;
+        ObjectTemplate::Child* last_child = nullptr;
+        Object* last_obj = nullptr;
+    };
+
     using CommandArgs = std::vector<std::string>;
-    using CommandHandler = std::function<bool(const CommandArgs&)>;
+    using CommandHandler = std::function<bool(ExecContext&, const CommandArgs&)>;
 
     void init();
 
     void registerCmd(const std::string& name, CommandHandler handler);
 
-    bool exec(const std::string& line);
+    bool exec(const std::string& line, ExecContext& ctx);
+    bool exec(const std::string& line)
+    {
+        return exec(line, _main_exec_ctx);
+    }
 
     static int parseInt(const std::string& str);
     static float parseFloat(const std::string& str);
@@ -31,6 +47,6 @@ public:
 private:
 
     std::unordered_map<std::string, CommandHandler> _commands;
-    GeometryTemplate* _current_geom_tmpl = nullptr;
+    ExecContext _main_exec_ctx;
 
 };

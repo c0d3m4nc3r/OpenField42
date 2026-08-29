@@ -17,7 +17,7 @@
 #include "world/world.h"
 
 #define REGISTER_OBJECT_PROPERTY(ObjectName, ObjectRef, PropertyName, SetterFunction) \
-    registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&](const CommandArgs& args) \
+    registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&](ExecContext& ctx, const CommandArgs& args) \
     { \
         if (args.empty()) \
         { \
@@ -59,10 +59,10 @@ void Console::init()
 {
     LOG_INFO("Console::init: Initializing console...");
 
-    registerCmd("rem", [](const CommandArgs& args) { return true; });
-    registerCmd("REM", [](const CommandArgs& args) { return true; });
+    registerCmd("rem", [](ExecContext& ctx, const CommandArgs& args) { return true; });
+    registerCmd("REM", [](ExecContext& ctx, const CommandArgs& args) { return true; });
 
-    registerCmd("run", [](const CommandArgs& args)
+    registerCmd("run", [](ExecContext& ctx, const CommandArgs& args)
     {
         if (args.empty())
         {
@@ -75,7 +75,7 @@ void Console::init()
         return g_ScriptMgr->execCon(path);
     });
 
-    registerCmd("GeometryTemplate.create", [this](const CommandArgs& args)
+    registerCmd("GeometryTemplate.create", [](ExecContext& ctx, const CommandArgs& args)
     {
         if (args.size() < 2)
         {
@@ -91,12 +91,12 @@ void Console::init()
             return false;
         }
 
-        _current_geom_tmpl = g_GeometryMgr->createTemplate(args[1], type);
+        ctx.last_geom_tmpl = g_GeometryMgr->createTemplate(args[1], type);
 
         return true;
     });
 
-    registerCmd("ObjectTemplate.create", [](const CommandArgs& args)
+    registerCmd("ObjectTemplate.create", [](ExecContext& ctx, const CommandArgs& args)
     {
         if (args.size() < 2)
         {
@@ -112,12 +112,12 @@ void Console::init()
             return true;
         }
         
-        ObjectTemplate::current = &g_ObjectMgr->createTemplate(args[1], type);
+        ctx.last_obj_tmpl = &g_ObjectMgr->createTemplate(args[1], type);
 
         return true;
     });
 
-    registerCmd("ObjectTemplate.addTemplate", [](const CommandArgs& args)
+    registerCmd("ObjectTemplate.addTemplate", [](ExecContext& ctx, const CommandArgs& args)
     {
         if (args.empty())
         {
@@ -125,10 +125,10 @@ void Console::init()
             return false;
         }
 
-        auto current = ObjectTemplate::current;
+        auto current = ctx.last_obj_tmpl;
         if (current)
         {
-            ObjectTemplate::last_added_child = &current->children.emplace_back(
+            ctx.last_child = &current->children.emplace_back(
                 args[0], glm::vec3(0.0f), glm::vec3(0.0f)
             );
         }
@@ -136,7 +136,7 @@ void Console::init()
         return true;
     });
 
-    registerCmd("ObjectTemplate.setPosition", [](const CommandArgs& args)
+    registerCmd("ObjectTemplate.setPosition", [](ExecContext& ctx, const CommandArgs& args)
     {
         if (args.empty())
         {
@@ -144,14 +144,14 @@ void Console::init()
             return false;
         }
 
-        auto current = ObjectTemplate::current;
-        if (current && current->last_added_child)
-            current->last_added_child->position = Console::parseVec3(args[0]);
+        auto current = ctx.last_obj_tmpl;
+        if (current && ctx.last_child)
+            ctx.last_child->position = Console::parseVec3(args[0]);
 
         return true;
     });
 
-    registerCmd("ObjectTemplate.setRotation", [](const CommandArgs& args)
+    registerCmd("ObjectTemplate.setRotation", [](ExecContext& ctx, const CommandArgs& args)
     {
         if (args.empty())
         {
@@ -159,16 +159,16 @@ void Console::init()
             return false;
         }
 
-        auto current = ObjectTemplate::current;
-        if (current && current->last_added_child)
-            current->last_added_child->rotation = Console::parseVec3(args[0]);
+        auto current = ctx.last_obj_tmpl;
+        if (current && ctx.last_child)
+            ctx.last_child->rotation = Console::parseVec3(args[0]);
 
         return true;
     });
 
-    registerCmd("Object.create", [](const CommandArgs& args)
+    registerCmd("Object.create", [](ExecContext& ctx, const CommandArgs& args)
     {
-        Object::current = nullptr;
+        ctx.last_obj = nullptr;
         
         if (args.empty())
         {
@@ -183,7 +183,8 @@ void Console::init()
             return true;
         }
 
-        if (!(Object::current = g_World->createObject(tmpl)))
+        ctx.last_obj = g_World->createObject(tmpl);
+        if (!ctx.last_obj)
         {
             // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
             GeometryTemplate* geom_tmpl = g_GeometryMgr->getTemplate(tmpl->geometry);
@@ -197,24 +198,24 @@ void Console::init()
         return true;
     });
 
-    registerCmd("Sky.initSky", [this](const CommandArgs& args)
+    registerCmd("Sky.initSky", [](ExecContext& ctx, const CommandArgs& args)
     {
-        return g_World->getSky().init(_current_geom_tmpl);
+        return g_World->getSky().init(ctx.last_geom_tmpl);
     });
 
     // GeometryTemplate
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, file, GEN_STRING_SETTER(GeometryTemplate, file));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, materialMap, GEN_STRING_SETTER(GeometryTemplate, material_map));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, texBaseName, GEN_STRING_SETTER(GeometryTemplate, tex_base_name));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, detailTexName, GEN_STRING_SETTER(GeometryTemplate, detail_tex_name));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, materialSize, GEN_INT_SETTER(GeometryTemplate, material_size));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, worldSize, GEN_INT_SETTER(GeometryTemplate, world_size));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, texOffsetX, GEN_INT_SETTER(GeometryTemplate, tex_offset_x));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, texOffsetY, GEN_INT_SETTER(GeometryTemplate, tex_offset_y));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, waterLevel, GEN_INT_SETTER(GeometryTemplate, water_level));
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, yScale, GEN_FLOAT_SETTER(GeometryTemplate, y_scale));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, file, GEN_STRING_SETTER(GeometryTemplate, file));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, materialMap, GEN_STRING_SETTER(GeometryTemplate, material_map));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, texBaseName, GEN_STRING_SETTER(GeometryTemplate, tex_base_name));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, detailTexName, GEN_STRING_SETTER(GeometryTemplate, detail_tex_name));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, materialSize, GEN_INT_SETTER(GeometryTemplate, material_size));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, worldSize, GEN_INT_SETTER(GeometryTemplate, world_size));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, texOffsetX, GEN_INT_SETTER(GeometryTemplate, tex_offset_x));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, texOffsetY, GEN_INT_SETTER(GeometryTemplate, tex_offset_y));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, waterLevel, GEN_INT_SETTER(GeometryTemplate, water_level));
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, yScale, GEN_FLOAT_SETTER(GeometryTemplate, y_scale));
 
-    REGISTER_OBJECT_PROPERTY(GeometryTemplate, _current_geom_tmpl, setLodDistance, [](GeometryTemplate* tmpl, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(GeometryTemplate, ctx.last_geom_tmpl, setLodDistance, [](GeometryTemplate* tmpl, const std::string& value) {
         auto args = StringUtils::split(value);
         if (args.size() < 2)
         {
@@ -229,17 +230,17 @@ void Console::init()
     });
 
     // ObjectTemplate
-    REGISTER_OBJECT_PROPERTY(ObjectTemplate, ObjectTemplate::current, geometry, GEN_STRING_SETTER(ObjectTemplate, geometry));
-    REGISTER_OBJECT_PROPERTY(ObjectTemplate, ObjectTemplate::current, setContinousRotationSpeed, GEN_VEC3_SETTER(ObjectTemplate, continous_rot_speed));
+    REGISTER_OBJECT_PROPERTY(ObjectTemplate, ctx.last_obj_tmpl, geometry, GEN_STRING_SETTER(ObjectTemplate, geometry));
+    REGISTER_OBJECT_PROPERTY(ObjectTemplate, ctx.last_obj_tmpl, setContinousRotationSpeed, GEN_VEC3_SETTER(ObjectTemplate, continous_rot_speed));
 
     // Object
-    REGISTER_OBJECT_PROPERTY(Object, Object::current, absolutePosition, [](Object* obj, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Object, ctx.last_obj, absolutePosition, [](Object* obj, const std::string& value) {
         if (obj) obj->setPosition(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Object, Object::current, rotation, [](Object* obj, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Object, ctx.last_obj, rotation, [](Object* obj, const std::string& value) {
         if (obj) obj->setRotation(Console::parseVec3(value));
     });
-    REGISTER_OBJECT_PROPERTY(Object, Object::current, geometry.scale, [](Object* obj, const std::string& value) {
+    REGISTER_OBJECT_PROPERTY(Object, ctx.last_obj, geometry.scale, [](Object* obj, const std::string& value) {
         if (obj) obj->setScale(Console::parseVec3(value));
     });
 
@@ -338,7 +339,7 @@ void Console::registerCmd(const std::string& name, CommandHandler fn)
     _commands[StringUtils::lowercase(name)] = fn;
 }
 
-bool Console::exec(const std::string& line)
+bool Console::exec(const std::string& line, ExecContext& ctx)
 {
     if (line.empty()) return true;
 
@@ -351,7 +352,7 @@ bool Console::exec(const std::string& line)
     auto it = _commands.find(cmd);
     if (it != _commands.end())
     {
-        if (!it->second(args))
+        if (!it->second(ctx, args))
             return true;
         return true;
     }

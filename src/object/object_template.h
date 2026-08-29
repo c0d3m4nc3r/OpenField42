@@ -1,6 +1,6 @@
 #pragma once
 
-#include "object/object.h"
+#include "object/object_type.h"
 
 #include <string>
 #include <vector>
@@ -21,7 +21,4 @@ struct ObjectTemplate
     glm::vec3 continous_rot_speed = glm::vec3(0.0f); 
 
     std::vector<Child> children;
-    
-    static inline ObjectTemplate* current = nullptr;
-    static inline Child* last_added_child = nullptr;
 };
