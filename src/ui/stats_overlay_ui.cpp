@@ -1,4 +1,4 @@
-#include "ui/stats_overlay.h"
+#include "ui/stats_overlay_ui.h"
 
 #include "core/engine.h"
 #include "core/globals.h"

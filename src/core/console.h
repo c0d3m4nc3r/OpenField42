@@ -10,6 +10,22 @@
 struct GeometryTemplate;
 struct Object;
 
+enum class CommandStatus : unsigned char
+{
+    Success,
+    Error,
+    Warning,
+    Info
+};
+
+struct CommandResult
+{
+    std::string message = "";
+    CommandStatus status = CommandStatus::Success;
+
+    bool empty() const { return message.empty(); }
+};
+
 class Engine;
 class Console
 {
@@ -24,14 +40,14 @@ public:
     };
 
     using CommandArgs = std::vector<std::string>;
-    using CommandHandler = std::function<bool(ExecContext&, const CommandArgs&)>;
+    using CommandHandler = std::function<CommandResult(ExecContext&, const CommandArgs&)>;
 
     void init();
 
     void registerCmd(const std::string& name, CommandHandler handler);
 
-    bool exec(const std::string& line, ExecContext& ctx);
-    bool exec(const std::string& line)
+    CommandResult exec(const std::string& line, ExecContext& ctx);
+    CommandResult exec(const std::string& line)
     {
         return exec(line, _main_exec_ctx);
     }

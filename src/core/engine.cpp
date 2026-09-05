@@ -1,7 +1,7 @@
 #include "core/engine.h"
 
 #include "core/console.h"
-#include "ui/stats_overlay.h"
+#include "ui/stats_overlay_ui.h"
 #include "core/globals.h"
 #include "core/template_manager.h"
 #include "game/game.h"
@@ -198,8 +198,8 @@ void Engine::update(float dt)
 
 void Engine::render()
 {
-    g_TextureMgr->update(1);
-    g_GeometryMgr->update(1);
+    g_TextureMgr->update(4);
+    g_GeometryMgr->update(4);
     g_Renderer->resetStats();
     g_World->render();
     g_Renderer->flush();

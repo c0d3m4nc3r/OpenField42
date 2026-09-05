@@ -77,7 +77,8 @@ set(SOURCES
     ${SRC_DIR}/render/texture_manager.cpp
     ${SRC_DIR}/render/texture.cpp
     ${SRC_DIR}/script/script_manager.cpp
-    ${SRC_DIR}/ui/stats_overlay.cpp
+    ${SRC_DIR}/ui/console_ui.cpp
+    ${SRC_DIR}/ui/stats_overlay_ui.cpp
     ${SRC_DIR}/ui/ui_manager.cpp
     ${SRC_DIR}/utils/gl_utils.cpp
     ${SRC_DIR}/utils/log.cpp

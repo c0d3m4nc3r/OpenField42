@@ -33,7 +33,8 @@ void UIManager::render(const EngineStats& stats)
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    _stats_overlay.render(stats);
+    _stats_overlay_ui.render(stats);
+    _console_ui.render();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

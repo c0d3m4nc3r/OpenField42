@@ -35,6 +35,20 @@ void Input::update()
     _mouse_delta = {};
 }
 
+void Input::reset()
+{
+    _keys.clear();
+    _prev_keys.clear();
+
+    _mouse_buttons.reset();
+    _prev_mouse_buttons.reset();
+
+    _mouse_pos = glm::vec2(0.0f);
+    _mouse_delta = glm::vec2(0.0f);
+
+    _mouse_captured = false;
+}
+
 bool Input::isKeyUp(Key key) const
 {
     return !getKeyState(key);

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ui/stats_overlay.h"
+#include "ui/console_ui.h"
+#include "ui/stats_overlay_ui.h"
 
 class UIManager
 {
@@ -10,10 +11,12 @@ public:
     void onEvent(const SDL_Event& event);
     void render(const EngineStats& stats);
 
-    StatsOverlayUI& getStatsOverlay() { return _stats_overlay; }
+    ConsoleUI& getConsoleUI() { return _console_ui; }
+    StatsOverlayUI& getStatsOverlayUI() { return _stats_overlay_ui; }
 
 private:
 
-    StatsOverlayUI _stats_overlay;
+    ConsoleUI _console_ui;
+    StatsOverlayUI _stats_overlay_ui;
     
 };

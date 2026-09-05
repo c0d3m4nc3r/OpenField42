@@ -17,29 +17,29 @@
 #include "world/world.h"
 
 #define REGISTER_OBJECT_PROPERTY(ObjectName, ObjectRef, PropertyName, SetterFunction) \
-    registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&](ExecContext& ctx, const CommandArgs& args) \
+    registerCmd(std::string(#ObjectName) + "." + #PropertyName, [&](ExecContext& ctx, const CommandArgs& args) -> CommandResult \
     { \
         if (args.empty()) \
         { \
             LOG_ERROR("Console: %s.%s: Not enough arguments!", #ObjectName, #PropertyName); \
-            return false; \
+            return { std::string(#ObjectName) + "." + #PropertyName + ": Not enough arguments!", CommandStatus::Error }; \
         } \
         std::string value_str = Console::joinArgs(args); \
         auto* obj_ptr = (ObjectRef); \
         SetterFunction(obj_ptr, value_str); \
-        return true; \
+        return {}; \
     })
 
 #define GEN_STRING_SETTER(Class, Field) \
     [](Class* obj, const std::string& value) { \
         if (obj) obj->Field = Console::parseString(value); \
     }
-    
+
 #define GEN_INT_SETTER(Class, Field) \
     [](Class* obj, const std::string& value) { \
         if (obj) obj->Field = Console::parseInt(value); \
     }
-    
+
 #define GEN_FLOAT_SETTER(Class, Field) \
     [](Class* obj, const std::string& value) { \
         if (obj) obj->Field = Console::parseFloat(value); \
@@ -59,28 +59,36 @@ void Console::init()
 {
     LOG_INFO("Console::init: Initializing console...");
 
-    registerCmd("rem", [](ExecContext& ctx, const CommandArgs& args) { return true; });
-    registerCmd("REM", [](ExecContext& ctx, const CommandArgs& args) { return true; });
+    registerCmd("sex", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult { return { "No sex :(", CommandStatus::Error }; });
 
-    registerCmd("run", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("rem", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult { return {}; });
+    registerCmd("REM", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult { return {}; });
+
+    registerCmd("run", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         if (args.empty())
         {
             LOG_ERROR("Console: run: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
         std::string path = args[0];
         if (!path.ends_with(".con")) path += ".con";
 
-        return g_ScriptMgr->execCon(path);
+        bool status = g_ScriptMgr->execCon(path);
+        if (!status)
+        {
+            return { "Failed to execute script: " + path, CommandStatus::Error };
+        }
+
+        return { "Executed script: " + path, CommandStatus::Success };
     });
 
-    registerCmd("GeometryTemplate.create", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("GeometryTemplate.create", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         if (args.size() < 2)
         {
             LOG_ERROR("Console: GeometryTemplate.create: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
 
         GeometryType type = geometryTypeFromString(args[0]);
@@ -88,20 +96,20 @@ void Console::init()
         if (type == GeometryType::Unknown)
         {
             LOG_ERROR("Console: GeometryTemplate.create: Unknown geometry type '%s'!", args[0].c_str());
-            return false;
+            return { "Unknown geometry type '" + args[0] + "'!", CommandStatus::Error };
         }
 
         ctx.last_geom_tmpl = g_TemplateMgr->create<GeometryTemplate>(args[1], type);
 
-        return true;
+        return {};
     });
 
-    registerCmd("ObjectTemplate.create", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("ObjectTemplate.create", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         if (args.size() < 2)
         {
             LOG_ERROR("Console: ObjectTemplate.create: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
 
         ObjectType type = objectTypeFromString(args[0]);
@@ -109,20 +117,20 @@ void Console::init()
         if (type == ObjectType::Unknown)
         {
             LOG_WARNING("Console: ObjectTemplate.create: Unknown object type '%s'!", args[0].c_str());
-            return true;
+            return { "Unknown object type '" + args[0] + "'", CommandStatus::Warning };
         }
-        
+
         ctx.last_obj_tmpl = g_TemplateMgr->create<ObjectTemplate>(args[1], type);
 
-        return true;
+        return {};
     });
 
-    registerCmd("ObjectTemplate.addTemplate", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("ObjectTemplate.addTemplate", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         if (args.empty())
         {
             LOG_ERROR("Console: ObjectTemplate.addTemplate: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
 
         auto current = ctx.last_obj_tmpl;
@@ -133,54 +141,54 @@ void Console::init()
             );
         }
 
-        return true;
+        return {};
     });
 
-    registerCmd("ObjectTemplate.setPosition", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("ObjectTemplate.setPosition", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         if (args.empty())
         {
             LOG_ERROR("Console: ObjectTemplate.setPosition: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
 
         auto current = ctx.last_obj_tmpl;
         if (current && ctx.last_child)
             ctx.last_child->position = Console::parseVec3(args[0]);
 
-        return true;
+        return {};
     });
 
-    registerCmd("ObjectTemplate.setRotation", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("ObjectTemplate.setRotation", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         if (args.empty())
         {
             LOG_ERROR("Console: ObjectTemplate.setRotation: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
 
         auto current = ctx.last_obj_tmpl;
         if (current && ctx.last_child)
             ctx.last_child->rotation = Console::parseVec3(args[0]);
 
-        return true;
+        return {};
     });
 
-    registerCmd("Object.create", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("Object.create", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
         ctx.last_obj = nullptr;
-        
+
         if (args.empty())
         {
             LOG_ERROR("Console: Object.create: Not enough arguments!");
-            return false;
+            return { "Not enough arguments!", CommandStatus::Error };
         }
 
         auto* tmpl = g_TemplateMgr->get<ObjectTemplate>(args[0]);
         if (!tmpl)
         {
             LOG_ERROR("Console: Object.create: Object template with name '%s' not found!", args[0].c_str());
-            return true;
+            return { "Object template with name '" + args[0] + "' not found!", CommandStatus::Error };
         }
 
         ctx.last_obj = g_World->createObject(tmpl);
@@ -189,18 +197,23 @@ void Console::init()
             // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
             auto* geom_tmpl = g_TemplateMgr->get<GeometryTemplate>(tmpl->geometry);
             if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
-                return true;
-            
+                return {};
+
             LOG_ERROR("Console: Object.create: Failed to create object!");
-            return false;
+            return { "Failed to create object from template '" + args[0] + "'!", CommandStatus::Error };
         }
 
-        return true;
+        return {};
     });
 
-    registerCmd("Sky.initSky", [](ExecContext& ctx, const CommandArgs& args)
+    registerCmd("Sky.initSky", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
     {
-        return g_World->getSky().init(ctx.last_geom_tmpl);
+        bool success = g_World->getSky().init(ctx.last_geom_tmpl);
+        if (!success)
+        {
+            return { "Failed to initialize sky!", CommandStatus::Error };
+        }
+        return {};
     });
 
     // GeometryTemplate
@@ -226,7 +239,7 @@ void Console::init()
         int level = parseInt(args[0]);
         float distance = parseFloat(args[1]);
 
-        tmpl->lod_distances[level] = distance;
+        if (tmpl) tmpl->lod_distances[level] = distance;
     });
 
     // ObjectTemplate
@@ -276,7 +289,11 @@ void Console::init()
     REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, globalAmbientColor, [](Renderer* r, const std::string& value) {
         if (r) r->setGlobalAmbientLight(Console::parseVec3(value));
     });
-
+    
+    REGISTER_OBJECT_PROPERTY(Renderer, g_Renderer, wireframe, [](Renderer* r, const std::string& value) {
+        if (r) r->setWireframeEnabled(Console::parseInt(value) > 0 ? true : false);
+    });
+    
     // Game
     REGISTER_OBJECT_PROPERTY(Game, g_Game, setViewDistance, [](Game* g, const std::string& value) {
         if (g) g->setViewDistance(Console::parseFloat(value));
@@ -290,47 +307,47 @@ void Console::init()
 
     // Water
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), texLayer1, [](Water* w, const std::string& value) {
-        w->setTexture(0, g_TextureMgr->load(value));
+        if (w) w->setTexture(0, g_TextureMgr->load(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), texLayer2, [](Water* w, const std::string& value) {
-        w->setTexture(1, g_TextureMgr->load(value));
+        if (w) w->setTexture(1, g_TextureMgr->load(value));
     });
-    
+
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollDirection1, [](Water* w, const std::string& value) {
-        w->setScrollDir(0, parseVec2(value));
+        if (w) w->setScrollDir(0, Console::parseVec2(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollDirection2, [](Water* w, const std::string& value) {
-        w->setScrollDir(1, parseVec2(value));
+        if (w) w->setScrollDir(1, Console::parseVec2(value));
     });
 
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollLayer1, [](Water* w, const std::string& value) {
-        w->setScrollSpeed(0, parseFloat(value));
+        if (w) w->setScrollSpeed(0, Console::parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), scrollLayer2, [](Water* w, const std::string& value) {
-        w->setScrollSpeed(1, parseFloat(value));
+        if (w) w->setScrollSpeed(1, Console::parseFloat(value));
     });
 
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), tileLayer1, [](Water* w, const std::string& value) {
-        w->setUVScale(0, parseFloat(value));
+        if (w) w->setUVScale(0, Console::parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), tileLayer2, [](Water* w, const std::string& value) {
-        w->setUVScale(1, parseFloat(value));
+        if (w) w->setUVScale(1, Console::parseFloat(value));
     });
 
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), color, [](Water* w, const std::string& value) {
-        w->setColor(parseVec3(value));
+        if (w) w->setColor(Console::parseVec3(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), deepColor, [](Water* w, const std::string& value) {
-        w->setDeepColor(parseVec3(value));
+        if (w) w->setDeepColor(Console::parseVec3(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), waterColorDepth, [](Water* w, const std::string& value) {
-        w->setColorDepth(parseFloat(value));
+        if (w) w->setColorDepth(Console::parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), waterAlphaDepth, [](Water* w, const std::string& value) {
-        w->setAlphaDepth(parseFloat(value));
+        if (w) w->setAlphaDepth(Console::parseFloat(value));
     });
     REGISTER_OBJECT_PROPERTY(Water, &g_World->getWater(), waterShallowAlpha, [](Water* w, const std::string& value) {
-        w->setShallowAlpha(parseFloat(value));
+        if (w) w->setShallowAlpha(Console::parseFloat(value));
     });
 }
 
@@ -339,12 +356,12 @@ void Console::registerCmd(const std::string& name, CommandHandler fn)
     _commands[StringUtils::lowercase(name)] = fn;
 }
 
-bool Console::exec(const std::string& line, ExecContext& ctx)
+CommandResult Console::exec(const std::string& line, ExecContext& ctx)
 {
-    if (line.empty()) return true;
+    if (line.empty()) return CommandResult{ "Command is empty!", CommandStatus::Warning };
 
     auto tokens = StringUtils::split(line);
-    if (tokens.empty()) return true;
+    if (tokens.empty()) return CommandResult{ "Command is empty!", CommandStatus::Warning };
     
     std::string cmd = StringUtils::lowercase(tokens[0]);
     std::vector<std::string> args(tokens.begin() + 1, tokens.end());
@@ -352,14 +369,12 @@ bool Console::exec(const std::string& line, ExecContext& ctx)
     auto it = _commands.find(cmd);
     if (it != _commands.end())
     {
-        if (!it->second(ctx, args))
-            return true;
-        return true;
+        return it->second(ctx, args);
     }
     else
     {
         // LOG_WARNING("Console::exec: Unknown command: %s", cmd.c_str());
-        return true;
+        return CommandResult { "Unknown command!", CommandStatus::Warning };
     }
 }
 

@@ -1,6 +1,6 @@
 #include "game/game.h"
 
-#include "ui/stats_overlay.h"
+#include "ui/stats_overlay_ui.h"
 #include "core/globals.h"
 #include "render/shader_manager.h"
 #include "script/script_manager.h"
@@ -44,6 +44,18 @@ bool Game::init()
 
 void Game::update(float dt)
 {
+    int width, height;
+    g_Window->getSize(&width, &height);
+
+    float aspect_ratio = static_cast<float>(width) /
+                         static_cast<float>(height);
+
+    if (_camera.getAspectRatio() != aspect_ratio)
+        _camera.setAspectRatio(aspect_ratio);
+
+    if (g_UiMgr->getConsoleUI().isOpen())
+        return;
+    
     float move_speed = _camera_speed * dt;
 
     glm::vec3 move_dir(0.0f);
@@ -87,15 +99,6 @@ void Game::update(float dt)
 
         _camera.setRotation(rot);
     }
-
-    int width, height;
-    g_Window->getSize(&width, &height);
-
-    float aspect_ratio = static_cast<float>(width) /
-                         static_cast<float>(height);
-
-    if (_camera.getAspectRatio() != aspect_ratio)
-        _camera.setAspectRatio(aspect_ratio);
 }
 
 void Game::onEvent(const SDL_Event& event)
@@ -104,33 +107,36 @@ void Game::onEvent(const SDL_Event& event)
     {
     case SDL_EVENT_KEY_DOWN:
     {
+        if (event.key.repeat) break;
+
         if (event.key.scancode == SDL_SCANCODE_ESCAPE)
         {
             g_Input->setMouseCaptured(!g_Input->isMouseCaptured());
         }
         else if (event.key.scancode == SDL_SCANCODE_F1)
         {
-            if (event.key.repeat) break;
             g_Renderer->setWireframeEnabled(!g_Renderer->isWireframeEnabled());
         }
         else if (event.key.scancode == SDL_SCANCODE_F3)
         {
-            if (event.key.repeat) break;
-            auto& debug_ui = g_UiMgr->getStatsOverlay();
-            debug_ui.setEnabled(!debug_ui.isEnabled());
+            auto& stats_overlay = g_UiMgr->getStatsOverlayUI();
+            stats_overlay.toggle();
         }
         else if (event.key.scancode == SDL_SCANCODE_F5)
         {
-            if (event.key.repeat) break;
             g_ShaderMgr->reloadAll();
         }
         else if (event.key.scancode == SDL_SCANCODE_F11)
         {
-            if (event.key.repeat) break;
             _fullscreen = !_fullscreen;
             
             // TODO: Replace with window.setFullscreen(bool fullscreen)
             SDL_SetWindowFullscreen(g_Window->getHandle(), _fullscreen);
+        }
+        else if (event.key.scancode == SDL_SCANCODE_GRAVE)
+        {
+            auto& console_ui = g_UiMgr->getConsoleUI();
+            console_ui.toggle();
         }
     } break;
     case SDL_EVENT_MOUSE_WHEEL:

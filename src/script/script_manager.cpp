@@ -32,7 +32,7 @@ bool ScriptManager::execCon(const std::string& path)
             return c == '\t' || c == '\r' || c == '\"' || c == '\'' || c == ';';
         });
 
-        if (!g_Console->exec(line, ctx))
+        if (g_Console->exec(line, ctx).status == CommandStatus::Error)
         {
             LOG_ERROR("Console::execFile: Error at line %d in '%s'!", line_number, path.c_str());
             return false;

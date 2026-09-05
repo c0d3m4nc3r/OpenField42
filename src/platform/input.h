@@ -16,6 +16,7 @@ public:
 
     void onEvent(const SDL_Event& event);
     void update();
+    void reset();
 
     bool isKeyUp(Key key) const;
     bool isKeyDown(Key key) const;
