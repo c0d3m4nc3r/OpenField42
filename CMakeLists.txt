@@ -49,7 +49,6 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(SOURCES
     ${SRC_DIR}/core/console.cpp
-    ${SRC_DIR}/core/debugui.cpp
     ${SRC_DIR}/core/engine.cpp
     ${SRC_DIR}/game/game.cpp
     ${SRC_DIR}/geometry/geometry_manager.cpp
@@ -78,6 +77,8 @@ set(SOURCES
     ${SRC_DIR}/render/texture_manager.cpp
     ${SRC_DIR}/render/texture.cpp
     ${SRC_DIR}/script/script_manager.cpp
+    ${SRC_DIR}/ui/stats_overlay.cpp
+    ${SRC_DIR}/ui/ui_manager.cpp
     ${SRC_DIR}/utils/gl_utils.cpp
     ${SRC_DIR}/utils/log.cpp
     ${SRC_DIR}/utils/string_utils.cpp

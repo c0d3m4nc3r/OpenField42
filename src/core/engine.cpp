@@ -1,7 +1,7 @@
 #include "core/engine.h"
 
 #include "core/console.h"
-#include "core/debugui.h"
+#include "ui/stats_overlay.h"
 #include "core/globals.h"
 #include "core/template_manager.h"
 #include "game/game.h"
@@ -12,6 +12,7 @@
 #include "render/shader_manager.h"
 #include "render/texture_manager.h"
 #include "script/script_manager.h"
+#include "ui/ui_manager.h"
 #include "vfs/providers.h"
 #include "vfs/vfs.h"
 #include "world/terrain.h"
@@ -24,12 +25,12 @@ Input* g_Input = nullptr;
 Renderer* g_Renderer = nullptr;
 Console* g_Console = nullptr;
 VFS* g_VFS = nullptr;
-DebugUI* g_DebugUI = nullptr;
 TemplateManager* g_TemplateMgr = nullptr;
 GeometryManager* g_GeometryMgr = nullptr;
 ShaderManager* g_ShaderMgr = nullptr;
 TextureManager* g_TextureMgr = nullptr;
 ScriptManager* g_ScriptMgr = nullptr;
+UIManager* g_UiMgr = nullptr;
 World* g_World = nullptr;
 
 ThreadPool g_ThreadPool;
@@ -46,12 +47,12 @@ bool Engine::init(int argc, char* argv[])
     g_Renderer = new Renderer();
     g_Console = new Console();
     g_VFS = new VFS();
-    g_DebugUI = new DebugUI();
     g_TemplateMgr = new TemplateManager();
     g_GeometryMgr = new GeometryManager();
     g_ShaderMgr = new ShaderManager();
     g_TextureMgr = new TextureManager();
     g_ScriptMgr = new ScriptManager();
+    g_UiMgr = new UIManager();
     g_World = new World();
 
     if (!g_Window->init())
@@ -79,8 +80,8 @@ bool Engine::init(int argc, char* argv[])
         return false;
     }
 
-    g_DebugUI->init();
     g_Console->init();
+    g_UiMgr->init();
     g_Game->init();
 
     std::string level_name = "Market_Garden";
@@ -112,13 +113,13 @@ void Engine::shutdown()
     g_VFS->unmountAll();
 
     delete g_World; g_World = nullptr;
+    delete g_UiMgr; g_UiMgr = nullptr;
     delete g_ScriptMgr; g_ScriptMgr = nullptr;
     delete g_TextureMgr; g_TextureMgr = nullptr;
     delete g_ShaderMgr; g_ShaderMgr = nullptr;
     delete g_TemplateMgr; g_TemplateMgr = nullptr;
     delete g_GeometryMgr; g_GeometryMgr = nullptr;
     delete g_Console; g_Console = nullptr;
-    delete g_DebugUI; g_DebugUI = nullptr;
     delete g_Renderer; g_Renderer = nullptr;
     delete g_Input; g_Input = nullptr;
     delete g_Window; g_Window = nullptr;
@@ -163,7 +164,7 @@ void Engine::update(float dt)
             }
         }
 
-        g_DebugUI->onEvent(event);
+        g_UiMgr->onEvent(event);
         g_Input->onEvent(event);
         g_Game->onEvent(event);
     }
@@ -202,6 +203,6 @@ void Engine::render()
     g_Renderer->resetStats();
     g_World->render();
     g_Renderer->flush();
-    g_DebugUI->render(_stats);
+    g_UiMgr->render(_stats);
     g_Window->swapBuffers();
 }

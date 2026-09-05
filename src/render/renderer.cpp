@@ -76,12 +76,12 @@ void Renderer::shutdown()
     LOG_INFO("Renderer::shutdown: Renderer shutdown!");
 }
 
-float distanceToAABB(const glm::vec3& point, const AABB& box, const glm::mat4& model)
+float distanceToAABB(const glm::vec3& point, const AABB& box)
 {
-    glm::vec3 world_min = glm::vec3(model * glm::vec4(box.min, 1.0f));
-    glm::vec3 world_max = glm::vec3(model * glm::vec4(box.max, 1.0f));
+    // glm::vec3 world_min = glm::vec3(model * glm::vec4(box.min, 1.0f));
+    // glm::vec3 world_max = glm::vec3(model * glm::vec4(box.max, 1.0f));
 
-    glm::vec3 closest = glm::clamp(point, glm::min(world_min, world_max), glm::max(world_min, world_max));
+    glm::vec3 closest = glm::clamp(point, glm::min(box.min, box.max), glm::max(box.min, box.max));
     return glm::distance(point, closest);
 }
 
@@ -105,19 +105,17 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
     if (!geom) return;
     if (geom->lods.empty()) return;
     if (!geom->uploaded) return;
-
+    
     glm::vec3 cam_pos = _camera->getPosition();
-    glm::vec3 cam_forward = _camera->getForward(); 
 
-    float distance = distanceToAABB(cam_pos, geom->aabb, model);
+    AABB world_aabb = geom->aabb.transform(model);
+    
+    float distance = distanceToAABB(cam_pos, world_aabb);
 
     size_t lod_index = 0;
     
     if (USE_LODS && geom->type != GeometryType::SkyMesh)
-    {
-        // TODO: Load LOD max distance from .con files
         lod_index = selectLOD(distance, *geom);
-    }
 
     Geometry::LOD& lod = geom->lods[lod_index];
 
@@ -125,7 +123,6 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     if (USE_FRUSTUM_CULLING && geom->type != GeometryType::SkyMesh)
     {
-        AABB world_aabb = geom->aabb.transform(model);
         if (!frustum.intersects(world_aabb))
         {
             _stats.meshes_culled += lod.meshes.size();
@@ -143,8 +140,8 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         {
             if (geom->type == GeometryType::PatchTerrain || geom->type == GeometryType::WaterMesh)
             {
-                AABB world_aabb = mesh.aabb.transform(model);
-                if (!frustum.intersects(world_aabb))
+                AABB mesh_world_aabb = mesh.aabb.transform(model);
+                if (!frustum.intersects(mesh_world_aabb))
                 {
                     _stats.meshes_culled++;
                     _stats.polygons_culled += mesh.index_count / 3;

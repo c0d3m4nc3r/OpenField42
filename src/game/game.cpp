@@ -1,9 +1,10 @@
 #include "game/game.h"
 
-#include "core/debugui.h"
+#include "ui/stats_overlay.h"
 #include "core/globals.h"
 #include "render/shader_manager.h"
 #include "script/script_manager.h"
+#include "ui/ui_manager.h"
 #include "utils/log.h"
 #include "platform/input.h"
 #include "platform/window.h"
@@ -115,7 +116,8 @@ void Game::onEvent(const SDL_Event& event)
         else if (event.key.scancode == SDL_SCANCODE_F3)
         {
             if (event.key.repeat) break;
-            g_DebugUI->setEnabled(!g_DebugUI->isEnabled());
+            auto& debug_ui = g_UiMgr->getStatsOverlay();
+            debug_ui.setEnabled(!debug_ui.isEnabled());
         }
         else if (event.key.scancode == SDL_SCANCODE_F5)
         {

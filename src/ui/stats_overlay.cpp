@@ -1,43 +1,16 @@
-#include "core/debugui.h"
+#include "ui/stats_overlay.h"
 
 #include "core/engine.h"
 #include "core/globals.h"
-#include "platform/window.h"
 #include "render/camera.h"
 #include "render/renderer.h"
 
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl3.h"
+#include "imgui.h"
 
-void DebugUI::init()
-{
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    ImGui_ImplSDL3_InitForOpenGL(g_Window->getHandle(), g_Window->getGLContext());
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    LOG_INFO("DebugUI::init: Debug UI initialized!");
-}
-
-void DebugUI::onEvent(const SDL_Event& event)
-{
-    ImGui_ImplSDL3_ProcessEvent(&event);
-}
-
-void DebugUI::render(const EngineStats& stats)
+void StatsOverlayUI::render(const EngineStats& stats)
 {
     if (!_enabled) return;
     
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
     ImVec2 pos = ImVec2(0, 0);
     ImGui::SetNextWindowPos(pos);
     ImGui::SetNextWindowBgAlpha(0.05f);
@@ -49,7 +22,7 @@ void DebugUI::render(const EngineStats& stats)
                              ImGuiWindowFlags_NoSavedSettings;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::Begin("Debug Info", nullptr, flags);
+    ImGui::Begin("Stats:", nullptr, flags);
 
     ImGui::Text("FPS: %.1f", stats.fps);
     ImGui::Text("Frame Time: %.2f ms", stats.delta_time * 1000.0f);
@@ -116,7 +89,4 @@ void DebugUI::render(const EngineStats& stats)
     ImGui::Text("\tRotation: Pitch:%.2f, Yaw:%.2f", camera_rot.x, camera_rot.y);
     ImGui::End();
     ImGui::PopStyleVar();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
