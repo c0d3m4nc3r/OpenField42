@@ -1,4 +1,4 @@
-# OpenField42
+![Temporary Logo](docs/temp-logo.png)
 
 ![C++](https://img.shields.io/badge/Language-C%2B%2B-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-green.svg)
