@@ -56,7 +56,7 @@ private:
     
     mutable glm::vec3 _forward, _right, _up;
     mutable glm::mat4 _view_mat, _proj_mat;
-    mutable bool _view_dirty, _proj_dirty;
+    mutable bool _view_dirty = true, _proj_dirty = true;
     
     mutable Frustum _frustum;
 

@@ -21,9 +21,23 @@ public:
     bool init();
     void shutdown();
 
-    Geometry* getGeometry() { return &_geometry; }
+    Geometry* getGeometry()
+    {
+        if (_geometry_dirty)
+        {
+            generateGeometry();
+            _geometry_dirty = false;
+        }
+        return &_geometry;
+    }
 
     Layer& getLayer(int index) { return _layers[index]; }
+
+    const glm::vec3& getColor() const { return _color; }
+    const glm::vec3& getDeepColor() const { return _deep_color; }
+    float getColorDepth() const { return _color_depth; }
+    float getAlphaDepth() const { return _alpha_depth; }
+    float getShallowAlpha() const { return _shallow_alpha; }
 
     bool isDirty() const { return _dirty; }
     void clearDirty() { _dirty = false; }
@@ -50,25 +64,29 @@ public:
     {
         _layers[layer].uv_scale = scale;
         _dirty = true;
+        _geometry_dirty = true;
     }
 
-    void setColor(const Color& color) { _color = color; }
-    void setDeepColor(const Color& color) { _deep_color = color; }
-    void setColorDepth(float depth) { _color_depth = depth; }
-    void setAlphaDepth(float depth) { _alpha_depth = depth; }
-    void setShallowAlpha(float alpha) { _shallow_alpha = alpha; }
+    void setColor(const glm::vec3& color) { _color = color; _geometry_dirty = true; }
+    void setDeepColor(const glm::vec3& color) { _deep_color = color; _geometry_dirty = true; }
+    void setColorDepth(float depth) { _color_depth = depth; _geometry_dirty = true; }
+    void setAlphaDepth(float depth) { _alpha_depth = depth; _geometry_dirty = true; }
+    void setShallowAlpha(float alpha) { _shallow_alpha = alpha; _geometry_dirty = true; }
 
 private:
 
     Layer _layers[2];
 
-    Color _color = Color(1.0f, 1.0f, 1.0f, 1.0f);
-    Color _deep_color = Color(0.3f, 0.3f, 0.3f, 1.0f);
+    glm::vec3 _color = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 _deep_color = glm::vec3(0.3f, 0.3f, 0.3f);
     float _color_depth = 5.0f;
     float _alpha_depth = 1.0f;
     float _shallow_alpha = 0.5f;
 
     bool _dirty = true;
+    bool _geometry_dirty = true;
 
     Geometry _geometry;
+
+    void generateGeometry();
 };

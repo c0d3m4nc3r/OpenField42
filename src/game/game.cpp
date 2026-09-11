@@ -1,14 +1,15 @@
 #include "game/game.h"
 
-#include "ui/stats_overlay_ui.h"
+#include "core/console.h"
 #include "core/globals.h"
-#include "render/shader_manager.h"
-#include "script/script_manager.h"
-#include "ui/ui_manager.h"
-#include "utils/log.h"
 #include "platform/input.h"
 #include "platform/window.h"
+#include "render/shader_manager.h"
 #include "render/renderer.h"
+#include "script/script_manager.h"
+#include "ui/stats_overlay_ui.h"
+#include "ui/ui_manager.h"
+#include "utils/log.h"
 #include "vfs/providers.h"
 #include "vfs/vfs.h"
 #include "world/water.h"
@@ -40,6 +41,26 @@ bool Game::init()
     LOG_INFO("Game::init: Game initialized!");
 
     return true;
+}
+
+void Game::registerCmds() const
+{
+    g_Console->registerCmd("teleport", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
+    {
+        if (args.size() < 1)
+        {
+            return { "Not enough arguments! Usage: teleport|tp <x>/<y>/<z>", CommandStatus::Error };
+        }
+
+        glm::vec3 pos = StringUtils::fromString<glm::vec3>(args[0]);
+        g_Game->teleport(pos);
+
+        return { "Teleported to: " + StringUtils::toString(pos), CommandStatus::Success };
+    });
+
+    g_Console->addAlias("tp", "teleport");
+
+    g_Console->bindProperty("Game.viewDistance", g_Game, &Game::getViewDistance, &Game::setViewDistance);
 }
 
 void Game::update(float dt)
@@ -198,6 +219,16 @@ bool Game::loadLevel(const std::string& name)
     LOG_INFO("Game::loadLevel: Level '%s' loaded!", name.c_str());
 
     return true;
+}
+
+void Game::teleport(const glm::vec3& position)
+{
+    _camera.setPosition(position);
+}
+
+float Game::getViewDistance() const
+{
+    return _camera.getFarPlane();
 }
 
 void Game::setViewDistance(float distance)

@@ -34,6 +34,8 @@ public:
     void submit(Geometry* geom, const glm::mat4& model);
     void flush();
     
+    void registerCmds() const;
+    
     void reloadShaders();
     void resetStats();
     
@@ -41,21 +43,34 @@ public:
     RenderPass* getPass(RenderPass::Type type) const;
     const Stats& getStats() const { return _stats; }
 
+    glm::vec3 getFogColor() const { return _fog.color; }
+    float getFogStart() const { return _fog.params.x; }
+    float getFogEnd() const { return _fog.params.y; }
+    bool isFogEnabled() const { return _fog.params.z > 0.5f; }
+
+    glm::vec3 getDiffuseColor() const { return glm::vec3(_lighting.diffuse); }
+    glm::vec3 getSpecularColor() const { return glm::vec3(_lighting.specular); }
+    glm::vec3 getAmbientColor() const { return glm::vec3(_lighting.ambient); }
+    glm::vec3 getGlobalAmbientColor() const { return glm::vec3(_lighting.global_ambient); }
+    glm::vec3 getSunDirection() const { return glm::vec3(_lighting.sun_dir); }
+
     bool isWireframeEnabled() const { return _context.wireframe_enabled; }
     
     void setViewport(int x, int y, int w, int h) const;
     void setCamera(Camera* camera) { _camera = camera; }
 
-    void setFogColor(const Color& color) { _fog.color = color; _fog_dirty = true; }
+    void setFogColor(const glm::vec3& color) { _fog.color = glm::vec4(color, 1.0f); _fog_dirty = true; }
     void setFogStart(float start) { _fog.params.x = start; _fog_dirty = true; }
     void setFogEnd(float end) { _fog.params.y = end; _fog_dirty = true; }
     void setFogEnabled(bool enabled) { _fog.params.z = enabled ? 1.0f : 0.0f; _fog_dirty = true; }
 
-    void setDiffuseLight(const Color& color) { _lighting.diffuse = color; _lighting_dirty = true; }
-    void setSpecularLight(const Color& color) { _lighting.specular = color; _lighting_dirty = true; }
-    void setAmbientLight(const Color& color) { _lighting.ambient = color; _lighting_dirty = true; }
-    void setGlobalAmbientLight(const Color& color) { _lighting.global_ambient = color; _lighting_dirty = true; }
+    void setDiffuseColor(const glm::vec3& color) { _lighting.diffuse = glm::vec4(color, 1.0f); _lighting_dirty = true; }
+    void setSpecularColor(const glm::vec3& color) { _lighting.specular = glm::vec4(color, 1.0f); _lighting_dirty = true; }
+    void setAmbientColor(const glm::vec3& color) { _lighting.ambient = glm::vec4(color, 1.0f); _lighting_dirty = true; }
+    void setGlobalAmbientColor(const glm::vec3& color) { _lighting.global_ambient = glm::vec4(color, 1.0f); _lighting_dirty = true; }
     void setSunDirection(const glm::vec3& dir) { _lighting.sun_dir = glm::vec4(dir, 1.0f); _lighting_dirty = true; }
+
+    void setWireframeEnabled(bool enabled) { _context.wireframe_enabled = enabled; }
 
     void setWaterParams(const WaterParams& params)
     {
@@ -72,8 +87,6 @@ public:
         _terrain_textures[1] = detail;
     }
 
-    void setWireframeEnabled(bool enabled) { _context.wireframe_enabled = enabled; }
-
 private:
 
     struct alignas(16) UBO_CameraBlock
@@ -85,16 +98,16 @@ private:
 
     struct alignas(16) UBO_FogBlock
     {
-        Color color = Color(0.5f, 0.5f, 0.5f, 1.0f);
+        glm::vec4 color = {0.5f, 0.5f, 0.5f, 1.0f};
         glm::vec4 params = {50.0f, 200.0f, 1.0f, 1.0f}; // x - start, y - end, z - enabled, w - padding
     };
 
     struct alignas(16) UBO_LightingBlock
     {
-        Color diffuse;
-        Color specular;
-        Color ambient;
-        Color global_ambient;
+        glm::vec4 diffuse;
+        glm::vec4 specular;
+        glm::vec4 ambient;
+        glm::vec4 global_ambient;
         glm::vec4 sun_dir; // xyz - direction, w - padding
     };
 

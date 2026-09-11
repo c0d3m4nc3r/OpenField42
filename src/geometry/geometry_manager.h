@@ -10,6 +10,8 @@ class GeometryManager
 {
 public:
 
+    void registerCmds();
+
     void update(int uploads_per_frame);
 
     Geometry* createGeometry(const GeometryTemplate* tmpl);

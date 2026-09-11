@@ -84,6 +84,12 @@ bool Engine::init(int argc, char* argv[])
     g_UiMgr->init();
     g_Game->init();
 
+    g_Renderer->registerCmds();
+    g_GeometryMgr->registerCmds();
+    // g_ObjectMgr->registerCmds();
+    g_Game->registerCmds();
+    g_World->registerCmds();
+
     std::string level_name = "Market_Garden";
     if (argc > 1) level_name = argv[1];
     

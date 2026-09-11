@@ -1,10 +1,68 @@
 #include "geometry_manager.h"
 
+#include "core/console.h"
 #include "core/globals.h"
+#include "core/template_manager.h"
 #include "geometry/geometry.h"
 #include "geometry/geometry_template.h"
 #include "geometry/standard_mesh.h"
 #include "geometry/tree_mesh.h"
+
+void GeometryManager::registerCmds()
+{
+    g_Console->registerCmd("GeometryTemplate.create", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
+    {
+        if (args.size() < 2)
+        {
+            return CommandResult{ "Not enough arguments! Usage: GeometryTemplate.create <type> <name>", CommandStatus::Error };
+        }
+
+        GeometryType type = geometryTypeFromString(args[0]);
+
+        if (type == GeometryType::Unknown)
+        {
+            return CommandResult{ "Unknown geometry type '" + args[0] + "'!", CommandStatus::Error };
+        }
+
+        ctx.last_geom_tmpl = g_TemplateMgr->create<GeometryTemplate>(args[1], type);
+
+        return {};
+    });
+
+
+    g_Console->registerCmd("GeometryTemplate.setLodDistance", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult {
+        if (args.size() < 2)
+        {
+            return CommandResult{ "Not enough arguments! Usage: GeometryTemplate.setLodDistance <level> <distance>", CommandStatus::Error };
+        }
+
+        if (!ctx.last_geom_tmpl)
+        {
+            return CommandResult{ "No active geometry template!", CommandStatus::Error };
+        }
+
+        int level = StringUtils::fromString<int>(args[0]);
+        float distance = StringUtils::fromString<float>(args[1]);
+
+        if (ctx.last_geom_tmpl)
+        {
+            ctx.last_geom_tmpl->lod_distances[level] = distance;
+        }
+
+        return CommandResult{ "LOD" + args[0] + " distance set to " + args[1] + " for " + ctx.last_geom_tmpl->name };
+    });
+
+    g_Console->bindContextProperty("GeometryTemplate.file", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::file);
+    g_Console->bindContextProperty("GeometryTemplate.materialMap", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::material_map);
+    g_Console->bindContextProperty("GeometryTemplate.texBaseName", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::tex_base_name);
+    g_Console->bindContextProperty("GeometryTemplate.detailTexName", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::detail_tex_name);
+    g_Console->bindContextProperty("GeometryTemplate.materialSize", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::material_size);
+    g_Console->bindContextProperty("GeometryTemplate.worldSize", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::world_size);
+    g_Console->bindContextProperty("GeometryTemplate.texOffsetX", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::tex_offset_x);
+    g_Console->bindContextProperty("GeometryTemplate.texOffsetY", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::tex_offset_y);
+    g_Console->bindContextProperty("GeometryTemplate.waterLevel", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::water_level);
+    g_Console->bindContextProperty("GeometryTemplate.yScale", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::y_scale);
+}
 
 void GeometryManager::update(int uploads_per_frame)
 {

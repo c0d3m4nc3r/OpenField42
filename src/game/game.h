@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/engine.h"
 #include "render/camera.h"
 #include "core/config.h"
 
@@ -13,13 +12,19 @@ class Game
 public:
 
     bool init();
+    void registerCmds() const;
+    
     void update(float dt);
 
     void onEvent(const SDL_Event& event);
 
     bool loadLevel(const std::string& name);    
     
+    void teleport(const glm::vec3& position);
+
+    float getViewDistance() const;
     void setViewDistance(float distance);
+
 
 private:
 

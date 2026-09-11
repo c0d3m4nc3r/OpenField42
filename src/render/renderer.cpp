@@ -2,6 +2,7 @@
 
 #include "core/globals.h"
 #include "core/config.h"
+#include "core/console.h"
 #include "render/camera.h"
 #include "render/render_passes.h"
 #include "render/shader.h"
@@ -238,6 +239,22 @@ void Renderer::flush()
     }
 
     _context.transforms.clear();
+}
+
+void Renderer::registerCmds() const
+{   
+    g_Console->bindProperty("Renderer.fogColorVec", g_Renderer, &Renderer::getFogColor, &Renderer::setFogColor);
+    g_Console->bindProperty("Renderer.fogStart", g_Renderer, &Renderer::getFogStart, &Renderer::setFogStart);
+    g_Console->bindProperty("Renderer.fogEnd", g_Renderer, &Renderer::getFogEnd, &Renderer::setFogEnd);
+    g_Console->bindProperty("Renderer.fogLinearStart", g_Renderer, &Renderer::getFogStart, &Renderer::setFogStart);
+    g_Console->bindProperty("Renderer.fogLinearEnd", g_Renderer, &Renderer::getFogEnd, &Renderer::setFogEnd);
+    g_Console->bindProperty("Renderer.vertexFogEnable", g_Renderer, &Renderer::isFogEnabled, &Renderer::setFogEnabled);
+    g_Console->bindProperty("Renderer.diffuseColor", g_Renderer, &Renderer::getDiffuseColor, &Renderer::setDiffuseColor);
+    g_Console->bindProperty("Renderer.specularColor", g_Renderer, &Renderer::getSpecularColor, &Renderer::setSpecularColor);
+    g_Console->bindProperty("Renderer.ambientColor", g_Renderer, &Renderer::getAmbientColor, &Renderer::setAmbientColor);
+    g_Console->bindProperty("Renderer.globalAmbientColor", g_Renderer, &Renderer::getGlobalAmbientColor, &Renderer::setGlobalAmbientColor);
+    g_Console->bindProperty("Renderer.sunDirection", g_Renderer, &Renderer::getSunDirection, &Renderer::setSunDirection);
+    g_Console->bindProperty("Renderer.wireframe", g_Renderer, &Renderer::isWireframeEnabled, &Renderer::setWireframeEnabled);
 }
 
 void Renderer::resetStats()

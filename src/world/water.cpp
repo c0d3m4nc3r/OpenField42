@@ -8,15 +8,45 @@
 
 #include <glm/common.hpp>
 
+constexpr int TILE_SIZE = 64/4;
+constexpr int step = 4;
+constexpr int CHUNK_VERTS_PER_SIDE = (TILE_SIZE / step) + 1;
+constexpr int CHUNK_VERT_COUNT = CHUNK_VERTS_PER_SIDE * CHUNK_VERTS_PER_SIDE;
+
 bool Water::init()
 {
     LOG_INFO("Water::init: Initializing water...");
 
-    const int TILE_SIZE = 64/4;
-    const int step = 4;
-    const int CHUNK_VERTS_PER_SIDE = (TILE_SIZE / step) + 1;
-    const int CHUNK_VERT_COUNT = CHUNK_VERTS_PER_SIDE * CHUNK_VERTS_PER_SIDE;
+    
 
+    LOG_INFO("Water::init: Water initialized!");
+
+    return true;
+}
+
+void Water::shutdown()
+{
+    for (auto& layer : _layers)
+    {
+        layer.texture = { INVALID_TEXTURE_ID };
+        layer.scroll_dir = glm::vec2(0.0f);
+        layer.scroll_speed = 0.0f;
+        layer.uv_scale = 1.0f;
+    }
+
+    _geometry.unload();
+
+    LOG_INFO("Water::shutdown: Water shutdown");
+}
+
+void Water::generateGeometry()
+{
+    if (!_geometry.lods.empty())
+    {
+        _geometry.unload();
+        _geometry.lods.clear();
+    }
+    
     Terrain& terrain = g_World->getTerrain();
 
     float scale_xz = static_cast<float>(terrain.getWorldSize()) / static_cast<float>(terrain.getSize());
@@ -83,7 +113,7 @@ bool Water::init()
 
                     float depth = terrain.getWaterHeight() - terrain.getHeight(tx, tz);
                     float t = glm::clamp(depth / _color_depth, 0.0f, 1.0f);
-                    glm::vec3 color = glm::mix(_color.toVec3(), _deep_color.toVec3(), t);
+                    glm::vec3 color = glm::mix(_color, _deep_color, t);
                     float alpha = glm::mix(_shallow_alpha, 1.0f, t);
                     v.color = glm::vec4(color, alpha);
 
@@ -134,23 +164,4 @@ bool Water::init()
 
     _geometry.aabb = AABB(global_min, global_max);
     _geometry.type = GeometryType::WaterMesh;
-
-    LOG_INFO("Water::init: Water initialized!");
-
-    return true;
-}
-
-void Water::shutdown()
-{
-    for (auto& layer : _layers)
-    {
-        layer.texture = { INVALID_TEXTURE_ID };
-        layer.scroll_dir = glm::vec2(0.0f);
-        layer.scroll_speed = 0.0f;
-        layer.uv_scale = 1.0f;
-    }
-
-    _geometry.unload();
-
-    LOG_INFO("Water::shutdown: Water shutdown");
 }
