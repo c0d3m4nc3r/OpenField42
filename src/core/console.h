@@ -115,6 +115,8 @@ public:
 
     static std::string joinArgs(const CommandArgs& args);
     
+    std::vector<std::string> getCompletions(std::string_view prefix) const;
+    std::string autocomplete(std::string_view input) const;
 
 private:
 

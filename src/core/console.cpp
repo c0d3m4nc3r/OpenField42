@@ -169,3 +169,56 @@ std::string Console::joinArgs(const CommandArgs& args)
     }
     return result;
 }
+
+std::vector<std::string> Console::getCompletions(std::string_view prefix) const
+{
+    std::string lower_prefix = StringUtils::lowercase(std::string(prefix));
+    std::vector<std::string> matches;
+
+    for (const auto& [name, handler] : _commands)
+    {
+        if (name.rfind(lower_prefix, 0) == 0) 
+        {
+            matches.push_back(name);
+        }
+    }
+
+    for (const auto& [name, _] : _aliases)
+    {
+        if (name.rfind(lower_prefix, 0) == 0) 
+        {
+            matches.push_back(name);
+        }
+    }
+
+    std::sort(matches.begin(), matches.end());
+    return matches;
+}
+
+std::string Console::autocomplete(std::string_view input) const
+{
+    auto matches = getCompletions(input);
+
+    if (matches.empty())
+    {
+        return std::string(input);
+    }
+
+    if (matches.size() == 1)
+    {
+        return matches[0] + " ";
+    }
+
+    std::string common_prefix = matches[0];
+    for (size_t i = 1; i < matches.size(); ++i)
+    {
+        size_t j = 0;
+        while (j < common_prefix.size() && j < matches[i].size() && common_prefix[j] == matches[i][j])
+        {
+            ++j;
+        }
+        common_prefix.resize(j);
+    }
+
+    return common_prefix;
+}

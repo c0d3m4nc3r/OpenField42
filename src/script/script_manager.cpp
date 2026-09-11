@@ -11,7 +11,7 @@ bool ScriptManager::execCon(const std::string& path)
     auto content = g_VFS->readFileString(path);
     if (content.empty())
     {
-        LOG_ERROR("Console::execFile: Failed to read content from '%s'!", path.c_str());
+        LOG_ERROR("ScriptManager::execCon: Failed to read content from '%s'!", path.c_str());
         return false;
     }
 
@@ -32,10 +32,20 @@ bool ScriptManager::execCon(const std::string& path)
             return c == '\t' || c == '\r' || c == '\"' || c == '\'' || c == ';';
         });
 
-        if (g_Console->exec(line, ctx).status == CommandStatus::Error)
+        auto result = g_Console->exec(line, ctx);
+
+        switch (result.status)
         {
-            LOG_ERROR("Console::execFile: Error at line %d in '%s'!", line_number, path.c_str());
+        case CommandStatus::Error:
+            LOG_ERROR("ScriptManager::execCon: Error at line %d in '%s'!", line_number, path.c_str());
+            LOG_ERROR("ScriptManager::execCon: %s", result.message.c_str());
             return false;
+        // case CommandStatus::Warning:
+        //     LOG_WARNING("ScriptManager::execCon: Warning at line %d in '%s'!", line_number, path.c_str());
+        //     LOG_WARNING("ScriptManager::execCon: %s", result.message.c_str());
+        //     break;
+        default:
+            break;
         }
     }
 

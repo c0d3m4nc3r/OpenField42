@@ -143,7 +143,34 @@ int ConsoleUI::textEditCallback(ImGuiInputTextCallbackData* data)
     }
     case ImGuiInputTextFlags_CallbackCompletion:
     {
-        // TODO: Autocomplete (Tab)
+        std::string current_input(data->Buf);
+        auto completions = g_Console->getCompletions(current_input);
+
+        if (completions.empty())
+        {
+            break;
+        }
+
+        if (completions.size() == 1)
+        {
+            data->DeleteChars(0, data->BufTextLen);
+            data->InsertChars(0, (completions[0] + " ").c_str());
+        }
+        else
+        {
+            std::string log_msg = "> " + current_input + "\n  Matches:\n";
+            for (const auto& match : completions)
+            {
+                log_msg += "    " + match + "\n";
+            }
+            _logs.push_back(log_msg);
+            _scroll_to_bottom = true;
+
+            std::string common = g_Console->autocomplete(current_input);
+            data->DeleteChars(0, data->BufTextLen);
+            data->InsertChars(0, common.c_str());
+        }
+
         break;
     }
     }
