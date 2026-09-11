@@ -33,6 +33,8 @@ Here are some planned tasks and features open for contribution:
 
 - [ ] Implement accurate specular lighting for water rendering
 - [ ] Implement a dedicated shader for tree pass rendering
+- [ ] Implement a loading screen system
+- [ ] Implement a level selection menu
 
 If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!
 
