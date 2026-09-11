@@ -1,16 +1,11 @@
 #include "core/console.h"
 
 #include "core/globals.h"
-#include "core/template_manager.h"
-#include "geometry/geometry_manager.h"
-#include "geometry/geometry_template.h"
-#include "object/object_template.h"
-#include "object/object.h"
 #include "script/script_manager.h"
 #include "utils/string_utils.h"
 #include "utils/log.h"
-#include "world/sky.h"
-#include "world/world.h"
+
+#include <algorithm>
 
 void Console::init()
 {
@@ -39,84 +34,6 @@ void Console::init()
 
         return CommandResult{ "Executed script: " + path, CommandStatus::Success };
     });
-
-    registerCmd("ObjectTemplate.create", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
-    {
-        if (args.size() < 2)
-        {
-            LOG_ERROR("Console: ObjectTemplate.create: Not enough arguments!");
-            return CommandResult{ "Not enough arguments! Usage: ObjectTemplate.create <type> <name>", CommandStatus::Error };
-        }
-
-        ObjectType type = objectTypeFromString(args[0]);
-
-        if (type == ObjectType::Unknown)
-        {
-            LOG_WARNING("Console: ObjectTemplate.create: Unknown object type '%s'!", args[0].c_str());
-            return CommandResult{ "Unknown object type '" + args[0] + "'", CommandStatus::Warning };
-        }
-
-        ctx.last_obj_tmpl = g_TemplateMgr->create<ObjectTemplate>(args[1], type);
-
-        return {};
-    });
-
-    registerCmd("ObjectTemplate.addTemplate", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
-    {
-        if (args.empty())
-        {
-            return CommandResult{ "Not enough arguments! Usage: ObjectTemplate.addTemplate <name>", CommandStatus::Error };
-        }
-
-        auto current = ctx.last_obj_tmpl;
-        if (current)
-        {
-            ctx.last_child = &current->children.emplace_back(
-                args[0], glm::vec3(0.0f), glm::vec3(0.0f)
-            );
-        }
-
-        return {};
-    });
-
-    bindContextProperty("ObjectTemplate.setPosition", &ExecContext::last_child, &ObjectTemplate::Child::position);
-    bindContextProperty("ObjectTemplate.setRotation", &ExecContext::last_child, &ObjectTemplate::Child::rotation);
-
-    registerCmd("Object.create", [](ExecContext& ctx, const CommandArgs& args) -> CommandResult
-    {
-        ctx.last_obj = nullptr;
-
-        if (args.empty())
-            return CommandResult{ "Not enough arguments! Usage: Object.create <template_name>", CommandStatus::Error };
-
-        auto* tmpl = g_TemplateMgr->get<ObjectTemplate>(args[0]);
-        if (!tmpl)
-            return CommandResult{ "Object template with name '" + args[0] + "' not found!", CommandStatus::Error };
-
-        ctx.last_obj = g_World->createObject(tmpl);
-        if (!ctx.last_obj)
-        {
-            // PatchTerrain initializes level-wide terrain globally and never creates an Object (always returns nullptr).
-            auto* geom_tmpl = g_TemplateMgr->get<GeometryTemplate>(tmpl->geometry);
-            if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
-                return {};
-
-            return CommandResult{ "Failed to create object from template '" + args[0] + "'!", CommandStatus::Error };
-        }
-
-        return {};
-    });
-
-    // ObjectTemplate
-
-    bindContextProperty("ObjectTemplate.geometry", &Console::ExecContext::last_obj_tmpl, &ObjectTemplate::geometry);
-    bindContextProperty("ObjectTemplate.continousRotSpeed", &Console::ExecContext::last_obj_tmpl, &ObjectTemplate::continous_rot_speed);
-
-    // Object
-
-    bindContextProperty("Object.absolutePosition", &Console::ExecContext::last_obj, &Object::getPosition, &Object::setPosition);
-    bindContextProperty("Object.rotation", &Console::ExecContext::last_obj, &Object::getRotation, &Object::setRotation);
-    bindContextProperty("Object.scale", &Console::ExecContext::last_obj, &Object::getScale, &Object::setScale);
 }
 
 void Console::registerCmd(const std::string& name, CommandHandler fn)

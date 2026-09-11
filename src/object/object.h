@@ -11,8 +11,10 @@ class Geometry;
 class Shader;
 class Terrain;
 struct ObjectTemplate;
-struct Object
+class Object
 {
+public:
+    
     ObjectType type = ObjectType::Unknown;
     Object* parent = nullptr;
     glm::vec3 continous_rot_speed = glm::vec3(0.0f);

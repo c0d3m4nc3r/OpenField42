@@ -16,10 +16,7 @@ public:
 
     void registerCmds() const;
 
-    void update(float dt);
     void render();
-
-    Object* createObject(const ObjectTemplate* tmpl);
 
     Sky& getSky() { return _sky; }
     Terrain& getTerrain() { return _terrain; }
@@ -30,6 +27,4 @@ private:
     Sky _sky;
     Terrain _terrain;
     Water _water;
-
-    std::vector<std::unique_ptr<Object>> _objects;
 };

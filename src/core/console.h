@@ -9,7 +9,7 @@
 #include <vector>
 
 struct GeometryTemplate;
-struct Object;
+class Object;
 
 enum class CommandStatus : unsigned char { Success, Error, Warning, Info };
 

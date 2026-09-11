@@ -1,6 +1,7 @@
 #include "core/engine.h"
 
 #include "core/console.h"
+#include "object/object_manager.h"
 #include "ui/stats_overlay_ui.h"
 #include "core/globals.h"
 #include "core/template_manager.h"
@@ -27,6 +28,7 @@ Console* g_Console = nullptr;
 VFS* g_VFS = nullptr;
 TemplateManager* g_TemplateMgr = nullptr;
 GeometryManager* g_GeometryMgr = nullptr;
+ObjectManager* g_ObjectMgr = nullptr;
 ShaderManager* g_ShaderMgr = nullptr;
 TextureManager* g_TextureMgr = nullptr;
 ScriptManager* g_ScriptMgr = nullptr;
@@ -49,6 +51,7 @@ bool Engine::init(int argc, char* argv[])
     g_VFS = new VFS();
     g_TemplateMgr = new TemplateManager();
     g_GeometryMgr = new GeometryManager();
+    g_ObjectMgr = new ObjectManager();
     g_ShaderMgr = new ShaderManager();
     g_TextureMgr = new TextureManager();
     g_ScriptMgr = new ScriptManager();
@@ -86,7 +89,7 @@ bool Engine::init(int argc, char* argv[])
 
     g_Renderer->registerCmds();
     g_GeometryMgr->registerCmds();
-    // g_ObjectMgr->registerCmds();
+    g_ObjectMgr->registerCmds();
     g_Game->registerCmds();
     g_World->registerCmds();
 
@@ -175,7 +178,7 @@ void Engine::update(float dt)
         g_Game->onEvent(event);
     }
 
-    g_World->update(dt);
+    g_ObjectMgr->updateObjects(dt);
     g_Game->update(dt);
 
     auto& water = g_World->getWater();
@@ -207,6 +210,7 @@ void Engine::render()
     g_TextureMgr->update(4);
     g_GeometryMgr->update(4);
     g_Renderer->resetStats();
+    g_ObjectMgr->renderObjects();
     g_World->render();
     g_Renderer->flush();
     g_UiMgr->render(_stats);
