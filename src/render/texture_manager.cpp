@@ -30,7 +30,7 @@ void TextureManager::init()
 
 TextureHandle TextureManager::load(const std::string& path)
 {
-    std::lock_guard<std::mutex> lock(_registry_mutex);
+    std::unique_lock<std::shared_mutex> lock(_textures_mutex); // Используем unique_lock
 
     auto it = _path_to_handle.find(path);
     if (it != _path_to_handle.end())
@@ -110,10 +110,13 @@ TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, i
     glTextureParameteri(atlas_gl_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(atlas_gl_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    TextureHandle handle = { static_cast<unsigned int>(_textures.size()) };
-    _textures.push_back(std::make_shared<Texture>(atlas_gl_id, channels == 4));
-
-    _atlas_pending_tiles[handle.id] = static_cast<int>(paths.size());
+    TextureHandle handle;
+    {
+        std::unique_lock<std::shared_mutex> lock(_textures_mutex);
+        handle.id = static_cast<unsigned int>(_textures.size());
+        _textures.push_back(std::make_shared<Texture>(atlas_gl_id, channels == 4));
+        _atlas_pending_tiles[handle.id] = static_cast<int>(paths.size());
+    }
 
     for (size_t i = 0; i < paths.size(); ++i)
     {
@@ -152,6 +155,8 @@ TextureHandle TextureManager::loadAtlas(const std::vector<std::string>& paths, i
 
 void TextureManager::clear()
 {
+    std::unique_lock<std::shared_mutex> lock(_textures_mutex);
+
     size_t count = _textures.size();
 
     _path_to_handle.clear();
@@ -200,7 +205,10 @@ void TextureManager::uploadNewTexture(const TextureData& task)
         true
     );
 
-    _textures[task.handle.id] = std::make_shared<Texture>(texture_id, task.channels == 4);
+    {
+        std::unique_lock<std::shared_mutex> lock(_textures_mutex);
+        _textures[task.handle.id] = std::make_shared<Texture>(texture_id, task.channels == 4);
+    }
     _memory_usage += task.pixels.size();
 }
 
@@ -226,7 +234,13 @@ void TextureManager::update(int max_uploads_per_frame)
 
 Texture& TextureManager::get(const TextureHandle& handle)
 {
+    std::shared_lock<std::shared_mutex> lock(_textures_mutex);
+
     if (!handle.isValid() || handle.id >= _textures.size())
         return *_default_tex;
-    return *_textures.at(handle.id);
+
+    auto& tex_ptr = _textures[handle.id];
+    if (!tex_ptr) return *_default_tex;
+
+    return *tex_ptr;
 }

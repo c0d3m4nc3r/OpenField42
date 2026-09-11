@@ -3,6 +3,8 @@
 #include "core/thread_safe_queue.h"
 #include "render/texture.h"
 
+#include <shared_mutex>
+
 constexpr unsigned int INVALID_TEXTURE_ID = -1;
 
 struct TextureHandle
@@ -54,7 +56,7 @@ private:
 
     ThreadSafeQueue<TextureData> _completed_uploads;
     std::unordered_map<unsigned int, int> _atlas_pending_tiles;
-    std::mutex _registry_mutex;
+    mutable std::shared_mutex _textures_mutex;
 
     static std::vector<unsigned char> conformTileData(const TextureData& src, int target_w, int target_h, int target_channels);
     static int calcMipLevels(int w, int h);
