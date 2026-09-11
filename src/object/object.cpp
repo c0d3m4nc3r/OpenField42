@@ -1,7 +1,5 @@
 #include "object/object.h"
 
-#include "utils/string_utils.h"
-
 #include <glm/gtc/matrix_transform.hpp>
 
 Object::Object(

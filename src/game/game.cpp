@@ -77,17 +77,15 @@ void Game::update(float dt)
 
     if (g_UiMgr->getConsoleUI().isOpen())
         return;
-    
-    float move_speed = _camera_speed * dt;
 
     glm::vec3 move_dir(0.0f);
     glm::vec3 forward = _camera.getForward();
-    forward.y = 0.0f;
+    if (!_cinematic_camera) forward.y = 0.0f;
     if (glm::length(forward) > 0.0f)
         forward = glm::normalize(forward);
 
     glm::vec3 right = _camera.getRight();
-    right.y = 0.0f;
+    if (!_cinematic_camera) right.y = 0.0f;
     if (glm::length(right) > 0.0f)
         right = glm::normalize(right);
 
@@ -98,31 +96,89 @@ void Game::update(float dt)
     if (g_Input->isKeyDown(MOVE_UP_KEY))       move_dir += glm::vec3(0.0f, 1.0f, 0.0f);
     if (g_Input->isKeyDown(MOVE_DOWN_KEY))     move_dir += glm::vec3(0.0f, -1.0f, 0.0f);
 
+    glm::vec3 target_velocity(0.0f);
     if (glm::length(move_dir) > 0.0f)
     {
-        move_dir = glm::normalize(move_dir);
-        _camera.move(move_dir * _camera_speed * dt);
+        target_velocity = glm::normalize(move_dir) * _camera_speed;
     }
-    
+
+    if (_cinematic_camera)
+    {
+        float move_smoothness = 5.0f; 
+        float move_factor = 1.0f - std::exp(-move_smoothness * dt);
+        _camera_velocity = glm::mix(_camera_velocity, target_velocity, move_factor);
+    }
+    else
+    {
+        _camera_velocity = target_velocity;
+    }
+
+    if (glm::length(_camera_velocity) > 0.001f)
+    {
+        _camera.move(_camera_velocity * dt);
+    }
+    else
+    {
+        _camera_velocity = glm::vec3(0.0f);
+    }
+
     if (g_Input->isMouseCaptured())
     {
         int delta_x, delta_y;
         g_Input->getMouseDelta(&delta_x, &delta_y);
 
         float sensitivity = 0.15f;
-        glm::vec3 rot = _camera.getRotation();
+        
+        static glm::vec3 target_rot = _camera.getRotation();
 
-        rot.y -= (float)delta_x * sensitivity;
-        rot.x += (float)delta_y * sensitivity;
-        rot.x = glm::clamp(rot.x, -89.0f, 89.0f);
+        if (!_cinematic_camera)
+        {
+            target_rot = _camera.getRotation();
+        }
 
-        if (rot.y > 360.0f) rot.y -= 360.0f;
-        else if (rot.y < 0.0f) rot.y += 360.0f;
+        target_rot.y -= (float)delta_x * sensitivity;
+        target_rot.x += (float)delta_y * sensitivity;
+        target_rot.x = glm::clamp(target_rot.x, -89.0f, 89.0f);
 
-        _camera.setRotation(rot);
+        if (target_rot.y >= 360.0f) target_rot.y -= 360.0f;
+        else if (target_rot.y < 0.0f) target_rot.y += 360.0f;
+
+        if (_cinematic_camera)
+        {
+            glm::vec3 current_rot = _camera.getRotation();
+
+            float yaw_delta = target_rot.y - current_rot.y;
+            if (yaw_delta > 180.0f)  yaw_delta -= 360.0f;
+            if (yaw_delta < -180.0f) yaw_delta += 360.0f;
+
+            float smoothness = 6.0f; 
+            float factor = 1.0f - std::exp(-smoothness * dt);
+
+            glm::vec3 new_rot;
+            new_rot.x = glm::mix(current_rot.x, target_rot.x, factor);
+            new_rot.y = current_rot.y + yaw_delta * factor;
+
+            if (new_rot.y >= 360.0f) new_rot.y -= 360.0f;
+            else if (new_rot.y < 0.0f) new_rot.y += 360.0f;
+
+            float strafe_roll = 0.0f;
+            if (g_Input->isKeyDown(MOVE_LEFT_KEY))  strafe_roll += 1.5f;
+            if (g_Input->isKeyDown(MOVE_RIGHT_KEY)) strafe_roll -= 1.5f;
+
+            float target_roll = (-(float)delta_x * 0.12f) + strafe_roll; 
+            target_roll = glm::clamp(target_roll, -3.5f, 3.5f);
+            
+            new_rot.z = glm::mix(current_rot.z, target_roll, 4.0f * dt);
+
+            _camera.setRotation(new_rot);
+        }
+        else
+        {
+            target_rot.z = 0.0f;
+            _camera.setRotation(target_rot);
+        }
     }
 }
-
 void Game::onEvent(const SDL_Event& event)
 {
     switch (event.type)
@@ -159,6 +215,12 @@ void Game::onEvent(const SDL_Event& event)
         {
             auto& console_ui = g_UiMgr->getConsoleUI();
             console_ui.toggle();
+        }
+        else if (event.key.scancode == SDL_SCANCODE_C)
+        {
+            _cinematic_camera = !_cinematic_camera;
+            
+            LOG_INFO("Game::onEvent: Cinematic camera %s!", _cinematic_camera ? "enabled" : "disabled");
         }
     } break;
     case SDL_EVENT_MOUSE_WHEEL:

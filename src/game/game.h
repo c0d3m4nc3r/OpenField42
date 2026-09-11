@@ -31,8 +31,11 @@ private:
     Camera _camera;
     float _camera_speed = CAMERA_MOVE_SPEED;
 
+    glm::vec3 _camera_velocity{0.0f};
+
     bool _fullscreen = false;
     bool _objs_loaded = false;
+    bool _cinematic_camera = false;
     
     bool loadGameObjs();
 };

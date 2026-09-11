@@ -128,6 +128,7 @@ Since the core gameplay is not yet implemented, the engine currently utilizes de
 | **Space** | Move camera up. |
 | **Shift** | Move camera down. |
 | **Mouse Wheel** | Increase/decrease camera speed. |
+| **C** | Toggle cinematic camera mode. |
 | **ESC** | Toggle cursor capture/lock. |
 | **F1** | Toggle Wireframe mode. |
 | **F3** | Toggle Profiler display (shows simple performance metrics). |
