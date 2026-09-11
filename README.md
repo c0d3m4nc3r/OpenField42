@@ -33,8 +33,6 @@ Here are some planned tasks and features open for contribution:
 
 - [ ] Implement accurate specular lighting for water rendering
 - [ ] Implement a dedicated shader for tree pass rendering
-- [ ] Refactor `Console` (decentralize command registration to managers, replace macros with templates, uniform Getter/Setter callbacks)
-- [ ] Implement in-game debug console UI
 
 If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!
 
