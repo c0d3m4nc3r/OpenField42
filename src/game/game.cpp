@@ -61,6 +61,7 @@ void Game::registerCmds() const
     g_Console->addAlias("tp", "teleport");
 
     g_Console->bindProperty("Game.viewDistance", g_Game, &Game::getViewDistance, &Game::setViewDistance);
+    g_Console->addAlias("Game.setViewDistance", "Game.viewDistance");
 }
 
 void Game::update(float dt)

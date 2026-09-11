@@ -45,17 +45,17 @@ void World::registerCmds() const
         [](const glm::vec2& value) { g_World->getWater().setScrollDir(1, value); }
     );
 
-    g_Console->bindProperty("Water.scrollSpeed1",
+    g_Console->bindProperty("Water.scrollLayer1",
         []() { return g_World->getWater().getLayer(0).scroll_speed; },
         [](float value) { g_World->getWater().setScrollSpeed(0, value); }
     );
 
-    g_Console->bindProperty("Water.scrollSpeed2",
+    g_Console->bindProperty("Water.scrollLayer2",
         []() { return g_World->getWater().getLayer(1).scroll_speed; },
         [](float value) { g_World->getWater().setScrollSpeed(1, value); }
     );
 
-    g_Console->bindProperty("Water.tileLayre1",
+    g_Console->bindProperty("Water.tileLayer1",
         []() { return g_World->getWater().getLayer(0).uv_scale; },
         [](float value) { g_World->getWater().setUVScale(0, value); }
     );

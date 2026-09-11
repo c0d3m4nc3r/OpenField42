@@ -80,10 +80,10 @@ void ObjectManager::registerCmds() const
         return {};
     });
 
+    g_Console->bindContextProperty("ObjectTemplate.geometry", &Console::Console::ExecContext::last_obj_tmpl, &ObjectTemplate::geometry);
     g_Console->bindContextProperty("ObjectTemplate.setPosition", &Console::ExecContext::last_child, &ObjectTemplate::Child::position);
     g_Console->bindContextProperty("ObjectTemplate.setRotation", &Console::ExecContext::last_child, &ObjectTemplate::Child::rotation);
-    g_Console->bindContextProperty("ObjectTemplate.geometry", &Console::Console::ExecContext::last_obj_tmpl, &ObjectTemplate::geometry);
-    g_Console->bindContextProperty("ObjectTemplate.continousRotSpeed", &Console::Console::ExecContext::last_obj_tmpl, &ObjectTemplate::continous_rot_speed);
+    g_Console->bindContextProperty("ObjectTemplate.setContinousRotationSpeed", &Console::Console::ExecContext::last_obj_tmpl, &ObjectTemplate::continous_rot_speed);
 }
 
 Object* ObjectManager::createObject(const ObjectTemplate* tmpl)
