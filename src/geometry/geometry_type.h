@@ -16,21 +16,21 @@ enum class GeometryType : unsigned char
     WaterMesh
 };
 
-inline std::string geometryTypeToString(GeometryType type)
+constexpr std::string_view geometryTypeToString(GeometryType type) noexcept
 {
     switch (type)
     {
-    case GeometryType::AnimatedMesh: return "AnimatedMesh";
+    case GeometryType::AnimatedMesh:          return "AnimatedMesh";
     case GeometryType::SkeletonCollisionMesh: return "SkeletonCollisionMesh";
-    case GeometryType::StandardMesh: return "StandardMesh";
-    case GeometryType::TreeMesh: return "TreeMesh";
-    case GeometryType::PatchTerrain: return "PatchTerrain";
+    case GeometryType::StandardMesh:          return "StandardMesh";
+    case GeometryType::TreeMesh:              return "TreeMesh";
+    case GeometryType::PatchTerrain:          return "PatchTerrain";
     case GeometryType::Unknown:
-    default: return "Unknown";
+    default:                                  return "Unknown";
     }
 }
 
-inline GeometryType geometryTypeFromString(const std::string& str)
+inline GeometryType geometryTypeFromString(std::string_view str)
 {
     static const std::unordered_map<std::string, GeometryType> lut = {
         {"animatedmesh", GeometryType::AnimatedMesh},

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/string_hash.h"
 #include "core/thread_safe_queue.h"
 #include "render/texture.h"
 
@@ -36,7 +37,7 @@ public:
 
     void init();
 
-    TextureHandle load(const std::string& path);
+    TextureHandle load(std::string_view path);
     TextureHandle loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels = 3);
 
     void clear();
@@ -50,7 +51,7 @@ public:
 
 private:
 
-    std::unordered_map<std::string, TextureHandle> _path_to_handle;
+    std::unordered_map<std::string, TextureHandle, StringHash, std::equal_to<>> _path_to_handle;
     std::vector<std::shared_ptr<Texture>> _textures;
     std::shared_ptr<Texture> _default_tex;
 

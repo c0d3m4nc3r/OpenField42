@@ -53,7 +53,7 @@ enum class ObjectType : unsigned char
     SimpleObject
 };
 
-inline std::string objectTypeToString(ObjectType type)
+constexpr std::string_view objectTypeToString(ObjectType type)
 {
     switch (type)
     {
@@ -106,7 +106,7 @@ inline std::string objectTypeToString(ObjectType type)
     }
 }
 
-inline ObjectType objectTypeFromString(const std::string& str)
+inline ObjectType objectTypeFromString(std::string_view str)
 {   
     static const std::unordered_map<std::string, ObjectType> lut = {
         {"andcompositeobjective", ObjectType::ANDCompositeObjective},

@@ -50,12 +50,12 @@ public:
         Object* last_obj = nullptr;
     };
 
-    using CommandArgs = std::vector<std::string>;
+    using CommandArgs = std::vector<std::string_view>;
     using CommandHandler = std::function<CommandResult(ExecContext&, const CommandArgs&)>;
 
     void init();
-    void registerCmd(const std::string& name, CommandHandler handler);
-    void addAlias(const std::string& alias, const std::string& command);
+    void registerCmd(std::string_view name, CommandHandler handler);
+    void addAlias(std::string_view alias, std::string_view command);
 
     template <typename Getter, typename Setter>
     void bindProperty(
@@ -110,12 +110,12 @@ public:
         ));
     }
 
-    CommandResult exec(const std::string& line, ExecContext& ctx);
-    CommandResult exec(const std::string& line) { return exec(line, _main_exec_ctx); }
+    CommandResult exec(std::string_view line, ExecContext& ctx);
+    CommandResult exec(std::string_view line) { return exec(line, _main_exec_ctx); }
 
     static std::string joinArgs(const CommandArgs& args);
     
-    std::vector<std::string> getCompletions(std::string_view prefix) const;
+    std::vector<std::string_view> getCompletions(std::string_view prefix) const;
     std::string autocomplete(std::string_view input) const;
 
 private:

@@ -9,7 +9,7 @@ class TemplateManager
 public:
 
     template<typename T, typename... Args>
-    T* create(const std::string& name, Args&&... args)
+    T* create(std::string_view name, Args&&... args)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
@@ -21,12 +21,12 @@ public:
             return it->second.get();
         }
 
-        storage[key] = std::make_unique<T>(name, std::forward<Args>(args)...);
+        storage[key] = std::make_unique<T>(key, std::forward<Args>(args)...);
         return storage[key].get();
     }
 
     template<typename T>
-    T* get(const std::string& name)
+    T* get(std::string_view name)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 

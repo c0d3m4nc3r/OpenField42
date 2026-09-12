@@ -97,28 +97,21 @@ void Game::update(float dt)
     if (g_Input->isKeyDown(MOVE_DOWN_KEY))     move_dir += glm::vec3(0.0f, -1.0f, 0.0f);
 
     glm::vec3 target_velocity(0.0f);
-    if (glm::length(move_dir) > 0.0f)
-    {
+    if (glm::length(move_dir) > 0.0f) {
         target_velocity = glm::normalize(move_dir) * _camera_speed;
     }
 
-    if (_cinematic_camera)
-    {
+    if (_cinematic_camera) {
         float move_smoothness = 5.0f; 
         float move_factor = 1.0f - std::exp(-move_smoothness * dt);
         _camera_velocity = glm::mix(_camera_velocity, target_velocity, move_factor);
-    }
-    else
-    {
+    } else {
         _camera_velocity = target_velocity;
     }
 
-    if (glm::length(_camera_velocity) > 0.001f)
-    {
+    if (glm::length(_camera_velocity) > 0.001f) {
         _camera.move(_camera_velocity * dt);
-    }
-    else
-    {
+    } else {
         _camera_velocity = glm::vec3(0.0f);
     }
 

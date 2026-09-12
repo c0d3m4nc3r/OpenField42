@@ -21,7 +21,7 @@ void GeometryManager::registerCmds()
 
         if (type == GeometryType::Unknown)
         {
-            return CommandResult{ "Unknown geometry type '" + args[0] + "'!", CommandStatus::Error };
+            return CommandResult{ "Unknown geometry type '" + std::string(args[0]) + "'!", CommandStatus::Error };
         }
 
         ctx.last_geom_tmpl = g_TemplateMgr->create<GeometryTemplate>(args[1], type);
@@ -49,7 +49,7 @@ void GeometryManager::registerCmds()
             ctx.last_geom_tmpl->lod_distances[level] = distance;
         }
 
-        return CommandResult{ "LOD" + args[0] + " distance set to " + args[1] + " for " + ctx.last_geom_tmpl->name };
+        return CommandResult{ "LOD" + std::string(args[0]) + " distance set to " + std::string(args[1]) + " for " + ctx.last_geom_tmpl->name };
     });
 
     g_Console->bindContextProperty("GeometryTemplate.file", &Console::ExecContext::last_geom_tmpl, &GeometryTemplate::file);
@@ -94,7 +94,7 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl)
     auto [it, _] = _geometries.try_emplace(tmpl->name);
     auto& geom = it->second;
 
-    std::string type_str = geometryTypeToString(tmpl->type);
+    std::string_view type_str = geometryTypeToString(tmpl->type);
 
     switch (tmpl->type)
     {
@@ -104,7 +104,7 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl)
         geom = std::make_unique<TreeMesh>(); break;
     default:
         LOG_ERROR("GeometryManager::createGeometry: Unsupported geometry type: %s!",
-            type_str.c_str());
+            type_str.data());
         _geometries.erase(it);
         return nullptr;
     }
@@ -123,7 +123,7 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl)
     return geom.get();
 }
 
-Geometry* GeometryManager::getGeometry(const std::string& name)
+Geometry* GeometryManager::getGeometry(std::string_view name)
 {
     auto it = _geometries.find(name);
     if (it == _geometries.end())

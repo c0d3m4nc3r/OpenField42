@@ -54,7 +54,7 @@ bool checkRequiredDirs(const std::vector<std::string>& required_dirs)
     return all_found;
 }
 
-bool hasNoDigits(const std::string& name)
+bool hasNoDigits(std::string_view name)
 {
     return std::none_of(name.begin(), name.end(), [](unsigned char c) {
         return std::isdigit(c);

@@ -11,13 +11,13 @@
 
 #define GLSL_VERSION "#version 450 core\n"
 
-static GLuint buildShaderProgram(const std::string& src)
+static GLuint buildShaderProgram(std::string_view src)
 {
-    const char* vertex_src[] = { GLSL_VERSION, "#define VERTEX\n", "#line 1\n", src.c_str() };
+    const char* vertex_src[] = { GLSL_VERSION, "#define VERTEX\n", "#line 1\n", src.data() };
     GLuint vert_shader = GLUtils::compileShader(GL_VERTEX_SHADER, vertex_src, 4);
     if (!vert_shader) return 0;
 
-    const char* fragment_src[] = { GLSL_VERSION, "#define FRAGMENT\n", "#line 1\n", src.c_str() };
+    const char* fragment_src[] = { GLSL_VERSION, "#define FRAGMENT\n", "#line 1\n", src.data() };
     GLuint frag_shader = GLUtils::compileShader(GL_FRAGMENT_SHADER, fragment_src, 4);
     if (!frag_shader)
     {
@@ -33,7 +33,7 @@ static GLuint buildShaderProgram(const std::string& src)
     return program;
 }
 
-static bool preprocessShaderSource(std::string& src, const std::string& shader_name)
+static bool preprocessShaderSource(std::string& src, std::string_view shader_name)
 {
     std::istringstream stream(src);
     std::string line;
@@ -52,8 +52,8 @@ static bool preprocessShaderSource(std::string& src, const std::string& shader_n
             std::string include_src = g_VFS->readFileString("shaders/" + include_path);
             if (include_src.empty())
             {
-                LOG_ERROR("ShaderManager::preprocessShaderSource: Failed to read included file '%s' in shader '%s' at line %d!",
-                    include_path.c_str(), shader_name.c_str(), i);
+                LOG_ERROR("ShaderManager::preprocessShaderSource: Failed to read included file '%s' in shader '%.*s' at line %d!",
+                    include_path.c_str(), static_cast<int>(shader_name.size()), shader_name.data(), i);
                 return false;
             }
 
@@ -68,18 +68,18 @@ static bool preprocessShaderSource(std::string& src, const std::string& shader_n
     return true;
 }
 
-Shader* ShaderManager::load(
-    const std::string& name,
-    const std::string& path
-)
+Shader* ShaderManager::load(std::string_view name, std::string_view path)
 {
-    if (contains(name))
+    if (auto it = _shaders.find(name); it != _shaders.end())
     {
-        LOG_WARNING("ShaderManager::load: Shader '%s' already exists! Returning it...", name.c_str());
-        return _shaders[name].shader.get();
+        LOG_WARNING("ShaderManager::load: Shader '%.*s' already exists! Returning it...", 
+            static_cast<int>(name.size()), name.data());
+        return it->second.shader.get();
     }
  
-    LOG_INFO("ShaderManager::load: Loading shader '%s' from '%s'...", name.c_str(), path.c_str());
+    LOG_INFO("ShaderManager::load: Loading shader '%.*s' from '%.*s'...", 
+        static_cast<int>(name.size()), name.data(),
+        static_cast<int>(path.size()), path.data());
 
     std::string src = g_VFS->readFileString(path);
     if (src.empty())
@@ -90,35 +90,39 @@ Shader* ShaderManager::load(
 
     if (!preprocessShaderSource(src, name))
     {
-        LOG_ERROR("ShaderManager::load: Failed to preprocess shader '%s'!", name.c_str());
+        LOG_ERROR("ShaderManager::load: Failed to preprocess shader '%.*s'!", 
+            static_cast<int>(name.size()), name.data());
         return nullptr;
     }
 
     GLuint program = buildShaderProgram(src);
     if (!program) return nullptr;
     
-    LOG_INFO("ShaderManager::load: Shader '%s' loaded! (ID: %u)",
-        name.c_str(), program);
+    LOG_INFO("ShaderManager::load: Shader '%.*s' loaded! (ID: %u)",
+        static_cast<int>(name.size()), name.data(), program);
     
-    _shaders[name] = ShaderRecord{
-        .shader = std::make_unique<Shader>(program),
-        .path = path
-    };
+    auto [it, inserted] = _shaders.try_emplace(
+        std::string(name),
+        ShaderRecord{
+            .shader = std::make_unique<Shader>(program),
+            .path = std::string(path)
+        }
+    );
 
-    return _shaders[name].shader.get();
+    return it->second.shader.get();
 }
 
-void ShaderManager::unload(const std::string& name)
+void ShaderManager::unload(std::string_view name)
 {
     auto it = _shaders.find(name);
     if (it != _shaders.end())
     {
         _shaders.erase(it);
-        LOG_INFO("ShaderManager::unload: Shader '%s' unloaded!", name.c_str());
+        LOG_INFO("ShaderManager::unload: Shader '%.*s' unloaded!", static_cast<int>(name.size()), name.data());
     }
     else
     {
-        LOG_ERROR("ShaderManager::unload: Shader '%s' not found!", name.c_str());
+        LOG_ERROR("ShaderManager::unload: Shader '%.*s' not found!", static_cast<int>(name.size()), name.data());
     }
 }
 
@@ -173,13 +177,13 @@ void ShaderManager::reloadAll()
         reloaded_count, failed_count);
 }
 
-Shader* ShaderManager::get(const std::string& name) const
+Shader* ShaderManager::get(std::string_view name) const
 {
     auto it = _shaders.find(name);
     return it != _shaders.end() ? it->second.shader.get() : nullptr;
 }
 
-bool ShaderManager::contains(const std::string& name) const
+bool ShaderManager::contains(std::string_view name) const
 {
     return _shaders.contains(name);
 }

@@ -6,7 +6,7 @@ class ScriptManager
 {
 public:
 
-    bool execCon(const std::string& path);
-    std::future<bool> execConAsync(const std::string& path);
+    bool execCon(std::string_view path);
+    std::future<bool> execConAsync(std::string_view path);
 
 };

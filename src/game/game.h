@@ -5,8 +5,6 @@
 
 #include <SDL3/SDL_events.h>
 
-#include <string>
-
 class Game
 {
 public:

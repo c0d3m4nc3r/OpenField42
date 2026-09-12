@@ -10,12 +10,12 @@
 
 namespace TextureUtils
 {
-    TextureData loadData(const std::string& path)
+    TextureData loadData(std::string_view path)
     {
         std::vector<char> file_data = g_VFS->readFile(path);
         if (file_data.empty())
         {
-            LOG_ERROR("TextureUtils::loadData: Failed to read file '%s'!", path.c_str());
+            LOG_ERROR("TextureUtils::loadData: Failed to read file '%s'!", path.data());
             return {};
         }
 
@@ -76,7 +76,7 @@ namespace TextureUtils
 
         if (!pixels)
         {
-            LOG_ERROR("TextureUtils::loadData: Failed to load data from '%s': %s!", path.c_str(), SOIL_last_result());
+            LOG_ERROR("TextureUtils::loadData: Failed to load data from '%s': %s!", path.data(), SOIL_last_result());
             return {};
         }
 

@@ -4,6 +4,7 @@
 #include "core/globals.h"
 
 #include <cstring>
+#include <format>
 
 ConsoleUI::ConsoleUI()
 {
@@ -13,10 +14,7 @@ ConsoleUI::ConsoleUI()
 void ConsoleUI::toggle()
 {
     _is_open = !_is_open;
-    if (_is_open)
-    {
-        _reclaim_focus = true;
-    }
+    if (_is_open) _reclaim_focus = true;
 }
 
 void ConsoleUI::render()
@@ -85,19 +83,21 @@ void ConsoleUI::render()
 void ConsoleUI::executeCommand()
 {
     std::string command(_input_buffer);
-    
+
     _input_buffer[0] = '\0';
     _reclaim_focus = true;
 
     if (command.empty()) return;
 
     auto result = g_Console->exec(command);
-    
+
     if (!result.empty()) {
-        _logs.push_back("> " + command + "\n" + result.message);
+        _logs.push_back(std::format("> {}\n{}", command, result.message));
+    } else {
+        _logs.push_back(std::format("> {}", command));
     }
 
-    _history.push_back(command);
+    _history.push_back(std::move(command));
     _history_pos = -1;
 
     _scroll_to_bottom = true;
@@ -143,7 +143,7 @@ int ConsoleUI::textEditCallback(ImGuiInputTextCallbackData* data)
     }
     case ImGuiInputTextFlags_CallbackCompletion:
     {
-        std::string current_input(data->Buf);
+        std::string_view current_input(data->Buf, static_cast<size_t>(data->BufTextLen));
         auto completions = g_Console->getCompletions(current_input);
 
         if (completions.empty())
@@ -154,18 +154,21 @@ int ConsoleUI::textEditCallback(ImGuiInputTextCallbackData* data)
         if (completions.size() == 1)
         {
             data->DeleteChars(0, data->BufTextLen);
-            data->InsertChars(0, (completions[0] + " ").c_str());
+            
+            data->InsertChars(data->CursorPos, completions[0].data(), completions[0].data() + completions[0].size());
+            data->InsertChars(data->BufTextLen, " ");
         }
         else
         {
-            std::string log_msg = "> " + current_input + "\n  Matches:\n";
+            std::string log_msg = std::format("> {}\n  Matches:\n", current_input);
             for (const auto& match : completions)
             {
-                log_msg += "    " + match + "\n";
+                log_msg += std::format("    {}\n", match);
             }
-            _logs.push_back(log_msg);
+            _logs.push_back(std::move(log_msg));
             _scroll_to_bottom = true;
 
+            // 4. Дополняем до общего префикса
             std::string common = g_Console->autocomplete(current_input);
             data->DeleteChars(0, data->BufTextLen);
             data->InsertChars(0, common.c_str());

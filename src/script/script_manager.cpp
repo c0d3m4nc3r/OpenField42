@@ -6,12 +6,13 @@
 
 #include <sstream>
 
-bool ScriptManager::execCon(const std::string& path)
+bool ScriptManager::execCon(std::string_view path)
 {
     auto content = g_VFS->readFileString(path);
     if (content.empty())
     {
-        LOG_ERROR("ScriptManager::execCon: Failed to read content from '%s'!", path.c_str());
+        LOG_ERROR("ScriptManager::execCon: Failed to read content from '%.*s'!",
+            static_cast<int>(path.size()), path.data());
         return false;
     }
 
@@ -37,13 +38,15 @@ bool ScriptManager::execCon(const std::string& path)
         switch (result.status)
         {
         case CommandStatus::Error:
-            LOG_ERROR("ScriptManager::execCon: Error at line %d in '%s'!", line_number, path.c_str());
+            LOG_ERROR("ScriptManager::execCon: Error at line %d in '%.*s'!",
+                line_number, static_cast<int>(path.size()), path.data());
             LOG_ERROR("ScriptManager::execCon: %s", result.message.c_str());
             return false;
-        // case CommandStatus::Warning:
-        //     LOG_WARNING("ScriptManager::execCon: Warning at line %d in '%s'!", line_number, path.c_str());
-        //     LOG_WARNING("ScriptManager::execCon: %s", result.message.c_str());
-        //     break;
+        case CommandStatus::Warning:
+            LOG_WARNING("ScriptManager::execCon: Warning at line %d in '%.*s'!",
+                line_number, static_cast<int>(path.size()), path.data());
+            LOG_WARNING("ScriptManager::execCon: %s", result.message.c_str());
+            break;
         default:
             break;
         }
@@ -52,7 +55,7 @@ bool ScriptManager::execCon(const std::string& path)
     return true;
 }
 
-std::future<bool> ScriptManager::execConAsync(const std::string& path)
+std::future<bool> ScriptManager::execConAsync(std::string_view path)
 {
     return g_ThreadPool.enqueue([this, path] { return execCon(path); });
 }

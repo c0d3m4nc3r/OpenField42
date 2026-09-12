@@ -16,12 +16,14 @@ void ObjectManager::registerCmds() const
     {
         ctx.last_obj = nullptr;
 
+        std::string tmpl_name = std::string(args[0]);
+
         if (args.empty())
             return CommandResult{ "Not enough arguments! Usage: Object.create <template_name>", CommandStatus::Error };
 
         auto* tmpl = g_TemplateMgr->get<ObjectTemplate>(args[0]);
         if (!tmpl)
-            return CommandResult{ "Object template with name '" + args[0] + "' not found!", CommandStatus::Error };
+            return CommandResult{ "Object template with name '" + tmpl_name + "' not found!", CommandStatus::Warning };
 
         ctx.last_obj = g_ObjectMgr->createObject(tmpl);
         if (!ctx.last_obj)
@@ -31,7 +33,7 @@ void ObjectManager::registerCmds() const
             if (geom_tmpl && geom_tmpl->type == GeometryType::PatchTerrain)
                 return {};
 
-            return CommandResult{ "Failed to create object from template '" + args[0] + "'!", CommandStatus::Error };
+            return CommandResult{ "Failed to create object from template '" + tmpl_name + "'!", CommandStatus::Error };
         }
 
         return {};
@@ -51,10 +53,12 @@ void ObjectManager::registerCmds() const
 
         ObjectType type = objectTypeFromString(args[0]);
 
+        std::string tmpl_name = std::string(args[0]);
+
         if (type == ObjectType::Unknown)
         {
-            LOG_WARNING("Console: ObjectTemplate.create: Unknown object type '%s'!", args[0].c_str());
-            return CommandResult{ "Unknown object type '" + args[0] + "'", CommandStatus::Warning };
+            LOG_WARNING("Console: ObjectTemplate.create: Unknown object type '%s'!", tmpl_name.c_str());
+            return CommandResult{ "Unknown object type '" + tmpl_name + "'", CommandStatus::Warning };
         }
 
         ctx.last_obj_tmpl = g_TemplateMgr->create<ObjectTemplate>(args[1], type);
@@ -73,7 +77,7 @@ void ObjectManager::registerCmds() const
         if (current)
         {
             ctx.last_child = &current->children.emplace_back(
-                args[0], glm::vec3(0.0f), glm::vec3(0.0f)
+                std::string(args[0]), glm::vec3(0.0f), glm::vec3(0.0f)
             );
         }
 

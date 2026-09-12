@@ -35,13 +35,13 @@ bool RFAProvider::init()
     return true;
 }
 
-bool RFAProvider::exists(const std::string& path) const
+bool RFAProvider::exists(std::string_view path) const
 {
     if (!_archive) return false;
-    return RFA_FileExists(_archive, path.c_str());
+    return RFA_FileExists(_archive, path.data());
 }
 
-std::string RFAProvider::findFile(const std::string& name) const
+std::string RFAProvider::findFile(std::string_view name) const
 {
     if (!_archive) return "";
     
@@ -59,7 +59,7 @@ std::string RFAProvider::findFile(const std::string& name) const
     return "";
 }
 
-std::vector<char> RFAProvider::readFile(const std::string& path)
+std::vector<char> RFAProvider::readFile(std::string_view path)
 {
     if (!_archive) return {};
 
@@ -67,17 +67,19 @@ std::vector<char> RFAProvider::readFile(const std::string& path)
 
     if (!exists(path))
     {
-        LOG_ERROR("RFAProvider::readFile: File '%s' not found in archive!", path.c_str());
+        LOG_ERROR("RFAProvider::readFile: File '%.*s' not found in archive!",
+            static_cast<int>(path.size()), path.data());
         return {};
     }
 
     void* data = nullptr;
     size_t size = 0;
 
-    int result = RFA_ExtractFile(_archive, path.c_str(), &data, &size);
+    int result = RFA_ExtractFile(_archive, path.data(), &data, &size);
     if (result != 0 || !data)
     {
-        LOG_ERROR("RFAProvider::readFile: Failed to extract file '%s' from archive!", path.c_str());
+        LOG_ERROR("RFAProvider::readFile: Failed to extract file '%.*s' from archive!",
+            static_cast<int>(path.size()), path.data());
         return {};
     }
 

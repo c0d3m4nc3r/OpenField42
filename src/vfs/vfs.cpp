@@ -24,9 +24,9 @@ void VFS::unmountAll()
     LOG_INFO("VFS::unmountAll: All providers unmounted successfully!");
 }
 
-bool VFS::exists(const std::string& path)
+bool VFS::exists(std::string_view path)
 {
-    std::string normalized_path = normalizePath(path);
+    auto normalized_path = normalizePath(path);
 
     for(auto& p : _providers)
         if(p->exists(normalized_path)) return true;
@@ -34,7 +34,7 @@ bool VFS::exists(const std::string& path)
     return false;
 }
 
-std::string VFS::findFile(const std::string& name)
+std::string VFS::findFile(std::string_view name)
 {
     std::string normalized_name = normalizePath(name);
 
@@ -48,13 +48,13 @@ std::string VFS::findFile(const std::string& name)
     return "";
 }
 
-std::vector<char> VFS::readFile(const std::string& path)
+std::vector<char> VFS::readFile(std::string_view path)
 {
     std::string full_path = findFile(path); 
 
     if (full_path.empty())
     {
-        LOG_ERROR("VFS::readFile: File '%s' not found!", path.c_str());
+        LOG_ERROR("VFS::readFile: File '%s' not found!", path.data());
         return {};
     }
 
@@ -65,17 +65,17 @@ std::vector<char> VFS::readFile(const std::string& path)
     }
         
     LOG_ERROR("VFS::readFile: File '%s' found at '%s' but could not be read!",
-        path.c_str(), full_path.c_str());
+        path.data(), full_path.c_str());
     return {};
 }
 
-std::string VFS::readFileString(const std::string& path)
+std::string VFS::readFileString(std::string_view path)
 {
     std::string full_path = findFile(path); 
 
     if (full_path.empty())
     {
-        LOG_ERROR("VFS::readFileData: File '%s' not found!", path.c_str());
+        LOG_ERROR("VFS::readFileData: File '%s' not found!", path.data());
         return {};
     }
 
@@ -89,11 +89,11 @@ std::string VFS::readFileString(const std::string& path)
     }
     
     LOG_ERROR("VFS::readFileString: File '%s' found at '%s' but could not be read!",
-        path.c_str(), full_path.c_str());
+        path.data(), full_path.c_str());
     return {};
 }
 
-std::vector<std::string> VFS::listFiles(const std::string& path)
+std::vector<std::string> VFS::listFiles(std::string_view path)
 {
     std::vector<std::string> files;
 
@@ -110,7 +110,7 @@ std::vector<std::string> VFS::listFiles(const std::string& path)
     return files;
 }
 
-std::string VFS::normalizePath(const std::string& path)
+std::string VFS::normalizePath(std::string_view path)
 {
     std::string result = StringUtils::lowercase(path);
     

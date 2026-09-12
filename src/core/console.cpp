@@ -23,7 +23,7 @@ void Console::init()
             LOG_ERROR("Console: run: Not enough arguments!");
             return CommandResult{ "Not enough arguments! Usage: run <script.con>", CommandStatus::Error };
         }
-        std::string path = args[0];
+        std::string path = std::string(args[0]);
         if (!path.ends_with(".con")) path += ".con";
 
         bool status = g_ScriptMgr->execCon(path);
@@ -36,31 +36,29 @@ void Console::init()
     });
 }
 
-void Console::registerCmd(const std::string& name, CommandHandler fn)
+void Console::registerCmd(std::string_view name, CommandHandler fn)
 {
     _commands[StringUtils::lowercase(name)] = std::move(fn);
 }
 
-void Console::addAlias(const std::string& alias, const std::string& command)
+void Console::addAlias(std::string_view alias, std::string_view command)
 {
     _aliases[StringUtils::lowercase(alias)] = StringUtils::lowercase(command);
 }
 
-CommandResult Console::exec(const std::string& line, ExecContext& ctx)
+CommandResult Console::exec(std::string_view line, ExecContext& ctx)
 {
-    if (line.empty()) return CommandResult{ "Command is empty!", CommandStatus::Warning };
+    if (line.empty()) return CommandResult{};
 
     auto tokens = StringUtils::split(line);
-    if (tokens.empty()) return CommandResult{ "Command is empty!", CommandStatus::Warning };
+    if (tokens.empty()) return CommandResult{};
     
     std::string cmd = StringUtils::lowercase(tokens[0]);
-    std::vector<std::string> args(tokens.begin() + 1, tokens.end());
+    std::vector<std::string_view> args(tokens.begin() + 1, tokens.end());
 
     auto alias_it = _aliases.find(cmd);
     if (alias_it != _aliases.end())
-    {
         cmd = alias_it->second;
-    }
 
     auto it = _commands.find(cmd);
     if (it != _commands.end())
@@ -69,15 +67,14 @@ CommandResult Console::exec(const std::string& line, ExecContext& ctx)
     }
     else
     {
-        // LOG_WARNING("Console::exec: Unknown command: %s", cmd.c_str());
-        return CommandResult { "Unknown command!", CommandStatus::Warning };
+        return CommandResult { "Unknown command!", CommandStatus::Info };
     }
 }
 
 std::string Console::joinArgs(const CommandArgs& args)
 {
     if (args.empty()) return "";
-    if (args.size() == 1) return args[0];
+    if (args.size() == 1) return std::string(args[0]);
     
     std::string result;
     for (size_t i = 0; i < args.size(); ++i) {
@@ -87,14 +84,16 @@ std::string Console::joinArgs(const CommandArgs& args)
     return result;
 }
 
-std::vector<std::string> Console::getCompletions(std::string_view prefix) const
+std::vector<std::string_view> Console::getCompletions(std::string_view prefix) const
 {
-    std::string lower_prefix = StringUtils::lowercase(std::string(prefix));
-    std::vector<std::string> matches;
+    std::string lower_prefix = StringUtils::lowercase(prefix);
+    
+    std::vector<std::string_view> matches;
+    matches.reserve(8);
 
     for (const auto& [name, handler] : _commands)
     {
-        if (name.rfind(lower_prefix, 0) == 0) 
+        if (name.starts_with(lower_prefix))
         {
             matches.push_back(name);
         }
@@ -102,7 +101,7 @@ std::vector<std::string> Console::getCompletions(std::string_view prefix) const
 
     for (const auto& [name, _] : _aliases)
     {
-        if (name.rfind(lower_prefix, 0) == 0) 
+        if (name.starts_with(lower_prefix)) 
         {
             matches.push_back(name);
         }
@@ -123,10 +122,10 @@ std::string Console::autocomplete(std::string_view input) const
 
     if (matches.size() == 1)
     {
-        return matches[0] + " ";
+        return std::string(matches[0]) + " ";
     }
 
-    std::string common_prefix = matches[0];
+    std::string_view common_prefix = matches[0];
     for (size_t i = 1; i < matches.size(); ++i)
     {
         size_t j = 0;
@@ -134,8 +133,8 @@ std::string Console::autocomplete(std::string_view input) const
         {
             ++j;
         }
-        common_prefix.resize(j);
+        common_prefix = common_prefix.substr(0, j);
     }
 
-    return common_prefix;
+    return std::string(common_prefix);
 }

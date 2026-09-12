@@ -25,13 +25,13 @@ bool FolderProvider::init()
     return true;
 }
 
-bool FolderProvider::exists(const std::string& path) const
+bool FolderProvider::exists(std::string_view path) const
 {
     std::filesystem::path full_path = std::filesystem::path(_base_path) / path;
     return std::filesystem::exists(full_path) && std::filesystem::is_regular_file(full_path);
 }
 
-std::string FolderProvider::findFile(const std::string& name) const
+std::string FolderProvider::findFile(std::string_view name) const
 {
     std::filesystem::path target_path(name);
     
@@ -51,7 +51,7 @@ std::string FolderProvider::findFile(const std::string& name) const
     return "";
 }
 
-std::vector<char> FolderProvider::readFile(const std::string& path)
+std::vector<char> FolderProvider::readFile(std::string_view path)
 {
     std::filesystem::path full_path = std::filesystem::path(_base_path) / path;
     std::ifstream file(full_path, std::ios::binary | std::ios::ate);

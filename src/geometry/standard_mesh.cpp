@@ -219,7 +219,7 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
                 if (!texture.isValid())
                 {
                     LOG_WARNING("Material::load: Failed to load texture from '%s' for material '%s'!",
-                        tokens[1].c_str(), current.name.c_str());
+                        tokens[1].data(), current.name.data());
                 }
                 current.texture = texture;
             }
@@ -230,9 +230,9 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
             if (tokens.size() >= 4)
             {
                 current.diffuse_color = Color(
-                    std::stof(tokens[1]),
-                    std::stof(tokens[2]),
-                    std::stof(tokens[3])
+                    StringUtils::fromString<float>(tokens[1]),
+                    StringUtils::fromString<float>(tokens[2]),
+                    StringUtils::fromString<float>(tokens[3])
                 );
             }
         }
@@ -241,9 +241,9 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
             if (tokens.size() >= 4)
             {
                 current.specular_color = Color(
-                    std::stof(tokens[1]),
-                    std::stof(tokens[2]),
-                    std::stof(tokens[3])
+                    StringUtils::fromString<float>(tokens[1]),
+                    StringUtils::fromString<float>(tokens[2]),
+                    StringUtils::fromString<float>(tokens[3])
                 );
             }
         }
@@ -252,7 +252,7 @@ bool StandardMesh::loadMaterials(const GeometryTemplate* tmpl)
         {
             if (tokens.size() >= 2)
             {
-                current.specular_power = std::stof(tokens[1]);
+                current.specular_power = StringUtils::fromString<float>(tokens[1]);
             }
         }
         // Booleans

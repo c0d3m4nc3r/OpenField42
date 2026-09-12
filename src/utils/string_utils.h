@@ -5,8 +5,8 @@
 
 namespace StringUtils
 {
-    std::vector<std::string> split(const std::string& s, char delimiter = ' ');
-    std::string lowercase(const std::string& s);
+    std::vector<std::string_view> split(std::string_view s, char delimiter = ' ');
+    std::string lowercase(std::string_view s);
 
     inline std::string toString(const std::string& val) { return val; }
     inline std::string toString(std::string_view val)   { return std::string(val); }

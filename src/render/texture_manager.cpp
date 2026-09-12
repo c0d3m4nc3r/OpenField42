@@ -28,9 +28,9 @@ void TextureManager::init()
     _default_tex = std::make_shared<Texture>(texture);
 }
 
-TextureHandle TextureManager::load(const std::string& path)
+TextureHandle TextureManager::load(std::string_view path)
 {
-    std::unique_lock<std::shared_mutex> lock(_textures_mutex); // Используем unique_lock
+    std::unique_lock<std::shared_mutex> lock(_textures_mutex);
 
     auto it = _path_to_handle.find(path);
     if (it != _path_to_handle.end())
@@ -40,9 +40,9 @@ TextureHandle TextureManager::load(const std::string& path)
     new_handle.id = static_cast<unsigned int>(_textures.size());
 
     _textures.push_back(_default_tex);
-    _path_to_handle[path] = new_handle;
+    _path_to_handle[std::string(path)] = new_handle;
 
-    g_ThreadPool.enqueue([this, path, new_handle]()
+    g_ThreadPool.enqueue([this, new_handle, path = std::string(path)]()
     {
         TextureData data = TextureUtils::loadData(path);
         if (data.is_valid)
@@ -53,7 +53,7 @@ TextureHandle TextureManager::load(const std::string& path)
         }
         else
         {
-            LOG_ERROR("TextureManager::load: Failed to load texture from '%s'!", path.c_str());
+            LOG_ERROR("TextureManager::load: Failed to load texture from '%s'!", path.data());
         }
     });
 

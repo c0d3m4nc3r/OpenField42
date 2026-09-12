@@ -4,7 +4,7 @@
 
 namespace TextureUtils
 {
-    TextureData loadData(const std::string& path);
+    TextureData loadData(std::string_view path);
     GLenum getFormat(int channels);
     GLenum getInternalFormat(int channels);
 }
