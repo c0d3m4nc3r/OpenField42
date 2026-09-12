@@ -1,6 +1,5 @@
 #pragma once
 
-#include "render/texture.h"
 #include "render/texture_manager.h"
 
 #include <algorithm>
@@ -14,7 +13,7 @@ class Terrain
 public:
 
     bool init(const GeometryTemplate* tmpl);
-    void shutdown();
+    void clear();
 
     Geometry* getGeometry() const { return _geometry.get(); }
     TextureHandle getBaseTexture() const { return _base_tex; }

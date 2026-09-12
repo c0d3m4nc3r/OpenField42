@@ -9,6 +9,7 @@ public:
     void registerCmds() const;
 
     Object* createObject(const ObjectTemplate* tmpl);
+    void clearObjects();
 
     void updateObjects(float dt);
     void renderObjects();

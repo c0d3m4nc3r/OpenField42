@@ -26,4 +26,6 @@ namespace StringUtils
     template <> std::string fromString<std::string>(std::string_view str);
     template <> glm::vec2 fromString<glm::vec2>(std::string_view str); // x/y
     template <> glm::vec3 fromString<glm::vec3>(std::string_view str); // x/y/z
+
+    bool hasNoDigits(std::string_view str);
 }

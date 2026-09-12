@@ -123,6 +123,19 @@ Geometry* GeometryManager::createGeometry(const GeometryTemplate* tmpl)
     return geom.get();
 }
 
+void GeometryManager::destroyGeometry(std::string_view name)
+{
+    auto it = _geometries.find(name);
+    if (it == _geometries.end())
+    {
+        LOG_WARNING("GeometryManager::destroyGeometry: Geometry with name '%.*s' not found!",
+            static_cast<int>(name.size()), name.data());
+        return;
+    }
+
+    _geometries.erase(it);
+}
+
 Geometry* GeometryManager::getGeometry(std::string_view name)
 {
     auto it = _geometries.find(name);

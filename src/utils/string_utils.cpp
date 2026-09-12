@@ -113,4 +113,11 @@ namespace StringUtils
         }
         return glm::vec3(0.0f);
     }
+
+    bool hasNoDigits(std::string_view str)
+    {
+        return std::none_of(str.begin(), str.end(), [](unsigned char c) {
+            return std::isdigit(c);
+        });
+    }
 }

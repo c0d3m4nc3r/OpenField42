@@ -13,18 +13,7 @@ constexpr int step = 4;
 constexpr int CHUNK_VERTS_PER_SIDE = (TILE_SIZE / step) + 1;
 constexpr int CHUNK_VERT_COUNT = CHUNK_VERTS_PER_SIDE * CHUNK_VERTS_PER_SIDE;
 
-bool Water::init()
-{
-    LOG_INFO("Water::init: Initializing water...");
-
-    
-
-    LOG_INFO("Water::init: Water initialized!");
-
-    return true;
-}
-
-void Water::shutdown()
+void Water::clear()
 {
     for (auto& layer : _layers)
     {
@@ -36,7 +25,7 @@ void Water::shutdown()
 
     _geometry.unload();
 
-    LOG_INFO("Water::shutdown: Water shutdown");
+    LOG_INFO("Water::clear: Water cleared!");
 }
 
 void Water::generateGeometry()

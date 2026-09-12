@@ -113,8 +113,7 @@ void Engine::shutdown()
 {
     LOG_INFO("Engine::shutdown: Shutting down engine...");
 
-    g_World->getWater().shutdown();
-    g_World->getTerrain().shutdown();
+    g_World->clear();
     g_Renderer->shutdown();
     g_ShaderMgr->unloadAll();
     g_TextureMgr->clear();

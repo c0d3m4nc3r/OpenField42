@@ -18,8 +18,7 @@ public:
         float uv_scale = 1.0f;
     };
 
-    bool init();
-    void shutdown();
+    void clear();
 
     Geometry* getGeometry()
     {

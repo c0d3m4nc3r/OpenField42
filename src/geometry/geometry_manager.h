@@ -16,6 +16,7 @@ public:
     void update(int uploads_per_frame);
 
     Geometry* createGeometry(const GeometryTemplate* tmpl);
+    void destroyGeometry(std::string_view name);
     Geometry* getGeometry(std::string_view name);
 
 private:

@@ -10,19 +10,21 @@ class Game
 public:
 
     bool init();
-    void registerCmds() const;
+    void registerCmds();
     
     void update(float dt);
 
     void onEvent(const SDL_Event& event);
 
-    bool loadLevel(const std::string& name);    
+    bool loadLevel(const std::string& name);
+    void unloadLevel();
     
+    static std::vector<std::string> getLevelsList();
+
     void teleport(const glm::vec3& position);
 
     float getViewDistance() const;
     void setViewDistance(float distance);
-
 
 private:
 
@@ -34,6 +36,10 @@ private:
     bool _fullscreen = false;
     bool _objs_loaded = false;
     bool _cinematic_camera = false;
+
+    std::string _current_level = "";
+
+    glm::vec3 _before_spawn_camera_pos[2];
     
     bool loadGameObjs();
 };

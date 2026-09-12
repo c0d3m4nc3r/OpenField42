@@ -16,6 +16,8 @@ public:
 
     void registerCmds() const;
 
+    void clear();
+
     void render();
 
     Sky& getSky() { return _sky; }

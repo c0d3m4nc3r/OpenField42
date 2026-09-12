@@ -155,6 +155,11 @@ Object* ObjectManager::createObject(const ObjectTemplate* tmpl)
     return raw_ptr;
 }
 
+void ObjectManager::clearObjects()
+{
+    _objects.clear();
+}
+
 void ObjectManager::updateObjects(float dt)
 {
     for (auto& obj : _objects)

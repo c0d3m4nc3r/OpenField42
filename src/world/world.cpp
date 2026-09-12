@@ -72,6 +72,17 @@ void World::registerCmds() const
     g_Console->bindProperty("Water.waterShallowAlpha", &g_World->getWater(), &Water::getShallowAlpha, &Water::setShallowAlpha);
 }
 
+void World::clear()
+{
+    LOG_INFO("World::clear: Clearing world...");
+
+    _water.clear();
+    _sky.clear();
+    _terrain.clear();
+
+    LOG_INFO("World::clear: World cleared!");
+}
+
 void World::render()
 {
     auto* terrain_geom = _terrain.getGeometry();

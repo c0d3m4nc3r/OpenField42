@@ -1,5 +1,6 @@
 #include "core/engine.h"
 #include "core/config.h"
+#include "game/game.h"
 #include "utils/log.h"
 
 #include <SDL3/SDL_timer.h>
@@ -54,35 +55,14 @@ bool checkRequiredDirs(const std::vector<std::string>& required_dirs)
     return all_found;
 }
 
-bool hasNoDigits(std::string_view name)
-{
-    return std::none_of(name.begin(), name.end(), [](unsigned char c) {
-        return std::isdigit(c);
-    });
-}
-
 void listLevels()
 {
     LOG_INFO("Levels list:");
-    fs::path levels_dir = std::string(GAME_DATA_DIR) + "/bf1942/Archives/bf1942/levels";
-
-    int i = 0;
-
-    for (const auto& entry : fs::directory_iterator(levels_dir))
+    
+    auto levels = Game::getLevelsList();
+    for (size_t i = 0; i < levels.size(); i++)
     {
-        if (entry.is_regular_file())
-        {
-            std::string filename = entry.path().filename().string();
-
-            if (hasNoDigits(filename))
-            {
-                if (filename.length() > 4)
-                    filename = filename.substr(0, filename.length() - 4);
-
-                i++;
-                LOG_INFO("%d: %s", i, filename.c_str());
-            }
-        }
+        LOG_INFO("%zu: %s", i, levels[i].c_str());
     }
 }
 

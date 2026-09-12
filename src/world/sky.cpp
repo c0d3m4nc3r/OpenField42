@@ -28,8 +28,19 @@ bool Sky::init(const GeometryTemplate* tmpl)
 
     _geometry->type = GeometryType::SkyMesh;
 
+    _geometry_name = tmpl->name;
+
     LOG_INFO("Sky::init: Sky initialized!");
     
     return true;
 }
 
+void Sky::clear()
+{
+    g_GeometryMgr->destroyGeometry(_geometry_name);
+
+    _geometry = nullptr;
+    _geometry_name = "";
+
+    LOG_INFO("Sky::clear: Sky cleared!");
+}

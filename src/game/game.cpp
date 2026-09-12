@@ -2,6 +2,7 @@
 
 #include "core/console.h"
 #include "core/globals.h"
+#include "object/object_manager.h"
 #include "platform/input.h"
 #include "platform/window.h"
 #include "render/shader_manager.h"
@@ -12,10 +13,10 @@
 #include "utils/log.h"
 #include "vfs/providers.h"
 #include "vfs/vfs.h"
-#include "world/water.h"
 #include "world/world.h"
 
 #include <chrono>
+#include <filesystem>
 
 
 bool Game::init()
@@ -43,13 +44,39 @@ bool Game::init()
     return true;
 }
 
-void Game::registerCmds() const
+void Game::registerCmds()
 {
-    g_Console->registerCmd("teleport", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
+    g_Console->registerCmd("Game.loadLevel", [this](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
     {
         if (args.size() < 1)
         {
-            return { "Not enough arguments! Usage: teleport|tp <x>/<y>/<z>", CommandStatus::Error };
+            return { "Not enough arguments! Usage: Game.loadLevel <level_name>", CommandStatus::Error };
+        }
+
+        if (!loadLevel(std::string(args[0])))
+        {
+            return { std::format("Failed to load level '{}'!", args[0]), CommandStatus::Error };
+        }
+
+        return { std::format("Level '{}' loaded successfully!", args[0]) };
+    });
+
+    g_Console->registerCmd("Game.listLevels", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
+    {
+        auto levels = getLevelsList();
+        std::string result = std::format("Found {} levels:\n", levels.size());
+        for (size_t i = 0; i < levels.size(); i++)
+        {
+            result += std::format("{}: {}\n", i, levels[i]);
+        }
+        return { result };
+    });
+
+    g_Console->registerCmd("Game.teleport", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
+    {
+        if (args.size() < 1)
+        {
+            return { "Not enough arguments! Usage: Game.teleport|tp <x/y/z>", CommandStatus::Error };
         }
 
         glm::vec3 pos = StringUtils::fromString<glm::vec3>(args[0]);
@@ -57,8 +84,27 @@ void Game::registerCmds() const
 
         return { "Teleported to: " + StringUtils::toString(pos), CommandStatus::Success };
     });
-
     g_Console->addAlias("tp", "teleport");
+
+    g_Console->registerCmd("Game.setBeforeSpawnCameraPosition", [this](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
+    {
+        if (args.size() < 2)
+        {
+            return { "Not enough arguments! Usage: Game.setBeforeSpawnCameraPosition <team_id> <x/y/z>", CommandStatus::Error};
+        }
+
+        int team_id = StringUtils::fromString<int>(args[0]);
+        if (team_id > 2)
+        {
+            return { "Invalid team ID!", CommandStatus::Error};
+        }
+
+        glm::vec3 pos = StringUtils::fromString<glm::vec3>(args[1]);
+
+        _before_spawn_camera_pos[team_id - 1] = pos;
+
+        return { std::format("Before spawn camera position for team {} set to {}!", team_id, StringUtils::toString(pos)) };
+    });
 
     g_Console->bindProperty("Game.viewDistance", g_Game, &Game::getViewDistance, &Game::setViewDistance);
     g_Console->addAlias("Game.setViewDistance", "Game.viewDistance");
@@ -125,9 +171,7 @@ void Game::update(float dt)
         static glm::vec3 target_rot = _camera.getRotation();
 
         if (!_cinematic_camera)
-        {
             target_rot = _camera.getRotation();
-        }
 
         target_rot.y -= (float)delta_x * sensitivity;
         target_rot.x += (float)delta_y * sensitivity;
@@ -240,6 +284,12 @@ void Game::onEvent(const SDL_Event& event)
 
 bool Game::loadLevel(const std::string& name)
 {
+    if (name == _current_level)
+    {
+        LOG_WARNING("Game::loadLevel: Level '%s' is already loaded!", name.c_str());
+        return true;
+    }
+
     LOG_INFO("Game::loadLevel: Loading level '%s'...", name.c_str());
 
     bool success = g_VFS->mountProvider(std::make_shared<RFAProvider>(
@@ -261,20 +311,53 @@ bool Game::loadLevel(const std::string& name)
         }
     }
 
+    if (!_current_level.empty())
+        unloadLevel();
+
     g_ScriptMgr->execCon("bf1942/levels/" + name + "/Init.con");
     g_ScriptMgr->execCon("bf1942/levels/" + name + "/StaticObjects.con");
 
-    // if (!Geometry::uploadAll())
-    // {
-    //     LOG_ERROR("Game::loadLevel: Failed to upload geometries to GPU!");
-    //     return false;
-    // }
+    teleport(_before_spawn_camera_pos[0]);
 
-    g_World->getWater().init();
+    _current_level = name;
 
     LOG_INFO("Game::loadLevel: Level '%s' loaded!", name.c_str());
 
     return true;
+}
+
+void Game::unloadLevel()
+{
+    g_Renderer->setFogStart(DEFAULT_FOG_START);
+    g_Renderer->setFogEnd(DEFAULT_FOG_END);
+    g_World->clear();
+    g_ObjectMgr->clearObjects();
+    _current_level = "";
+}
+
+std::vector<std::string> Game::getLevelsList()
+{
+    std::vector<std::string> result;
+
+    std::filesystem::path levels_dir = std::string(GAME_DATA_DIR) + "/bf1942/Archives/bf1942/levels";
+
+    for (const auto& entry : std::filesystem::directory_iterator(levels_dir))
+    {
+        if (entry.is_regular_file())
+        {
+            std::string filename = entry.path().filename().string();
+
+            if (StringUtils::hasNoDigits(filename))
+            {
+                if (filename.length() > 4)
+                    filename = filename.substr(0, filename.length() - 4);
+
+                result.push_back(std::move(filename));
+            }
+        }
+    }
+
+    return result;
 }
 
 void Game::teleport(const glm::vec3& position)
@@ -336,10 +419,8 @@ bool Game::loadGameObjs()
     auto load_ms  = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_mount_done).count();
     auto total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
 
-    LOG_INFO("Game::loadGameObjs: Mounted archive + listed %zu .con files in %lld ms",
-              con_paths.size(), mount_ms);
-    LOG_INFO("Game::loadGameObjs: Loaded %zu objects in %lld ms (async)",
-              con_paths.size(), load_ms);
+    LOG_INFO("Game::loadGameObjs: Mounted archive + listed %zu .con files in %lld ms", con_paths.size(), mount_ms);
+    LOG_INFO("Game::loadGameObjs: Loaded %zu objects in %lld ms (async)", con_paths.size(), load_ms);
     LOG_INFO("Game::loadGameObjs: Total: %lld ms", total_ms);
 
     _objs_loaded = true;

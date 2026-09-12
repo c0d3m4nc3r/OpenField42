@@ -204,7 +204,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
     return true;
 }
 
-void Terrain::shutdown()
+void Terrain::clear()
 {
     _base_tex = { INVALID_TEXTURE_ID };
     _detail_tex = { INVALID_TEXTURE_ID };
@@ -215,5 +215,5 @@ void Terrain::shutdown()
     _world_size = 0;
     _water_height = 0;
 
-    LOG_INFO("Terrain::shutdown: Terrain shutdown!");
+    LOG_INFO("Terrain::clear: Terrain cleared!");
 }
