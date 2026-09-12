@@ -7,11 +7,9 @@
 
 #include "glad/gl.h"
 
-void WaterPass::execute(RenderContext& ctx)
+void WaterPass::onExecute(RenderContext& ctx)
 {
     Shader* shader = getShader();
-
-    if (queue.empty() || !shader) return;
 
     shader->use();
     
@@ -64,6 +62,4 @@ void WaterPass::execute(RenderContext& ctx)
     glEnable(GL_CULL_FACE);
 
     glBindVertexArray(0);
-    
-    queue.clear();
 }

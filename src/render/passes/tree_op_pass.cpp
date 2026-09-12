@@ -6,11 +6,9 @@
 
 #include "glad/gl.h"
 
-void TreeOpaquePass::execute(RenderContext& ctx)
+void TreeOpaquePass::onExecute(RenderContext& ctx)
 {
     Shader* shader = getShader();
-
-    if (queue.empty() || !shader) return;
     
     shader->use();
 
@@ -44,6 +42,4 @@ void TreeOpaquePass::execute(RenderContext& ctx)
     }
 
     glBindVertexArray(0);
-
-    queue.clear();
 }

@@ -8,11 +8,9 @@
 
 #include <algorithm>
 
-void StandardTransparentPass::execute(RenderContext& ctx)
+void StandardTransparentPass::onExecute(RenderContext& ctx)
 {
     Shader* shader = getShader();
-
-    if (queue.empty() || !shader) return;
 
     shader->use();
 
@@ -49,6 +47,4 @@ void StandardTransparentPass::execute(RenderContext& ctx)
     }
 
     glBindVertexArray(0);
-
-    queue.clear();
 }

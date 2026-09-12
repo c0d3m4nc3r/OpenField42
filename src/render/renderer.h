@@ -130,6 +130,8 @@ private:
     };
 
     RenderContext _context;
+
+    glm::vec3 _clear_color = { 0.0f, 0.0f, 0.0f };
     
     Camera* _camera = nullptr;
     unsigned int _camera_ubo = 0;

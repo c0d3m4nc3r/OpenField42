@@ -8,12 +8,10 @@
 
 #include <algorithm>
 
-void TreeTransparentPass::execute(RenderContext& ctx)
+void TreeTransparentPass::onExecute(RenderContext& ctx)
 {
     Shader* shader = getShader();
-
-    if (queue.empty() || !shader) return;
-
+    
     shader->use();
 
     std::stable_sort(queue.begin(), queue.end(), 
@@ -53,6 +51,4 @@ void TreeTransparentPass::execute(RenderContext& ctx)
     glDepthMask(GL_TRUE);
 
     glBindVertexArray(0);
-
-    queue.clear();
 }

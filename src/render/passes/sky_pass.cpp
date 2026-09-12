@@ -6,11 +6,9 @@
 
 #include "glad/gl.h"
 
-void SkyPass::execute(RenderContext& ctx)
+void SkyPass::onExecute(RenderContext& ctx)
 {
     Shader* shader = getShader();
-
-    if (queue.empty() || !shader) return;
 
     shader->use();
 
@@ -50,6 +48,4 @@ void SkyPass::execute(RenderContext& ctx)
     glDepthFunc(GL_LESS);
     
     glBindVertexArray(0);
-
-    queue.clear();
 }

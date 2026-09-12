@@ -6,12 +6,10 @@
 
 #include "glad/gl.h"
 
-void StandardOpaquePass::execute(RenderContext& ctx)
+void StandardOpaquePass::onExecute(RenderContext& ctx)
 {
     Shader* shader = getShader();
 
-    if (queue.empty() || !shader) return;
-    
     shader->use();
 
     shader->setBool("u_WireframeEnabled", ctx.wireframe_enabled);
@@ -45,5 +43,4 @@ void StandardOpaquePass::execute(RenderContext& ctx)
 
     glBindVertexArray(0);
 
-    queue.clear();
 }

@@ -68,7 +68,9 @@ void StatsOverlayUI::render(const EngineStats& stats)
         auto* pass = g_Renderer->getPass(type);
         const auto& pass_stats = pass->getStats();
 
-        ImGui::Text("\t%s: ", passTypeToString(type).c_str());
+        auto type_str = passTypeToString(type);
+
+        ImGui::Text("\t%.*s: ", static_cast<int>(type_str.size()), type_str.data());
         ImGui::Text("\t\tMeshes rendered: %zu", pass_stats.meshes_rendered);
         ImGui::Text("\t\tPolygons rendered: %zu", pass_stats.polygons_rendered);
 

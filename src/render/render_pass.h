@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render/render_command.h"
+#include "utils/string_utils.h"
 
 class Shader;
 struct RenderContext;
@@ -14,7 +15,8 @@ public:
         Standard_Opaque, Standard_Transparent,
         Tree_Opaque, Tree_Transparent,
         Sky, Terrain, Water,
-        Count
+        Count,
+        Unknown
     };
 
     struct Stats
@@ -26,18 +28,23 @@ public:
     RenderPass(Shader* shader) : _shader(shader) {}
     virtual ~RenderPass() = default;
     
-    void add(const RenderCommand& cmd);
+    bool add(const RenderCommand& cmd);
 
     void clearStats() { _stats = {0, 0}; }
 
-    virtual void execute(RenderContext& ctx) = 0;
+    void execute(RenderContext& ctx);
 
     virtual Type getType() = 0;
 
     Shader* getShader() const { return _shader; }
     const Stats& getStats() const { return _stats; }
 
+    bool isEnabled() const { return _enabled; }
+    void setEnabled(bool enabled) { _enabled = enabled; }
+
 protected:
+
+    virtual void onExecute(RenderContext& ctx) = 0;
     
     std::vector<RenderCommand> queue;
 
@@ -46,9 +53,11 @@ private:
     Shader* _shader = nullptr;
     Stats _stats;
 
+    bool _enabled = true;
+
 };
 
-inline std::string passTypeToString(RenderPass::Type type)
+constexpr std::string_view passTypeToString(RenderPass::Type type)
 {
     switch (type)
     {
@@ -61,4 +70,23 @@ inline std::string passTypeToString(RenderPass::Type type)
     case RenderPass::Type::Terrain: return "Terrain";
     default: return "Unknown";
     }
+}
+
+inline RenderPass::Type passTypeFromString(std::string_view str)
+{   
+    static const std::unordered_map<std::string, RenderPass::Type> lut = {
+        {"standard_opaque", RenderPass::Type::Standard_Opaque},
+        {"standard_transparent", RenderPass::Type::Standard_Transparent},
+        {"tree_opaque", RenderPass::Type::Tree_Opaque},
+        {"tree_transparent", RenderPass::Type::Tree_Transparent},
+        {"sky", RenderPass::Type::Sky},
+        {"water", RenderPass::Type::Water},
+        {"terrain", RenderPass::Type::Terrain}
+    };
+
+    auto it = lut.find(StringUtils::lowercase(str));
+    if (it != lut.end())
+        return it->second;
+
+    return RenderPass::Type::Unknown;
 }

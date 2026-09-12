@@ -13,6 +13,8 @@
 
 #include <SDL3/SDL_timer.h>
 
+#include <format>
+
 bool Renderer::init()
 {
     LOG_INFO("Renderer::init: Initializing renderer...");
@@ -77,16 +79,13 @@ void Renderer::shutdown()
     LOG_INFO("Renderer::shutdown: Renderer shutdown!");
 }
 
-float distanceToAABB(const glm::vec3& point, const AABB& box)
+static inline float distanceToAABB(const glm::vec3& point, const AABB& box)
 {
-    // glm::vec3 world_min = glm::vec3(model * glm::vec4(box.min, 1.0f));
-    // glm::vec3 world_max = glm::vec3(model * glm::vec4(box.max, 1.0f));
-
     glm::vec3 closest = glm::clamp(point, glm::min(box.min, box.max), glm::max(box.min, box.max));
     return glm::distance(point, closest);
 }
 
-int selectLOD(float distance, const Geometry& geom)
+static inline int selectLOD(float distance, const Geometry& geom)
 {
     if (geom.lods.empty()) return 0;
     if (geom.lods.size() == 1) return 0;
@@ -99,6 +98,31 @@ int selectLOD(float distance, const Geometry& geom)
     }
 
     return 0;
+}
+
+static inline RenderPass::Type selectPassType(GeometryType geom_type, bool transparent)
+{
+    switch (geom_type)
+    {
+    case GeometryType::StandardMesh:
+        if (transparent) {
+            return RenderPass::Type::Standard_Transparent;
+        } else {
+            return RenderPass::Type::Standard_Opaque;
+        }
+        break;
+    case GeometryType::TreeMesh:
+        if (transparent) {
+            return RenderPass::Type::Tree_Transparent;
+        } else {
+            return RenderPass::Type::Tree_Opaque;
+        }
+        break;
+    case GeometryType::PatchTerrain: return RenderPass::Type::Terrain;
+    case GeometryType::WaterMesh: return RenderPass::Type::Water;
+    case GeometryType::SkyMesh: return RenderPass::Type::Sky;
+    default: return RenderPass::Type::Unknown;
+    }
 }
 
 void Renderer::submit(Geometry* geom, const glm::mat4& model)
@@ -160,46 +184,36 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         cmd.transform_id = (uint32_t)_context.transforms.size() - 1;
         cmd.distance_to_camera = distance;
 
+        auto pass_type = selectPassType(geom->type, mesh.material && mesh.material->isTransparent());
+        if (pass_type == RenderPass::Type::Unknown) continue;
+
+        auto pass = getPass(pass_type);
+        if (!pass) continue;
+
         switch (geom->type)
         {
-        case GeometryType::StandardMesh:
-            if (mesh.material && mesh.material->isTransparent()) {
-                getPass(RenderPass::Type::Standard_Transparent)->add(cmd);
-            } else {
-                getPass(RenderPass::Type::Standard_Opaque)->add(cmd);
-            }
-            break;
-        case GeometryType::TreeMesh:
-            if (mesh.material && mesh.material->isTransparent()) {
-                getPass(RenderPass::Type::Tree_Transparent)->add(cmd);
-            } else {
-                getPass(RenderPass::Type::Tree_Opaque)->add(cmd);
-            }
-            break;
         case GeometryType::PatchTerrain:
             cmd.textures[0] = _terrain_textures[0];
             cmd.textures[1] = _terrain_textures[1];
-            getPass(RenderPass::Type::Terrain)->add(cmd);
             break;
         case GeometryType::WaterMesh:
             cmd.textures[0] = _water_textures[0];
             cmd.textures[1] = _water_textures[1];
-            getPass(RenderPass::Type::Water)->add(cmd);
             break;
-        case GeometryType::SkyMesh:
-            getPass(RenderPass::Type::Sky)->add(cmd);
-            break;
-        default:
-            continue;
+        default: break;
         }
 
-        _stats.meshes_rendered++;
-        _stats.polygons_rendered += mesh.index_count / 3;
+        if (pass->add(cmd))
+        {
+            _stats.meshes_rendered++;
+            _stats.polygons_rendered += mesh.index_count / 3;
+        }
     }
 }
 
 void Renderer::flush()
 {
+    glClearColor(_clear_color.r, _clear_color.g, _clear_color.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     UBO_CameraBlock camera_data;
@@ -243,11 +257,15 @@ void Renderer::flush()
 
 void Renderer::registerCmds() const
 {   
-    g_Console->bindProperty("Renderer.fogColorVec", g_Renderer, &Renderer::getFogColor, &Renderer::setFogColor);
+    g_Console->bindProperty("Renderer.fogColor", g_Renderer, &Renderer::getFogColor, &Renderer::setFogColor);
+    g_Console->addAlias("Renderer.fogColorVec", "Renderer.fogColor");
+    
     g_Console->bindProperty("Renderer.fogStart", g_Renderer, &Renderer::getFogStart, &Renderer::setFogStart);
+    g_Console->addAlias("Renderer.fogLinearStart", "Renderer.fogStart");
+    
     g_Console->bindProperty("Renderer.fogEnd", g_Renderer, &Renderer::getFogEnd, &Renderer::setFogEnd);
-    g_Console->bindProperty("Renderer.fogLinearStart", g_Renderer, &Renderer::getFogStart, &Renderer::setFogStart);
-    g_Console->bindProperty("Renderer.fogLinearEnd", g_Renderer, &Renderer::getFogEnd, &Renderer::setFogEnd);
+    g_Console->addAlias("Renderer.fogLinearEnd", "Renderer.fogEnd");
+
     g_Console->bindProperty("Renderer.vertexFogEnable", g_Renderer, &Renderer::isFogEnabled, &Renderer::setFogEnabled);
     g_Console->bindProperty("Renderer.diffuseColor", g_Renderer, &Renderer::getDiffuseColor, &Renderer::setDiffuseColor);
     g_Console->bindProperty("Renderer.specularColor", g_Renderer, &Renderer::getSpecularColor, &Renderer::setSpecularColor);
@@ -255,6 +273,40 @@ void Renderer::registerCmds() const
     g_Console->bindProperty("Renderer.globalAmbientColor", g_Renderer, &Renderer::getGlobalAmbientColor, &Renderer::setGlobalAmbientColor);
     g_Console->bindProperty("Renderer.sunDirection", g_Renderer, &Renderer::getSunDirection, &Renderer::setSunDirection);
     g_Console->bindProperty("Renderer.wireframe", g_Renderer, &Renderer::isWireframeEnabled, &Renderer::setWireframeEnabled);
+
+    g_Console->registerCmd("Renderer.passEnabled", [this] (Console::ExecContext& ctx, const Console::CommandArgs& args) {
+        if (args.empty()) return CommandResult{ "Not enough arguments! Usage: Renderer.passEnabled <pass_name> [enabled]" };
+        
+        auto pass_type = passTypeFromString(args[0]);
+        if (pass_type == RenderPass::Type::Unknown)
+            return CommandResult{ "Invalid pass name!", CommandStatus::Error };
+
+        auto pass = getPass(pass_type);
+
+        if (args.size() >= 2)
+        {
+            bool enabled = StringUtils::fromString<bool>(args[1]);
+            pass->setEnabled(enabled);
+        }
+
+        return CommandResult { std::format("Pass \"{}\" is {}!", args[0], pass->isEnabled() ? "enabled" : "disabled")  };
+    });
+
+    g_Console->registerCmd("Renderer.listPasses", [this] (Console::ExecContext& ctx, const Console::CommandArgs& args) {
+        std::string result_str = "";
+
+        for (auto& pass : _passes)
+        {
+            if (!pass) continue;
+
+            auto type_str = passTypeToString(pass->getType());
+            result_str += std::format("{} | {}\n", type_str, pass->isEnabled() ? "enabled" : "disabled");
+        }
+
+        return CommandResult { result_str };
+    });
+
+    g_Console->bindProperty("Renderer.clearColor", g_Renderer, &Renderer::_clear_color);
 }
 
 void Renderer::resetStats()
@@ -265,9 +317,7 @@ void Renderer::resetStats()
     _stats.polygons_rendered = 0;
 
     for (auto& pass : _passes)
-    {
         pass->clearStats();
-    }
 }
 
 RenderPass* Renderer::getPass(RenderPass::Type type) const
