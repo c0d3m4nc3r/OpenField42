@@ -134,6 +134,7 @@ Since the core gameplay is not yet implemented, the engine currently utilizes de
 | **F3** | Toggle Profiler display (shows simple performance metrics). |
 | **F5** | Reload shaders. |
 | **F11** | Toggle Fullscreen mode. |
+| **~** | Toggle console. |
 
 ## ⚖️ License
 
