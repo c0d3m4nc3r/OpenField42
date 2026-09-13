@@ -139,14 +139,14 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     size_t lod_index = 0;
     
-    if (USE_LODS && geom->type != GeometryType::SkyMesh)
+    if (_lod_enabled && geom->type != GeometryType::SkyMesh)
         lod_index = selectLOD(distance, *geom);
 
     Geometry::LOD& lod = geom->lods[lod_index];
 
     const Frustum& frustum = _camera->getFrustum();
 
-    if (USE_FRUSTUM_CULLING && geom->type != GeometryType::SkyMesh)
+    if (_frustum_culling_enabled && geom->type != GeometryType::SkyMesh)
     {
         if (!frustum.intersects(world_aabb))
         {
@@ -161,7 +161,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
 
     for (auto& mesh : lod.meshes)
     {
-        if (USE_FRUSTUM_CULLING)
+        if (_frustum_culling_enabled)
         {
             if (geom->type == GeometryType::PatchTerrain || geom->type == GeometryType::WaterMesh)
             {
@@ -290,6 +290,8 @@ void Renderer::registerCmds()
     g_Console->bindProperty("Renderer.globalAmbientColor", g_Renderer, &Renderer::getGlobalAmbientColor, &Renderer::setGlobalAmbientColor);
     g_Console->bindProperty("Renderer.sunDirection", g_Renderer, &Renderer::getSunDirection, &Renderer::setSunDirection);
     g_Console->bindProperty("Renderer.wireframe", g_Renderer, &Renderer::isWireframeEnabled, &Renderer::setWireframeEnabled);
+    g_Console->bindProperty("Renderer.useFrustumCulling", g_Renderer, &Renderer::isFrustumCullingEnabled, &Renderer::setFrustumCullingEnabled);
+    g_Console->bindProperty("Renderer.useLOD", g_Renderer, &Renderer::isLODEnabled, &Renderer::setLODEnabled);
 
     g_Console->registerCmd("Renderer.passEnabled", [this] (Console::ExecContext& ctx, const Console::CommandArgs& args) {
         if (args.empty()) return CommandResult{ "Not enough arguments! Usage: Renderer.passEnabled <pass_name> [enabled]" };

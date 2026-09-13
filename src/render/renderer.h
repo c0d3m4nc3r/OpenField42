@@ -88,6 +88,12 @@ public:
         _terrain_textures[1] = detail;
     }
 
+    void setFrustumCullingEnabled(bool enabled) { _frustum_culling_enabled = enabled; }
+    bool isFrustumCullingEnabled() const { return _frustum_culling_enabled; }
+
+    void setLODEnabled(bool enabled) { _lod_enabled = enabled; }
+    bool isLODEnabled() const { return _lod_enabled; }
+
 private:
 
     struct alignas(16) UBO_CameraBlock
@@ -153,6 +159,9 @@ private:
     TextureHandle _terrain_textures[2]{};
     
     Stats _stats;
+
+    bool _frustum_culling_enabled = USE_FRUSTUM_CULLING;
+    bool _lod_enabled = USE_LODS;
 
     template <typename T>
     void createPass(RenderPass::Type type, Shader* shader)
