@@ -23,6 +23,7 @@ void World::registerCmds() const
     });
 
     g_Console->bindProperty("Sky.rotAngle", &g_World->getSky(), &Sky::rot_angle);
+    g_Console->addAlias("Sky.setRotAngle", "Sky.rotAngle");
     g_Console->addAlias("Sky.sunLightDirectionVec", "Renderer.sunDirection");
 
     // Water
