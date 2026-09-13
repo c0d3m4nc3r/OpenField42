@@ -15,7 +15,8 @@ namespace TextureUtils
         std::vector<char> file_data = g_VFS->readFile(path);
         if (file_data.empty())
         {
-            LOG_ERROR("TextureUtils::loadData: Failed to read file '%s'!", path.data());
+            LOG_ERROR("TextureUtils::loadData: Failed to read file '%*.s'!",
+                static_cast<int>(path.size()), path.data());
             return {};
         }
 

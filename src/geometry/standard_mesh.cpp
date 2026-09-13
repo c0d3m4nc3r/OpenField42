@@ -145,7 +145,7 @@ bool StandardMesh::load(const GeometryTemplate* tmpl)
                 Vertex vertex;
                 vertex.position = reader.read<glm::vec3>();
                 vertex.normal = reader.read<glm::vec3>();
-                vertex.uv = reader.read<glm::vec2>();
+                vertex.uvs[0] = reader.read<glm::vec2>();
                 vertex.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
                 lod.vertices.push_back(vertex);

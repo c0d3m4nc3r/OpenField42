@@ -50,11 +50,13 @@ bool Terrain::init(const GeometryTemplate* tmpl)
 {
     LOG_INFO("Terrain::init: Initializing terrain...");
 
-    const float scale_xz = static_cast<float>(tmpl->world_size) / tmpl->material_size;
+    const float SCALE_XZ = static_cast<float>(tmpl->world_size) / tmpl->material_size;
     LOG_DEBUG("Terrain::init: Info: Size: %dx%d, Scale XZ: %.2f, Scale Y: %.2f",
-        tmpl->material_size, tmpl->material_size, scale_xz, tmpl->y_scale);
+        tmpl->material_size, tmpl->material_size, SCALE_XZ, tmpl->y_scale);
     
-    const int tiles_per_side = std::max(1, tmpl->material_size / TILE_SIZE);
+    const int TILES_PER_SIDE = std::max(1, tmpl->material_size / TILE_SIZE);
+    
+    constexpr float DETAIL_UV_SCALE = 0.5f;
     
     // 1. Load heightmap
     
@@ -94,7 +96,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
         tmpl->tex_base_name,
         tmpl->tex_offset_x,
         tmpl->tex_offset_y,
-        tiles_per_side
+        TILES_PER_SIDE
     );
 
     _base_tex = g_TextureMgr->loadAtlas(texture_paths, 1024, 1024, 3);
@@ -105,7 +107,7 @@ bool Terrain::init(const GeometryTemplate* tmpl)
 
     if (!tmpl->detail_tex_name.empty())
     {
-        _detail_tex = g_TextureMgr->load(tmpl->detail_tex_name);
+        _detail_tex = g_TextureMgr->load(tmpl->detail_tex_name, -1.5f);
         if (!_detail_tex.isValid())
         {
             LOG_WARNING("Terrain::init: Failed to load detail texture!");
@@ -118,11 +120,11 @@ bool Terrain::init(const GeometryTemplate* tmpl)
     glm::vec3 global_max(-FLT_MAX);
 
     Geometry::LOD& lod = _geometry->lods.emplace_back();
-    lod.meshes.reserve(tiles_per_side * tiles_per_side);
+    lod.meshes.reserve(TILES_PER_SIDE * TILES_PER_SIDE);
 
-    for (int tz = 0; tz < tiles_per_side; ++tz)
+    for (int tz = 0; tz < TILES_PER_SIDE; ++tz)
     {
-        for (int tx = 0; tx < tiles_per_side; ++tx)
+        for (int tx = 0; tx < TILES_PER_SIDE; ++tx)
         {
             const int start_x = tx * TILE_SIZE;
             const int start_z = tz * TILE_SIZE;
@@ -151,15 +153,23 @@ bool Terrain::init(const GeometryTemplate* tmpl)
                 {
                     Geometry::Vertex v{};
                     v.position = {
-                        (float)x * scale_xz,
+                        (float)x * SCALE_XZ,
                         getHeight(x, z),
-                        (float)z * scale_xz
+                        (float)z * SCALE_XZ
                     };
+                    
                     v.normal = { 0.0f, 1.0f, 0.0f };
-                    v.uv = {
+                    
+                    v.uvs[0] = {
                         (float)x / (float)tmpl->material_size,
                         (float)z / (float)tmpl->material_size
                     };
+                    
+                    v.uvs[1] = {
+                        static_cast<float>(x) * DETAIL_UV_SCALE,
+                        static_cast<float>(z) * DETAIL_UV_SCALE
+                    };
+
                     v.color = {1.0f, 1.0f, 1.0f, 1.0f};
                     
                     global_min = glm::min(global_min, v.position);

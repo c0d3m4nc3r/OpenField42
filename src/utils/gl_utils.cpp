@@ -9,7 +9,8 @@ unsigned int GLUtils::createTexture2D(
     GLenum internal_format, GLenum format,
     GLenum type,
     const void* data,
-    bool generate_mipmaps
+    bool generate_mipmaps,
+    float lod_bias
 )
 {
     GLuint texture = 0;
@@ -32,6 +33,7 @@ unsigned int GLUtils::createTexture2D(
     glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, DEFAULT_MAG_FILTER);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_S, DEFAULT_WRAP_S);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_T, DEFAULT_WRAP_T);
+    glTextureParameterf(texture, GL_TEXTURE_LOD_BIAS, lod_bias);
 
     if (generate_mipmaps)
         glGenerateTextureMipmap(texture);

@@ -37,16 +37,20 @@ bool Geometry::LOD::upload()
     glVertexArrayAttribBinding(vao, 1, 0);
 
     glEnableVertexArrayAttrib(vao, 2);
-    glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
+    glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uvs[0]));
     glVertexArrayAttribBinding(vao, 2, 0);
 
     glEnableVertexArrayAttrib(vao, 3);
-    glVertexArrayAttribFormat(vao, 3, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, color));
+    glVertexArrayAttribFormat(vao, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uvs[1]));
     glVertexArrayAttribBinding(vao, 3, 0);
 
     glEnableVertexArrayAttrib(vao, 4);
-    glVertexArrayAttribFormat(vao, 4, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, sprite_ofs));
+    glVertexArrayAttribFormat(vao, 4, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, color));
     glVertexArrayAttribBinding(vao, 4, 0);
+
+    glEnableVertexArrayAttrib(vao, 5);
+    glVertexArrayAttribFormat(vao, 5, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, sprite_ofs));
+    glVertexArrayAttribBinding(vao, 5, 0);
 
     vertices.clear();
     indices.clear();

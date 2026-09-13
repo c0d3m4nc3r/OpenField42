@@ -28,7 +28,7 @@ void TextureManager::init()
     _default_tex = std::make_shared<Texture>(texture);
 }
 
-TextureHandle TextureManager::load(std::string_view path)
+TextureHandle TextureManager::load(std::string_view path, float lod_bias)
 {
     std::unique_lock<std::shared_mutex> lock(_textures_mutex);
 
@@ -42,13 +42,14 @@ TextureHandle TextureManager::load(std::string_view path)
     _textures.push_back(_default_tex);
     _path_to_handle[std::string(path)] = new_handle;
 
-    g_ThreadPool.enqueue([this, new_handle, path = std::string(path)]()
+    g_ThreadPool.enqueue([this, new_handle, lod_bias, path = std::string(path)]()
     {
         TextureData data = TextureUtils::loadData(path);
         if (data.is_valid)
         {
             data.handle = new_handle;
             data.path = path;
+            data.lod_bias = lod_bias;
             _completed_uploads.push(std::move(data));
         }
         else
@@ -202,7 +203,8 @@ void TextureManager::uploadNewTexture(const TextureData& task)
         TextureUtils::getFormat(task.channels),
         GL_UNSIGNED_BYTE,
         task.pixels.data(),
-        true
+        true,
+        task.lod_bias
     );
 
     {

@@ -19,9 +19,9 @@ layout(std140, binding = 3) uniform WaterBlock
 layout(location = 0) in vec3 a_Pos;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
-layout(location = 3) in vec4 a_Color;
+layout(location = 4) in vec4 a_Color;
 
-out vec2 v_TexCoords;
+out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
 out vec4 v_Color;
@@ -31,7 +31,7 @@ uniform mat4 u_Model;
 void main()
 {
     v_Color = a_Color;
-    v_TexCoords = a_TexCoord;
+    v_TexCoord = a_TexCoord;
     v_FragPos = vec3(u_Model * vec4(a_Pos, 1.0));
     v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
     
@@ -44,7 +44,7 @@ void main()
 
 #ifdef FRAGMENT // ---
 
-in vec2 v_TexCoords;
+in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec4 v_Color;
 
@@ -64,8 +64,8 @@ void main()
         return;
     }
 
-    vec2 uv1 = (v_TexCoords * u_Layer1.w) + u_Layer1.xy * u_Layer1.z * u_Time;
-    vec2 uv2 = (v_TexCoords * u_Layer2.w) + u_Layer2.xy * u_Layer2.z * u_Time;
+    vec2 uv1 = (v_TexCoord * u_Layer1.w) + u_Layer1.xy * u_Layer1.z * u_Time;
+    vec2 uv2 = (v_TexCoord * u_Layer2.w) + u_Layer2.xy * u_Layer2.z * u_Time;
 
     vec4 layerColor1 = texture(u_TexLayer1, uv1);
     vec4 layerColor2 = texture(u_TexLayer2, uv2);

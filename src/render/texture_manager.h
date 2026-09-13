@@ -29,6 +29,8 @@ struct TextureData
     bool is_atlas_tile = false;
     int dst_x = 0;
     int dst_y = 0;
+
+    float lod_bias = 0.0f;
 };
 
 class TextureManager
@@ -37,7 +39,8 @@ public:
 
     void init();
 
-    TextureHandle load(std::string_view path);
+    TextureHandle load(std::string_view path, float lod_bias = 0.0f);
+
     TextureHandle loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels = 3);
 
     void clear();

@@ -9,8 +9,8 @@
 #include <glm/common.hpp>
 
 constexpr int TILE_SIZE = 64/4;
-constexpr int step = 4;
-constexpr int CHUNK_VERTS_PER_SIDE = (TILE_SIZE / step) + 1;
+constexpr int STEP = 4;
+constexpr int CHUNK_VERTS_PER_SIDE = (TILE_SIZE / STEP) + 1;
 constexpr int CHUNK_VERT_COUNT = CHUNK_VERTS_PER_SIDE * CHUNK_VERTS_PER_SIDE;
 
 void Water::clear()
@@ -65,8 +65,8 @@ void Water::generateGeometry()
             {
                 for (int x = 0; x < CHUNK_VERTS_PER_SIDE; x++)
                 {
-                    int tx = std::min(terrain_start_x + x * step, terrain.getSize());
-                    int tz = std::min(terrain_start_z + z * step, terrain.getSize());
+                    int tx = std::min(terrain_start_x + x * STEP, terrain.getSize());
+                    int tz = std::min(terrain_start_z + z * STEP, terrain.getSize());
                     
                     if (terrain.getWaterHeight() > terrain.getHeight(tx, tz))
                     {
@@ -87,8 +87,8 @@ void Water::generateGeometry()
                 for (int x = 0; x < CHUNK_VERTS_PER_SIDE; x++)
                 {
                     Geometry::Vertex v;
-                    int tx = std::min(terrain_start_x + x * step, terrain.getSize());
-                    int tz = std::min(terrain_start_z + z * step, terrain.getSize());
+                    int tx = std::min(terrain_start_x + x * STEP, terrain.getSize());
+                    int tz = std::min(terrain_start_z + z * STEP, terrain.getSize());
 
                     v.position = {
                         static_cast<float>(tx * scale_xz),
@@ -97,8 +97,8 @@ void Water::generateGeometry()
                     };
 
                     v.normal = {0.0f, 1.0f, 0.0f};
-                    v.uv.x = (v.position.x / static_cast<float>(terrain.getWorldSize())) * 64.0f;
-                    v.uv.y = (v.position.z / static_cast<float>(terrain.getWorldSize())) * 64.0f;
+                    v.uvs[0].x = (v.position.x / static_cast<float>(terrain.getWorldSize())) * 64.0f;
+                    v.uvs[0].y = (v.position.z / static_cast<float>(terrain.getWorldSize())) * 64.0f;
 
                     float depth = terrain.getWaterHeight() - terrain.getHeight(tx, tz);
                     float t = glm::clamp(depth / _color_depth, 0.0f, 1.0f);

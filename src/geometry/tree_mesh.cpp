@@ -231,7 +231,7 @@ bool TreeMesh::load(const GeometryTemplate* tmpl)
 
         reader.skip(sizeof(uint32_t)); // color?
         
-        v.uv = reader.read<glm::vec2>();
+        v.uvs[0] = reader.read<glm::vec2>();
         v.sprite_ofs = reader.read<glm::vec2>();
     }
 

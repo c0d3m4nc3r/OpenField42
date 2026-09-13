@@ -12,13 +12,13 @@ layout (std140, binding = 0) uniform CameraBlock
 layout(location = 0) in vec3 a_Pos;
 layout(location = 2) in vec2 a_TexCoord;
 
-out vec2 v_TexCoords;
+out vec2 v_TexCoord;
 
 uniform mat4 u_Model;
 
 void main()
 {
-    v_TexCoords = a_TexCoord;
+    v_TexCoord = a_TexCoord;
     mat4 skyView = mat4(mat3(u_View));
     vec4 pos = u_Projection * skyView * u_Model * vec4(a_Pos, 1.0);
     gl_Position = pos.xyww;
@@ -27,7 +27,7 @@ void main()
 
 #ifdef FRAGMENT // ---
 
-in vec2 v_TexCoords;
+in vec2 v_TexCoord;
 out vec4 f_Color;
 
 uniform bool u_WireframeEnabled;
@@ -40,7 +40,7 @@ void main()
         return;
     }
 
-    vec4 texColor = texture(u_Texture, v_TexCoords) * u_Material.diffuse;
+    vec4 texColor = texture(u_Texture, v_TexCoord) * u_Material.diffuse;
     f_Color = vec4(texColor.rgb, texColor.a);
 }
 #endif // FRAGMENT

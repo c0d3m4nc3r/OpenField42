@@ -7,7 +7,8 @@ namespace GLUtils
         GLenum internal_format, GLenum format,
         GLenum type,
         const void* data = nullptr,
-        bool generate_mipmaps = false
+        bool generate_mipmaps = false,
+        float lod_bias = 0.0f
     );
     unsigned int compileShader(GLenum type, const char** src, int count);
     unsigned int linkProgram(GLuint vert_shader, GLuint frag_shader);
