@@ -5,7 +5,6 @@
 
 #include "math/aabb.h"
 
-#include <atomic>
 #include <vector>
 #include <unordered_map>
 #include <string>

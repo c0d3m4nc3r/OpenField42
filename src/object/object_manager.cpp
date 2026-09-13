@@ -15,12 +15,11 @@ void ObjectManager::registerCmds() const
     g_Console->registerCmd("Object.create", [](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
     {
         ctx.last_obj = nullptr;
-
-        std::string tmpl_name = std::string(args[0]);
-
+        
         if (args.empty())
             return CommandResult{ "Not enough arguments! Usage: Object.create <template_name>", CommandStatus::Error };
-
+    
+        std::string tmpl_name = std::string(args[0]);
         auto* tmpl = g_TemplateMgr->get<ObjectTemplate>(args[0]);
         if (!tmpl)
             return CommandResult{ "Object template with name '" + tmpl_name + "' not found!", CommandStatus::Warning };

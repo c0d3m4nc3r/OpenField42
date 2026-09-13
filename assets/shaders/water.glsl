@@ -34,7 +34,10 @@ void main()
     v_TexCoords = a_TexCoord;
     v_FragPos = vec3(u_Model * vec4(a_Pos, 1.0));
     v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
-    gl_Position = u_Projection * u_View * u_Model * vec4(a_Pos, 1.0);
+    
+    vec4 ecPos = u_View * vec4(v_FragPos, 1.0);
+    ComputeFogCoord(ecPos.xyz);
+    gl_Position = u_Projection * ecPos;
 }
 
 #endif // VERTEX
@@ -69,7 +72,7 @@ void main()
 
     vec3 finalColor = (layerColor1 * layerColor2).rgb * v_Color.rgb;
     
-    ApplyFog(finalColor, length(u_ViewPos.xyz - v_FragPos));
+    ApplyFog(finalColor);
 
     f_Color = vec4(finalColor, v_Color.a);
 }

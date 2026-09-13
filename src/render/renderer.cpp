@@ -255,10 +255,27 @@ void Renderer::flush()
     _context.transforms.clear();
 }
 
-void Renderer::registerCmds() const
+void Renderer::registerCmds()
 {   
     g_Console->bindProperty("Renderer.fogColor", g_Renderer, &Renderer::getFogColor, &Renderer::setFogColor);
-    g_Console->addAlias("Renderer.fogColorVec", "Renderer.fogColor");
+    // g_Console->addAlias("Renderer.fogColorVec", "Renderer.fogColor");
+
+    g_Console->bindProperty("Renderer.fogColorVec",
+        [this] () { return getFogColor(); },
+        [this] (const glm::vec3& color) {
+            // Quantized D3DCOLOR / uint8_t logic from DICE 2002:
+            // .con float -> [0..255] byte -> float.
+            // 0.50 -> 127/255 -> 0.498039f.
+            // Do not "fix" to precise floats, or fog clearing won't match original.
+            glm::vec3 quantized = {
+                (float)(uint8_t)(color.r * 255.0f) / 255.0f,
+                (float)(uint8_t)(color.g * 255.0f) / 255.0f,
+                (float)(uint8_t)(color.b * 255.0f) / 255.0f
+            };
+            setFogColor(quantized);
+            _clear_color = quantized; // NOTE: Skybox is transparent
+        }
+    );
     
     g_Console->bindProperty("Renderer.fogStart", g_Renderer, &Renderer::getFogStart, &Renderer::setFogStart);
     g_Console->addAlias("Renderer.fogLinearStart", "Renderer.fogStart");

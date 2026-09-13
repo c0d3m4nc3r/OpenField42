@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/config.h"
 #include "geometry/geometry.h"
 #include "render/render_context.h"
 #include "render/render_pass.h"
@@ -34,7 +35,7 @@ public:
     void submit(Geometry* geom, const glm::mat4& model);
     void flush();
     
-    void registerCmds() const;
+    void registerCmds();
     
     void reloadShaders();
     void resetStats();
@@ -99,7 +100,7 @@ private:
     struct alignas(16) UBO_FogBlock
     {
         glm::vec4 color = {0.5f, 0.5f, 0.5f, 1.0f};
-        glm::vec4 params = {50.0f, 200.0f, 1.0f, 1.0f}; // x - start, y - end, z - enabled, w - padding
+        glm::vec4 params = {DEFAULT_FOG_START, DEFAULT_FOG_END, 1.0f, 1.0f}; // x - start, y - end, z - enabled, w - padding
     };
 
     struct alignas(16) UBO_LightingBlock

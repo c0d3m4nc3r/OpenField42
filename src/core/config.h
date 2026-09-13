@@ -8,7 +8,7 @@
 #define WINDOW_FULLSCREEN 0
 #define WINDOW_RESIZABLE 0
 #define WINDOW_BORDERLESS 0
-#define WINDOW_VSYNC_ON 0
+#define WINDOW_VSYNC_ON 1
 
 /* Rendering */
 
@@ -17,7 +17,7 @@
 #define VIEW_DISTANCE 0 // Set to 0 to use view distance from Init.con
 #define RENDER_FOG 1
 #define DEFAULT_FOG_START 50.0f
-#define DEFAULT_FOG_END 200.0f
+#define DEFAULT_FOG_END 350.0f
 
 /* Texture Defaults */
 

@@ -45,7 +45,9 @@ void main()
         v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
     }
 
-    gl_Position = u_Projection * u_View * vec4(v_FragPos, 1.0);
+    vec4 ecPos = u_View * vec4(v_FragPos, 1.0);
+    ComputeFogCoord(ecPos.xyz);
+    gl_Position = u_Projection * ecPos;
 }
 
 #endif // VERTEX
@@ -86,7 +88,7 @@ void main()
         result = objectColor;
     }
 
-    ApplyFog(result, length(u_ViewPos.xyz - v_FragPos));
+    ApplyFog(result);
 
     f_Color = vec4(result, alpha);
 }
