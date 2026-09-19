@@ -5,7 +5,7 @@
 class Texture;
 struct Material;
 
-struct RenderCommand
+struct RenderItem
 {
     uint32_t vao = 0;
     uint32_t index_count = 0;
@@ -16,5 +16,5 @@ struct RenderCommand
     uint32_t transform_id = 0;
     float distance_to_camera = 0.0f;
 
-    TextureHandle textures[2]{};
+    TextureHandle textures[3]{};
 };

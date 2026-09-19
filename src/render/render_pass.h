@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/render_command.h"
+#include "render/render_item.h"
 #include "utils/string_utils.h"
 
 class Shader;
@@ -28,7 +28,7 @@ public:
     RenderPass(Shader* shader) : _shader(shader) {}
     virtual ~RenderPass() = default;
     
-    bool add(const RenderCommand& cmd);
+    bool add(const RenderItem& cmd);
 
     void clearStats() { _stats = {0, 0}; }
 
@@ -46,7 +46,7 @@ protected:
 
     virtual void onExecute(RenderContext& ctx) = 0;
     
-    std::vector<RenderCommand> queue;
+    std::vector<RenderItem> queue;
 
 private:
 

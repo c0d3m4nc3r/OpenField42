@@ -175,7 +175,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
             }
         }
 
-        RenderCommand cmd;
+        RenderItem cmd;
         cmd.vao = lod.vao;
         cmd.index_count = mesh.index_count;
         cmd.index_offset = (void*)(mesh.index_start * sizeof(unsigned int));

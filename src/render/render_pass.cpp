@@ -1,6 +1,6 @@
 #include "render_pass.h"
 
-bool RenderPass::add(const RenderCommand& cmd)
+bool RenderPass::add(const RenderItem& cmd)
 {
     if (!_enabled || !cmd.vao || !cmd.index_count) return false;
     
