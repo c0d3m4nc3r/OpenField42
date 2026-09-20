@@ -6,6 +6,7 @@
 #include "render/texture.h"
 
 #include "glad/gl.h"
+#include "world/world.h"
 
 void WaterPass::onExecute(RenderContext& ctx)
 {
@@ -20,23 +21,38 @@ void WaterPass::onExecute(RenderContext& ctx)
 
     unsigned int last_vao = 0;
     unsigned int last_transform_id = 0;
+    TextureHandle last_tex0;
     TextureHandle last_tex1;
     TextureHandle last_tex2;
 
+    unsigned int halfvec_lut = g_World->getWater().getHalfVecLUT();
+    if (halfvec_lut != 0)
+    {
+        glBindTextureUnit(3, halfvec_lut);
+        shader->setInt("u_HalfVecLUT", 3);
+    }
+
     for (const auto& cmd : queue)
     {
-        if (cmd.textures[0].id != last_tex1.id && cmd.textures[0].isValid())
+        if (cmd.textures[0].id != last_tex0.id && cmd.textures[0].isValid())
         {
             g_TextureMgr->get(cmd.textures[0]).bind(0);
             shader->setInt("u_TexLayer1", 0);
-            last_tex1 = cmd.textures[0];
+            last_tex0 = cmd.textures[0];
         }
 
-        if (cmd.textures[1].id != last_tex2.id && cmd.textures[1].isValid())
+        if (cmd.textures[1].id != last_tex1.id && cmd.textures[1].isValid())
         {
             g_TextureMgr->get(cmd.textures[1]).bind(1);
             shader->setInt("u_TexLayer2", 1);
-            last_tex2 = cmd.textures[1];
+            last_tex1 = cmd.textures[1];
+        }
+
+        if (cmd.textures[2].id != last_tex1.id && cmd.textures[2].isValid())
+        {
+            g_TextureMgr->get(cmd.textures[2]).bind(2);
+            shader->setInt("u_TexNormal", 2);
+            last_tex2 = cmd.textures[2];
         }
 
         if (cmd.transform_id != last_transform_id)

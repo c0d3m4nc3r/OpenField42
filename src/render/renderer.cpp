@@ -199,6 +199,7 @@ void Renderer::submit(Geometry* geom, const glm::mat4& model)
         case GeometryType::WaterMesh:
             cmd.textures[0] = _water_textures[0];
             cmd.textures[1] = _water_textures[1];
+            cmd.textures[2] = _water_textures[2];
             break;
         default: break;
         }

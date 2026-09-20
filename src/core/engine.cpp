@@ -186,12 +186,23 @@ void Engine::update(float dt)
     {
         auto& layer1 = water.getLayer(0);
         auto& layer2 = water.getLayer(1);
+        auto& layer_normal_map = water.getLayer(2);
 
         Renderer::WaterParams water_params;
+        
         water_params.layer_1 = glm::vec4(layer1.scroll_dir, layer1.scroll_speed, layer1.uv_scale);
         water_params.layer_2 = glm::vec4(layer2.scroll_dir, layer2.scroll_speed, layer2.uv_scale);
+        water_params.layer_normal_map = glm::vec4(
+            layer_normal_map.scroll_dir,
+            layer_normal_map.scroll_speed,
+            layer_normal_map.uv_scale
+        );
+        water_params.specular_color = glm::vec4(water.getSpecularColor(), 1.0f);
+
         water_params.tex_layer1 = layer1.texture;
         water_params.tex_layer2 = layer2.texture;
+        water_params.tex_layer_normal_map = layer_normal_map.texture;
+        
         g_Renderer->setWaterParams(water_params);
         water.clearDirty();
     }

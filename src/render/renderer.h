@@ -1,10 +1,12 @@
 #pragma once
 
 #include "core/config.h"
+#include "core/globals.h"
 #include "geometry/geometry.h"
 #include "render/render_context.h"
 #include "render/render_pass.h"
 #include "render/shader.h"
+#include "world/world.h"
 
 #include <array>
 
@@ -18,8 +20,11 @@ public:
     {
         glm::vec4 layer_1; // xy dir, z speed, w uv_scale
         glm::vec4 layer_2;
+        glm::vec4 layer_normal_map;
+        glm::vec4 specular_color;
         TextureHandle tex_layer1;
         TextureHandle tex_layer2;
+        TextureHandle tex_layer_normal_map;
     };
 
     struct Stats
@@ -69,7 +74,12 @@ public:
     void setSpecularColor(const glm::vec3& color) { _lighting.specular = glm::vec4(color, 1.0f); _lighting_dirty = true; }
     void setAmbientColor(const glm::vec3& color) { _lighting.ambient = glm::vec4(color, 1.0f); _lighting_dirty = true; }
     void setGlobalAmbientColor(const glm::vec3& color) { _lighting.global_ambient = glm::vec4(color, 1.0f); _lighting_dirty = true; }
-    void setSunDirection(const glm::vec3& dir) { _lighting.sun_dir = glm::vec4(dir, 1.0f); _lighting_dirty = true; }
+    void setSunDirection(const glm::vec3& dir)
+    {
+        _lighting.sun_dir = glm::vec4(dir, 1.0f);
+        _lighting_dirty = true;
+        g_World->getWater().setHalfVecLUTDirty(true);
+    }
 
     void setWireframeEnabled(bool enabled) { _context.wireframe_enabled = enabled; }
 
@@ -77,8 +87,11 @@ public:
     {
         _water.layer_1 = params.layer_1;
         _water.layer_2 = params.layer_2;
+        _water.layer_normal_map = params.layer_normal_map;
+        _water.specular_color = params.specular_color;
         _water_textures[0] = params.tex_layer1;
         _water_textures[1] = params.tex_layer2;
+        _water_textures[2] = params.tex_layer_normal_map;
         _water_dirty = true;
     }
 
@@ -123,6 +136,8 @@ private:
         // xy = scroll dir, z = scroll speed, w = uv scale
         glm::vec4 layer_1 = glm::vec4(glm::vec3(0.0f), 1.0f);
         glm::vec4 layer_2 = glm::vec4(glm::vec3(0.0f), 1.0f);
+        glm::vec4 layer_normal_map = glm::vec4(glm::vec3(0.0f), 1.0f);
+        glm::vec4 specular_color = glm::vec4(glm::vec3(0.5f), 1.0f);
     };
     
     std::array<std::unique_ptr<RenderPass>, static_cast<size_t>(RenderPass::Type::Count)> _passes;
@@ -155,7 +170,7 @@ private:
     unsigned int _water_ubo = 0;
     bool _water_dirty = true;
 
-    TextureHandle _water_textures[2]{};
+    TextureHandle _water_textures[3]{};
     TextureHandle _terrain_textures[2]{};
     
     Stats _stats;

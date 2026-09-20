@@ -29,15 +29,6 @@ Here are a few screenshots showcasing the current rendering progress across diff
 
 While I am the primary developer, this is an open-source project, and **help is highly encouraged and needed!** If you are passionate about BF1942 and C++ development, please consider contributing.
 
-Here are some planned tasks and features open for contribution:
-
-- [ ] Implement accurate specular lighting for water rendering
-- [ ] Implement a dedicated shader for tree pass rendering
-- [ ] Implement a loading screen system
-- [ ] Implement a level selection menu
-
-If you'd like to tackle any of these or work on bug fixes, feel free to submit a Pull Request!
-
 ## 🛠️ Technology Stack
 
 The project is built on modern, cross-platform technologies:

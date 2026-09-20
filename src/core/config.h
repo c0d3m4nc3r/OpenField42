@@ -3,8 +3,8 @@
 /* Window */
 
 #define WINDOW_TITLE "OpenField42"
-#define WINDOW_WIDTH 1600
-#define WINDOW_HEIGHT 900
+#define WINDOW_WIDTH 1024
+#define WINDOW_HEIGHT 768
 #define WINDOW_FULLSCREEN 0
 #define WINDOW_RESIZABLE 0
 #define WINDOW_BORDERLESS 0

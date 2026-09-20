@@ -36,6 +36,10 @@ void World::registerCmds() const
         g_World->getWater().setTexture(1, g_TextureMgr->load(value));
     });
 
+    g_Console->bindProperty("Water.normalMap", []() { return std::string(); }, [](const std::string& value) {
+        g_World->getWater().setTexture(2, g_TextureMgr->load(value, -3.32643));
+    });
+
     g_Console->bindProperty("Water.scrollDirection1",
         []() { return g_World->getWater().getLayer(0).scroll_dir; },
         [](const glm::vec2& value) { g_World->getWater().setScrollDir(0, value); }
@@ -44,6 +48,11 @@ void World::registerCmds() const
     g_Console->bindProperty("Water.scrollDirection2",
         []() { return g_World->getWater().getLayer(1).scroll_dir; },
         [](const glm::vec2& value) { g_World->getWater().setScrollDir(1, value); }
+    );
+
+    g_Console->bindProperty("Water.scrollDirectionNormalMap",
+        []() { return g_World->getWater().getLayer(2).scroll_dir; },
+        [](const glm::vec2& value) { g_World->getWater().setScrollDir(2, value); }
     );
 
     g_Console->bindProperty("Water.scrollLayer1",
@@ -56,6 +65,11 @@ void World::registerCmds() const
         [](float value) { g_World->getWater().setScrollSpeed(1, value); }
     );
 
+    g_Console->bindProperty("Water.scrollNormalmap",
+        []() { return g_World->getWater().getLayer(2).scroll_speed; },
+        [](float value) { g_World->getWater().setScrollSpeed(2, value); }
+    );
+
     g_Console->bindProperty("Water.tileLayer1",
         []() { return g_World->getWater().getLayer(0).uv_scale; },
         [](float value) { g_World->getWater().setUVScale(0, value); }
@@ -66,11 +80,19 @@ void World::registerCmds() const
         [](float value) { g_World->getWater().setUVScale(1, value); }
     );
 
+    g_Console->bindProperty("Water.tileNormalmap",
+        []() { return g_World->getWater().getLayer(2).uv_scale; },
+        [](float value) { g_World->getWater().setUVScale(2, value); }
+    );
+
     g_Console->bindProperty("Water.color", &g_World->getWater(), &Water::getColor, &Water::setColor);
     g_Console->bindProperty("Water.deepColor", &g_World->getWater(), &Water::getDeepColor, &Water::setDeepColor);
     g_Console->bindProperty("Water.waterColorDepth", &g_World->getWater(), &Water::getColorDepth, &Water::setColorDepth);
     g_Console->bindProperty("Water.waterAlphaDepth", &g_World->getWater(), &Water::getAlphaDepth, &Water::setAlphaDepth);
     g_Console->bindProperty("Water.waterShallowAlpha", &g_World->getWater(), &Water::getShallowAlpha, &Water::setShallowAlpha);
+
+    g_Console->bindProperty("Water.specularColor", &g_World->getWater(), &Water::getSpecularColor, &Water::setSpecularColor);
+    g_Console->bindProperty("Water.specularStreakFactor", &g_World->getWater(), &Water::getSpecularStreakFactor, &Water::setSpecularStreakFactor);
 }
 
 void World::clear()

@@ -40,7 +40,6 @@ public:
     void init();
 
     TextureHandle load(std::string_view path, float lod_bias = 0.0f);
-
     TextureHandle loadAtlas(const std::vector<std::string>& paths, int tile_w, int tile_h, int channels = 3);
 
     void clear();

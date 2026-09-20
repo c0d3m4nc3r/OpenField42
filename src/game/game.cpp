@@ -31,11 +31,7 @@ bool Game::init()
 
     g_Input->setMouseCaptured(true);
 
-    const float WORLD_SIZE = 2048.0f;
-    glm::vec3 world_center(WORLD_SIZE/2.0f);
-    world_center.y = 75.0f;
-
-    _camera.setPosition(world_center);
+    _camera.setFieldOfView(glm::degrees(1.0f));
 
     g_Renderer->setCamera(&_camera);
 
