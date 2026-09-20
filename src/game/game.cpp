@@ -80,7 +80,7 @@ void Game::registerCmds()
 
         return { "Teleported to: " + StringUtils::toString(pos), CommandStatus::Success };
     });
-    g_Console->addAlias("tp", "teleport");
+    g_Console->addAlias("tp", "Game.teleport");
 
     g_Console->registerCmd("Game.setBeforeSpawnCameraPosition", [this](Console::ExecContext& ctx, const Console::CommandArgs& args) -> CommandResult
     {
