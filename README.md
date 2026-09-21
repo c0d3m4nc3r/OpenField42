@@ -19,8 +19,8 @@ Here are a few screenshots showcasing the current rendering progress across diff
 | Map | Image |
 | :---: | :---: |
 | **Market Garden** | ![Screenshot of Market Garden](docs/screenshots/market-garden.png) |
-| **Berlin** | ![Screenshot of Berlin](docs/screenshots/berlin01.png) |
-| **Omaha Beach** | ![Screenshot of Omaha Beach](docs/screenshots/omaha-beach.png) |
+| **Berlin** | ![Screenshot of Berlin](docs/screenshots/berlin.png) |
+| **Omaha Beach** | ![Screenshot of Omaha Beach](docs/screenshots/omaha-beach1.png) |
 | **Battleaxe** | ![Screenshot of Battleaxe](docs/screenshots/battleaxe.png) |
 
 ---
